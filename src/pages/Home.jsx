@@ -28,6 +28,35 @@ export default function Home() {
     refetchInterval: 30000,
   });
 
+  // Fetch user account
+  const { data: accounts, isLoading: accountLoading } = useQuery({
+    queryKey: ['userAccount'],
+    queryFn: () => base44.entities.UserAccount.list(),
+  });
+
+  // Fetch portfolio
+  const { data: portfolio = [], isLoading: portfolioLoading } = useQuery({
+    queryKey: ['portfolio'],
+    queryFn: () => base44.entities.Portfolio.list(),
+  });
+
+  // Create account if doesn't exist
+  const createAccountMutation = useMutation({
+    mutationFn: () => base44.entities.UserAccount.create({ 
+      cash_balance: 10000, 
+      initial_balance: 10000 
+    }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userAccount'] }),
+  });
+
+  useEffect(() => {
+    if (accounts && accounts.length === 0) {
+      createAccountMutation.mutate();
+    }
+  }, [accounts]);
+
+  const account = accounts?.[0];
+
   // Auto-update portfolio stock prices
   useEffect(() => {
     if (!portfolio || portfolio.length === 0) return;
@@ -63,35 +92,6 @@ export default function Home() {
     const interval = setInterval(updatePrices, 30000);
     return () => clearInterval(interval);
   }, [portfolio, queryClient]);
-
-  // Fetch user account
-  const { data: accounts, isLoading: accountLoading } = useQuery({
-    queryKey: ['userAccount'],
-    queryFn: () => base44.entities.UserAccount.list(),
-  });
-
-  // Fetch portfolio
-  const { data: portfolio = [], isLoading: portfolioLoading } = useQuery({
-    queryKey: ['portfolio'],
-    queryFn: () => base44.entities.Portfolio.list(),
-  });
-
-  // Create account if doesn't exist
-  const createAccountMutation = useMutation({
-    mutationFn: () => base44.entities.UserAccount.create({ 
-      cash_balance: 10000, 
-      initial_balance: 10000 
-    }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userAccount'] }),
-  });
-
-  useEffect(() => {
-    if (accounts && accounts.length === 0) {
-      createAccountMutation.mutate();
-    }
-  }, [accounts]);
-
-  const account = accounts?.[0];
 
   // Trade mutation
   const tradeMutation = useMutation({
