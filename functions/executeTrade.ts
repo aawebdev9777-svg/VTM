@@ -41,6 +41,8 @@ Deno.serve(async (req) => {
         ) / newTotalShares;
 
         await base44.asServiceRole.entities.Portfolio.update(existingHolding.id, {
+          symbol: stock.symbol,
+          company_name: stock.company_name,
           shares: newTotalShares,
           average_buy_price: newAvgPrice
         });
