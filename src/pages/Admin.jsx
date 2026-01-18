@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Users, TrendingUp, DollarSign, Activity, Award } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Shield, Users, TrendingUp, DollarSign, Activity, Award, Zap, TrendingDown, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
 export default function Admin() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -24,6 +26,15 @@ export default function Admin() {
     };
     checkAdmin();
   }, []);
+
+  const simulateEventMutation = useMutation({
+    mutationFn: async (eventType) => {
+      await base44.functions.invoke('simulateMarketEvent', { eventType });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+    },
+  });
 
   const { data: allAccounts = [] } = useQuery({
     queryKey: ['allAccounts'],
@@ -132,6 +143,46 @@ export default function Admin() {
         </p>
       </motion.div>
 
+      {/* Market Simulation */}
+      <Card className="border-0 shadow-lg mb-6 bg-gradient-to-br from-violet-50 to-purple-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Zap className="w-5 h-5 text-violet-600" />
+            Market Simulation
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              onClick={() => simulateEventMutation.mutate('crash')}
+              variant="destructive"
+              className="gap-2"
+              disabled={simulateEventMutation.isPending}
+            >
+              <TrendingDown className="w-4 h-4" />
+              Simulate Crash (-15%)
+            </Button>
+            <Button
+              onClick={() => simulateEventMutation.mutate('boost')}
+              className="gap-2 bg-green-600 hover:bg-green-700"
+              disabled={simulateEventMutation.isPending}
+            >
+              <TrendingUp className="w-4 h-4" />
+              Simulate Boost (+12%)
+            </Button>
+            <Button
+              onClick={() => simulateEventMutation.mutate('dip')}
+              variant="outline"
+              className="gap-2"
+              disabled={simulateEventMutation.isPending}
+            >
+              <AlertTriangle className="w-4 h-4" />
+              Simulate Dip (-7%)
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
@@ -191,7 +242,7 @@ export default function Admin() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Total Volume</p>
-                  <p className="text-2xl font-bold text-gray-900">£{(totalVolume / 1000).toFixed(1)}K</p>
+                  <p className="text-2xl font-bold text-gray-900">£{totalVolume.toLocaleString('en-GB', { maximumFractionDigits: 0 })}</p>
                 </div>
               </div>
             </CardContent>
@@ -199,8 +250,8 @@ export default function Admin() {
         </motion.div>
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      {/* Charts and Stock Economics */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <Card className="border-0 shadow-lg">
           <CardHeader>
             <CardTitle className="text-lg">Trading Activity</CardTitle>
@@ -232,6 +283,30 @@ export default function Admin() {
                 <Bar dataKey="volume" fill="#10b981" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-lg">App Economics</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+              <span className="text-sm text-gray-600">Avg Trade Size</span>
+              <span className="font-bold text-gray-900">£{avgTradeSize.toLocaleString('en-GB', { maximumFractionDigits: 0 })}</span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+              <span className="text-sm text-gray-600">Active Rate</span>
+              <span className="font-bold text-gray-900">{totalUsers > 0 ? ((activeUsers / totalUsers) * 100).toFixed(1) : 0}%</span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+              <span className="text-sm text-gray-600">Trades per User</span>
+              <span className="font-bold text-gray-900">{activeUsers > 0 ? (totalTrades / activeUsers).toFixed(1) : 0}</span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+              <span className="text-sm text-gray-600">Volume per User</span>
+              <span className="font-bold text-gray-900">£{activeUsers > 0 ? (totalVolume / activeUsers).toLocaleString('en-GB', { maximumFractionDigits: 0 }) : 0}</span>
+            </div>
           </CardContent>
         </Card>
       </div>
