@@ -401,22 +401,35 @@ export default function Wallet() {
                        <p className="font-bold text-lg">{selectedRecipient.full_name}</p>
                        <p className="text-sm text-gray-500">{selectedRecipient.email}</p>
                      </div>
-                     <Input
-                       type="number"
-                       placeholder="Amount (£)"
-                       value={transferAmount}
-                       onChange={(e) => setTransferAmount(e.target.value)}
-                       min="0"
-                       step="0.01"
-                       className="text-base h-12"
-                     />
+                     <div>
+                       <label className="text-sm text-gray-600 block mb-2">Amount (£)</label>
+                       <Input
+                         type="number"
+                         placeholder="Enter amount"
+                         value={transferAmount}
+                         onChange={(e) => setTransferAmount(e.target.value)}
+                         min="0"
+                         step="0.01"
+                         className="text-base h-12"
+                       />
+                       <p className="text-xs text-gray-500 mt-1">Available: £{cashBalance.toLocaleString('en-GB', { minimumFractionDigits: 2 })}</p>
+                     </div>
                      <Button
                        onClick={handleTransfer}
-                       disabled={!transferAmount || parseFloat(transferAmount) <= 0 || parseFloat(transferAmount) > cashBalance}
+                       disabled={!transferAmount || parseFloat(transferAmount) <= 0 || parseFloat(transferAmount) > cashBalance || transferMutation.isPending}
                        className="w-full bg-violet-600 hover:bg-violet-700 h-12 text-base"
                      >
-                       <Send className="w-4 h-4 mr-2" />
-                       Send £{transferAmount || '0'}
+                       {transferMutation.isPending ? (
+                         <>
+                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                           Sending...
+                         </>
+                       ) : (
+                         <>
+                           <Send className="w-4 h-4 mr-2" />
+                           Send £{transferAmount || '0'}
+                         </>
+                       )}
                      </Button>
                    </div>
                  )}
