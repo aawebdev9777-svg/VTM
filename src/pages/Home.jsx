@@ -74,13 +74,6 @@ export default function Home() {
 
   const account = accounts?.[0];
 
-  const toggleSuperAdmin = () => {
-    const newMode = !isSuperAdmin;
-    setIsSuperAdmin(newMode);
-    localStorage.setItem('superAdminMode', newMode.toString());
-    window.location.reload();
-  };
-
   // Auto-update portfolio stock prices
   useEffect(() => {
     if (!portfolio || portfolio.length === 0) return;
