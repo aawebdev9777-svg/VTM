@@ -43,6 +43,7 @@ export default function Home() {
       return userAccounts.length > 0 ? userAccounts : [];
     },
     enabled: !!currentUser?.email,
+    refetchInterval: 2000,
   });
 
   // Fetch portfolio (filtered by current user)
