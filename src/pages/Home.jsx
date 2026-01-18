@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -74,19 +73,6 @@ export default function Home() {
   }, [accounts, currentUser?.email]);
 
   const account = accounts?.[0];
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    const checkSuperMode = async () => {
-      const user = await base44.auth.me();
-      const isAdminUser = user?.email === 'aa.web.dev9777@gmail.com';
-      setIsAdmin(isAdminUser);
-      const savedMode = localStorage.getItem('superAdminMode');
-      setIsSuperAdmin(isAdminUser && savedMode === 'true');
-    };
-    checkSuperMode();
-  }, []);
 
   const toggleSuperAdmin = () => {
     const newMode = !isSuperAdmin;
