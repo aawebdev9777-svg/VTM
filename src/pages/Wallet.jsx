@@ -50,19 +50,21 @@ export default function Wallet() {
     getUser();
   }, []);
 
-  const createAccountMutation = useMutation({
-    mutationFn: async () => {
-      return base44.entities.UserAccount.create({ 
-        cash_balance: isAdmin ? 999999999 : 10000, 
-        initial_balance: isAdmin ? 999999999 : 10000 
-      });
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userAccount'] }),
-  });
-
   const { data: accounts } = useQuery({
     queryKey: ['userAccount'],
     queryFn: () => base44.entities.UserAccount.list(),
+  });
+
+  const createAccountMutation = useMutation({
+    mutationFn: async () => {
+      const user = await base44.auth.me();
+      const adminCheck = user?.email === 'aa.web.dev9777@gmail.com';
+      return base44.entities.UserAccount.create({ 
+        cash_balance: adminCheck ? 999999999 : 10000, 
+        initial_balance: adminCheck ? 999999999 : 10000 
+      });
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userAccount'] }),
   });
 
   useEffect(() => {
@@ -70,19 +72,6 @@ export default function Wallet() {
       createAccountMutation.mutate();
     }
   }, [accounts]);
-
-  useEffect(() => {
-    const updateAdminBalance = async () => {
-      if (isAdmin && account && account.cash_balance < 999999999) {
-        await base44.entities.UserAccount.update(account.id, {
-          cash_balance: 999999999,
-          initial_balance: 999999999
-        });
-        queryClient.invalidateQueries({ queryKey: ['userAccount'] });
-      }
-    };
-    updateAdminBalance();
-  }, [isAdmin, account]);
 
   const { data: leaderboardData = [] } = useQuery({
     queryKey: ['leaderboard'],
@@ -106,12 +95,24 @@ export default function Wallet() {
   });
 
   const account = accounts?.[0];
+  const isAdmin = currentUser?.email === 'aa.web.dev9777@gmail.com';
   const cashBalance = account?.cash_balance || 10000;
   const initialBalance = account?.initial_balance || 10000;
   const totalSpent = transactions.filter(t => t.type === 'buy').reduce((sum, t) => sum + t.total_amount, 0);
   const totalEarned = transactions.filter(t => t.type === 'sell').reduce((sum, t) => sum + t.total_amount, 0);
 
-  const isAdmin = currentUser?.email === 'aa.web.dev9777@gmail.com';
+  useEffect(() => {
+    const updateAdminBalance = async () => {
+      if (isAdmin && account && account.cash_balance < 999999999) {
+        await base44.entities.UserAccount.update(account.id, {
+          cash_balance: 999999999,
+          initial_balance: 999999999
+        });
+        queryClient.invalidateQueries({ queryKey: ['userAccount'] });
+      }
+    };
+    updateAdminBalance();
+  }, [isAdmin, account]);
   const currentCardDesign = isAdmin ? adminCard : cardDesigns[selectedCardIndex];
   const cardNumber = currentUser ? generateCardNumber(currentUser.email) : '**** **** **** 0000';
 
