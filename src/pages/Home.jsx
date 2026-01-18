@@ -46,14 +46,15 @@ export default function Home() {
   });
 
   // Fetch portfolio (filtered by current user)
-  const { data: portfolio = [], isLoading: portfolioLoading } = useQuery({
-    queryKey: ['portfolio', currentUser?.email],
-    queryFn: async () => {
-      const allPortfolio = await base44.entities.Portfolio.list();
-      return allPortfolio.filter(p => p.created_by === currentUser?.email);
-    },
-    enabled: !!currentUser?.email,
-  });
+   const { data: portfolio = [], isLoading: portfolioLoading } = useQuery({
+     queryKey: ['portfolio', currentUser?.email],
+     queryFn: async () => {
+       const allPortfolio = await base44.entities.Portfolio.list();
+       return allPortfolio.filter(p => p.created_by === currentUser?.email);
+     },
+     enabled: !!currentUser?.email,
+     refetchInterval: 5000,
+   });
 
   // Create account if doesn't exist
   const createAccountMutation = useMutation({
