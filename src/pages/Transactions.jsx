@@ -77,7 +77,7 @@ export default function Transactions() {
                           </div>
                           <p className="text-sm text-gray-500">{transaction.company_name}</p>
                           <p className="text-xs text-gray-400 mt-1">
-                            {transaction.shares} shares @ £{transaction.price_per_share?.toFixed(2)}
+                            {transaction.shares?.toLocaleString()} shares @ £{transaction.price_per_share?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </p>
                         </div>
                       </div>
