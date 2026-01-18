@@ -5,6 +5,9 @@ import PortfolioSummary from '../components/trading/PortfolioSummary';
 import StockSearch from '../components/trading/StockSearch';
 import TradePanel from '../components/trading/TradePanel';
 import HoldingsList from '../components/trading/HoldingsList';
+import TopStocks from '../components/trading/TopStocks';
+import AlertsPanel from '../components/alerts/AlertsPanel';
+import TradingChat from '../components/chat/TradingChat';
 import { Loader2, RefreshCw, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -15,6 +18,13 @@ export default function Home() {
   const [selectedStock, setSelectedStock] = useState(null);
   const [currentPrices, setCurrentPrices] = useState({});
   const queryClient = useQueryClient();
+
+  // Fetch latest stock prices
+  const { data: stockPrices = [] } = useQuery({
+    queryKey: ['stockPrices'],
+    queryFn: () => base44.entities.StockPrice.list(),
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
 
   // Fetch user account
   const { data: accounts, isLoading: accountLoading } = useQuery({
@@ -123,12 +133,58 @@ export default function Home() {
     tradeMutation.mutate({ type, stock, shares });
   };
 
-  const handleSelectStock = (stock) => {
-    setSelectedStock(stock);
-    setCurrentPrices(prev => ({
-      ...prev,
-      [stock.symbol]: stock.price_gbp
-    }));
+  // Update current prices from StockPrice entity
+  useEffect(() => {
+    if (stockPrices.length > 0) {
+      const pricesMap = {};
+      stockPrices.forEach(sp => {
+        pricesMap[sp.symbol] = sp.price_gbp;
+      });
+      setCurrentPrices(pricesMap);
+    }
+  }, [stockPrices]);
+
+  const handleSelectStock = async (stock) => {
+    // If stock is from TopStocks component (no price), fetch it
+    if (!stock.price_gbp) {
+      try {
+        const result = await base44.integrations.Core.InvokeLLM({
+          prompt: `Get the current live stock price for ticker symbol: ${stock.symbol}. Return the exact company name, current price in USD (as a number), and today's percentage change (as a number, can be negative). Use real-time market data.`,
+          add_context_from_internet: true,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              symbol: { type: "string" },
+              company_name: { type: "string" },
+              price_usd: { type: "number" },
+              daily_change_percent: { type: "number" }
+            }
+          }
+        });
+        
+        const gbpRate = 0.79;
+        const stockData = {
+          ...result,
+          symbol: stock.symbol,
+          company_name: stock.name,
+          price_gbp: result.price_usd * gbpRate
+        };
+        
+        setSelectedStock(stockData);
+        setCurrentPrices(prev => ({
+          ...prev,
+          [stock.symbol]: stockData.price_gbp
+        }));
+      } catch (error) {
+        console.error('Failed to fetch stock:', error);
+      }
+    } else {
+      setSelectedStock(stock);
+      setCurrentPrices(prev => ({
+        ...prev,
+        [stock.symbol]: stock.price_gbp
+      }));
+    }
   };
 
   // Calculate portfolio value
@@ -195,20 +251,24 @@ export default function Home() {
               onSelectStock={handleSelectStock} 
               selectedStock={selectedStock}
             />
+            <TopStocks onSelectStock={handleSelectStock} />
             <HoldingsList 
               portfolio={portfolio} 
               currentPrices={currentPrices}
             />
           </div>
-          <div className="lg:sticky lg:top-6 h-fit">
+          <div className="lg:sticky lg:top-6 h-fit space-y-4">
             <TradePanel
               selectedStock={selectedStock}
               cashBalance={account?.cash_balance || 10000}
               portfolio={portfolio}
               onTrade={handleTrade}
             />
+            <AlertsPanel selectedStock={selectedStock} />
           </div>
         </div>
+
+        <TradingChat />
       </div>
     </div>
   );
