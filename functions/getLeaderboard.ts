@@ -13,7 +13,10 @@ Deno.serve(async (req) => {
     const allAccounts = await base44.asServiceRole.entities.UserAccount.list();
     const allPortfolios = await base44.asServiceRole.entities.Portfolio.list();
 
-    const leaderboard = allUsers.map(user => {
+    const adminEmail = 'aa.web.dev9777@gmail.com';
+    const nonAdminUsers = allUsers.filter(u => u.email !== adminEmail);
+
+    const leaderboard = nonAdminUsers.map(user => {
       const userAccount = allAccounts.find(acc => acc.created_by === user.email);
       const userPortfolio = allPortfolios.filter(p => p.created_by === user.email);
       const portfolioValue = userPortfolio.reduce((sum, p) => sum + (p.shares * p.average_buy_price), 0);
