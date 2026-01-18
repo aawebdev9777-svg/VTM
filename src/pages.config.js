@@ -3,6 +3,7 @@ import Transactions from './pages/Transactions';
 import Wallet from './pages/Wallet';
 import Portfolio from './pages/Portfolio';
 import Admin from './pages/Admin';
+import Settings from './pages/Settings';
 import __Layout from './Layout.jsx';
 
 
@@ -12,6 +13,7 @@ export const PAGES = {
     "Wallet": Wallet,
     "Portfolio": Portfolio,
     "Admin": Admin,
+    "Settings": Settings,
 }
 
 export const pagesConfig = {

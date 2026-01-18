@@ -38,6 +38,7 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Portfolio', href: createPageUrl('Portfolio'), icon: TrendingUp },
     { name: 'Wallet', href: createPageUrl('Wallet'), icon: Wallet },
     { name: 'Transactions', href: createPageUrl('Transactions'), icon: History },
+    { name: 'Settings', href: createPageUrl('Settings'), icon: User },
     ...(isAdmin ? [{ name: 'Admin', href: createPageUrl('Admin'), icon: Shield }] : []),
   ];
 
@@ -61,7 +62,7 @@ export default function Layout({ children, currentPageName }) {
                 <TrendingUp className="w-6 h-6 text-white" />
               </div>
               <span className="text-xl font-bold text-gray-900 hidden sm:block">
-                Stock Trader
+                VTM
               </span>
             </Link>
 

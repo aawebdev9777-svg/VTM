@@ -19,17 +19,25 @@ export default function Home() {
   const [currentPrices, setCurrentPrices] = useState({});
   const queryClient = useQueryClient();
 
-  // Fetch latest stock prices every 30 seconds
+  // Fetch and update stock prices every 30 seconds
   const { data: stockPrices = [] } = useQuery({
     queryKey: ['stockPrices'],
     queryFn: async () => {
-      const prices = await base44.entities.StockPrice.list();
-      // Update all owned stocks
+      return await base44.entities.StockPrice.list();
+    },
+    refetchInterval: 30000,
+  });
+
+  // Auto-update portfolio stock prices
+  useEffect(() => {
+    const updatePrices = async () => {
+      if (portfolio.length === 0) return;
+      
       const symbols = [...new Set(portfolio.map(p => p.symbol))];
       for (const symbol of symbols) {
         try {
           const response = await base44.functions.invoke('getStockPrice', { symbol });
-          const existingPrice = await base44.entities.StockPrice.filter({ symbol });
+          const existingPrices = await base44.entities.StockPrice.filter({ symbol });
           
           const priceData = {
             symbol,
@@ -39,8 +47,8 @@ export default function Home() {
             updated_at: new Date().toISOString()
           };
 
-          if (existingPrice.length > 0) {
-            await base44.entities.StockPrice.update(existingPrice[0].id, priceData);
+          if (existingPrices.length > 0) {
+            await base44.entities.StockPrice.update(existingPrices[0].id, priceData);
           } else {
             await base44.entities.StockPrice.create(priceData);
           }
@@ -48,11 +56,13 @@ export default function Home() {
           console.error(`Failed to update ${symbol}:`, error);
         }
       }
-      return await base44.entities.StockPrice.list();
-    },
-    refetchInterval: 30000, // Refresh every 30 seconds
-    enabled: portfolio.length > 0,
-  });
+      queryClient.invalidateQueries({ queryKey: ['stockPrices'] });
+    };
+
+    updatePrices();
+    const interval = setInterval(updatePrices, 30000);
+    return () => clearInterval(interval);
+  }, [portfolio, queryClient]);
 
   // Fetch user account
   const { data: accounts, isLoading: accountLoading } = useQuery({
