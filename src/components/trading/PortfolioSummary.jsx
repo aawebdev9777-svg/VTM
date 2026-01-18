@@ -9,7 +9,7 @@ export default function PortfolioSummary({ cashBalance, portfolioValue, totalPro
   const isProfit = profitPercentage >= 0;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -17,13 +17,13 @@ export default function PortfolioSummary({ cashBalance, portfolioValue, totalPro
       >
         <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-0 shadow-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2">
+            <CardTitle className="text-xs md:text-sm font-medium opacity-90 flex items-center gap-2">
               <Wallet className="w-4 h-4" />
               Cash Balance
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">£{cashBalance.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p className="text-2xl md:text-3xl font-bold">£{cashBalance.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </CardContent>
         </Card>
       </motion.div>
@@ -35,13 +35,13 @@ export default function PortfolioSummary({ cashBalance, portfolioValue, totalPro
       >
         <Card className="bg-gradient-to-br from-violet-500 to-violet-600 text-white border-0 shadow-lg">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2">
+            <CardTitle className="text-xs md:text-sm font-medium opacity-90 flex items-center gap-2">
               <PiggyBank className="w-4 h-4" />
               Portfolio Value
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">£{portfolioValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            <p className="text-2xl md:text-3xl font-bold">£{portfolioValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
           </CardContent>
         </Card>
       </motion.div>
@@ -50,19 +50,20 @@ export default function PortfolioSummary({ cashBalance, portfolioValue, totalPro
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
+        className="sm:col-span-2 lg:col-span-1"
       >
         <Card className={`bg-gradient-to-br ${isProfit ? 'from-green-500 to-green-600' : 'from-red-500 to-red-600'} text-white border-0 shadow-lg`}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2">
+            <CardTitle className="text-xs md:text-sm font-medium opacity-90 flex items-center gap-2">
               {isProfit ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
               Total Return
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">
+            <p className="text-2xl md:text-3xl font-bold">
               {isProfit ? '+' : ''}{profitPercentage.toFixed(2)}%
             </p>
-            <p className="text-sm opacity-75 mt-1">
+            <p className="text-xs md:text-sm opacity-75 mt-1">
               £{totalValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total
             </p>
           </CardContent>

@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import PortfolioSummary from '@/components/trading/PortfolioSummary';
-import StockSearch from '@/components/trading/StockSearch';
-import TradePanel from '@/components/trading/TradePanel';
-import HoldingsList from '@/components/trading/HoldingsList';
-import { Loader2, RefreshCw } from 'lucide-react';
+import PortfolioSummary from '../components/trading/PortfolioSummary';
+import StockSearch from '../components/trading/StockSearch';
+import TradePanel from '../components/trading/TradePanel';
+import HoldingsList from '../components/trading/HoldingsList';
+import { Loader2, RefreshCw, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '../utils';
 
 export default function Home() {
   const [selectedStock, setSelectedStock] = useState(null);
@@ -145,38 +147,50 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50 to-slate-100">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6"
         >
-          <div className="flex items-center justify-between mb-2">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
-              Stock Trading Simulator
-            </h1>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => queryClient.invalidateQueries()}
-              className="gap-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Refresh
-            </Button>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
+            <div>
+              <h1 className="text-2xl md:text-4xl font-bold text-gray-900 flex items-center gap-2">
+                <TrendingUp className="w-8 h-8 text-violet-600" />
+                Stock Trading Simulator
+              </h1>
+              <p className="text-sm md:text-base text-gray-500 mt-1">
+                Practice trading with £10,000 virtual cash • Live market prices
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Link to={createPageUrl('Transactions')}>
+                <Button variant="outline" size="sm">
+                  History
+                </Button>
+              </Link>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => queryClient.invalidateQueries()}
+                className="gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Refresh
+              </Button>
+            </div>
           </div>
-          <p className="text-gray-500">Practice trading with £10,000 virtual cash using real stock prices</p>
         </motion.div>
 
-        <div className="mb-8">
+        <div className="mb-6">
           <PortfolioSummary
             cashBalance={account?.cash_balance || 10000}
             portfolioValue={portfolioValue}
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="lg:col-span-2 space-y-4 md:space-y-6">
             <StockSearch 
               onSelectStock={handleSelectStock} 
               selectedStock={selectedStock}
@@ -186,7 +200,7 @@ export default function Home() {
               currentPrices={currentPrices}
             />
           </div>
-          <div>
+          <div className="lg:sticky lg:top-6 h-fit">
             <TradePanel
               selectedStock={selectedStock}
               cashBalance={account?.cash_balance || 10000}
