@@ -367,24 +367,30 @@ export default function Wallet() {
                   />
                 </div>
 
-                {searchQuery && (
-                  <div className="max-h-48 overflow-y-auto space-y-2">
-                    {filteredUsers.map((user) => (
-                      <button
-                        key={user.email}
-                        onClick={() => setSelectedRecipient(user)}
-                        className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
-                          selectedRecipient?.email === user.email
-                            ? 'border-violet-600 bg-violet-50'
-                            : 'border-gray-200 hover:border-violet-300'
-                        }`}
-                      >
-                        <p className="font-medium">{user.full_name}</p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                {searchQuery && filteredUsers.length > 0 && (
+                   <div className="max-h-48 overflow-y-auto space-y-2 border border-gray-200 rounded-lg p-2">
+                     {filteredUsers.slice(0, 5).map((user) => (
+                       <button
+                         key={user.email}
+                         onClick={() => {
+                           setSelectedRecipient(user);
+                           setSearchQuery('');
+                         }}
+                         className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
+                           selectedRecipient?.email === user.email
+                             ? 'border-violet-600 bg-violet-50'
+                             : 'border-gray-200 hover:border-violet-300'
+                         }`}
+                       >
+                         <p className="font-medium text-sm">{user.full_name}</p>
+                         <p className="text-xs text-gray-500">{user.email}</p>
+                       </button>
+                     ))}
+                   </div>
+                 )}
+                 {searchQuery && filteredUsers.length === 0 && (
+                   <p className="text-sm text-gray-500 text-center py-3">No users found</p>
+                 )}
 
                 {selectedRecipient && (
                   <div className="space-y-3">
