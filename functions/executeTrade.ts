@@ -79,8 +79,8 @@ Deno.serve(async (req) => {
     const updatedAccount = await base44.asServiceRole.entities.UserAccount.list();
     const updatedUserAccount = updatedAccount.find(acc => acc.id === account.id);
 
-    // Create transaction record
-    const transaction = await base44.asServiceRole.entities.Transaction.create({
+    // Create transaction record using user's auth (not service role)
+    const transaction = await base44.entities.Transaction.create({
       symbol: stock.symbol,
       company_name: stock.company_name,
       type: type,
