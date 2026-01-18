@@ -281,11 +281,6 @@ export default function Home() {
               onSelectStock={handleSelectStock} 
               selectedStock={selectedStock}
             />
-            <StockNews 
-              symbol={selectedStock?.symbol} 
-              companyName={selectedStock?.company_name || selectedStock?.name}
-              autoLoad={!selectedStock}
-            />
             <TopStocks onSelectStock={handleSelectStock} />
             <HoldingsList 
               portfolio={portfolio} 
