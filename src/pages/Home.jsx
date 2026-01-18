@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PortfolioSummary from '../components/trading/PortfolioSummary';
 import StockSearch from '../components/trading/StockSearch';
-import TradePanel from '../components/trading/TradePanel';
+import BuyStockPanel from '../components/trading/BuyStockPanel';
 import HoldingsList from '../components/trading/HoldingsList';
 import TopStocks from '../components/trading/TopStocks';
 import AlertsPanel from '../components/alerts/AlertsPanel';
@@ -134,10 +134,10 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [portfolio, queryClient]);
 
-  // Trade mutation
-   const tradeMutation = useMutation({
-     mutationFn: async ({ type, stock, shares }) => {
-       const response = await base44.functions.invoke('executeTrade', { type, stock, shares });
+  // Buy mutation
+   const buyMutation = useMutation({
+     mutationFn: async ({ stock, shares }) => {
+       const response = await base44.functions.invoke('buyStock', { stock, shares });
        return response.data;
      },
      onSuccess: async () => {
@@ -147,9 +147,9 @@ export default function Home() {
      },
    });
 
-  const handleTrade = (type, stock, shares) => {
-    tradeMutation.mutate({ type, stock, shares });
-  };
+   const handleBuy = (stock, shares) => {
+     buyMutation.mutate({ stock, shares });
+   };
 
   // Update current prices from StockPrice entity
   useEffect(() => {
@@ -251,11 +251,11 @@ export default function Home() {
             />
           </div>
           <div className="lg:sticky lg:top-6 h-fit space-y-4">
-            <TradePanel
+            <BuyStockPanel
               selectedStock={selectedStock}
               cashBalance={account?.cash_balance || 0}
-              portfolio={portfolio}
-              onTrade={handleTrade}
+              onBuy={handleBuy}
+              isLoading={buyMutation.isPending}
             />
             <AlertsPanel selectedStock={selectedStock} />
           </div>
