@@ -19,11 +19,39 @@ export default function Home() {
   const [currentPrices, setCurrentPrices] = useState({});
   const queryClient = useQueryClient();
 
-  // Fetch latest stock prices
+  // Fetch latest stock prices every 30 seconds
   const { data: stockPrices = [] } = useQuery({
     queryKey: ['stockPrices'],
-    queryFn: () => base44.entities.StockPrice.list(),
+    queryFn: async () => {
+      const prices = await base44.entities.StockPrice.list();
+      // Update all owned stocks
+      const symbols = [...new Set(portfolio.map(p => p.symbol))];
+      for (const symbol of symbols) {
+        try {
+          const response = await base44.functions.invoke('getStockPrice', { symbol });
+          const existingPrice = await base44.entities.StockPrice.filter({ symbol });
+          
+          const priceData = {
+            symbol,
+            price_gbp: response.data.price_gbp,
+            price_usd: response.data.price_usd,
+            daily_change_percent: response.data.daily_change_percent,
+            updated_at: new Date().toISOString()
+          };
+
+          if (existingPrice.length > 0) {
+            await base44.entities.StockPrice.update(existingPrice[0].id, priceData);
+          } else {
+            await base44.entities.StockPrice.create(priceData);
+          }
+        } catch (error) {
+          console.error(`Failed to update ${symbol}:`, error);
+        }
+      }
+      return await base44.entities.StockPrice.list();
+    },
     refetchInterval: 30000, // Refresh every 30 seconds
+    enabled: portfolio.length > 0,
   });
 
   // Fetch user account
@@ -148,26 +176,10 @@ export default function Home() {
     // If stock is from TopStocks component (no price), fetch it
     if (!stock.price_gbp) {
       try {
-        const result = await base44.integrations.Core.InvokeLLM({
-          prompt: `Get the current live stock price for ticker symbol: ${stock.symbol}. Return the exact company name, current price in USD (as a number), and today's percentage change (as a number, can be negative). Use real-time market data.`,
-          add_context_from_internet: true,
-          response_json_schema: {
-            type: "object",
-            properties: {
-              symbol: { type: "string" },
-              company_name: { type: "string" },
-              price_usd: { type: "number" },
-              daily_change_percent: { type: "number" }
-            }
-          }
-        });
-        
-        const gbpRate = 0.79;
+        const response = await base44.functions.invoke('getStockPrice', { symbol: stock.symbol });
         const stockData = {
-          ...result,
-          symbol: stock.symbol,
-          company_name: stock.name,
-          price_gbp: result.price_usd * gbpRate
+          ...response.data,
+          company_name: response.data.name
         };
         
         setSelectedStock(stockData);
