@@ -195,46 +195,36 @@ export default function Home() {
 
   if (accountLoading || portfolioLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50 to-slate-100">
-      <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
+    <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
+          <div className="flex items-center justify-between mb-2">
             <div>
-              <h1 className="text-2xl md:text-4xl font-bold text-gray-900 flex items-center gap-2">
-                <TrendingUp className="w-8 h-8 text-violet-600" />
-                Stock Trading Simulator
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                Portfolio
               </h1>
-              <p className="text-sm md:text-base text-gray-500 mt-1">
-                Practice trading with £10,000 virtual cash • Live market prices
+              <p className="text-sm text-gray-500 mt-1">
+                £10,000 virtual cash • Live prices
               </p>
             </div>
-            <div className="flex gap-2">
-              <Link to={createPageUrl('Transactions')}>
-                <Button variant="outline" size="sm">
-                  History
-                </Button>
-              </Link>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => queryClient.invalidateQueries()}
-                className="gap-2"
-              >
-                <RefreshCw className="w-4 h-4" />
-                Refresh
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => queryClient.invalidateQueries()}
+              className="gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </Button>
           </div>
         </motion.div>
 
@@ -268,8 +258,7 @@ export default function Home() {
           </div>
         </div>
 
-        <TradingChat />
-      </div>
+      <TradingChat />
     </div>
   );
 }

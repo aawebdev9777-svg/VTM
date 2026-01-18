@@ -17,27 +17,20 @@ export default function Transactions() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50 to-slate-100">
-      <div className="max-w-5xl mx-auto px-4 py-6 md:py-8">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6"
-        >
-          <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" size="sm" className="mb-4">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Trading
-            </Button>
-          </Link>
-          <h1 className="text-2xl md:text-4xl font-bold text-gray-900 flex items-center gap-2">
-            <Calendar className="w-8 h-8 text-violet-600" />
-            Transaction History
-          </h1>
-          <p className="text-sm md:text-base text-gray-500 mt-1">
-            All your buy and sell transactions
-          </p>
-        </motion.div>
+    <div className="max-w-5xl mx-auto px-4 py-6 md:py-8">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-6"
+      >
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <Calendar className="w-6 h-6 text-violet-600" />
+          Transaction History
+        </h1>
+        <p className="text-sm text-gray-500 mt-1">
+          All your buy and sell transactions
+        </p>
+      </motion.div>
 
         <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
           <CardHeader>
@@ -108,7 +101,6 @@ export default function Transactions() {
             )}
           </CardContent>
         </Card>
-      </div>
     </div>
   );
 }
