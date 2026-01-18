@@ -70,8 +70,14 @@ export default function Admin() {
     );
   }
 
-  // Calculate leaderboard
-  const userStats = allUsers.map(user => {
+  const adminEmail = 'aa.web.dev9777@gmail.com';
+
+  // Filter out admin from all data
+  const nonAdminUsers = allUsers.filter(u => u.email !== adminEmail);
+  const nonAdminTransactions = allTransactions.filter(t => t.created_by !== adminEmail);
+
+  // Calculate leaderboard (excluding admin)
+  const userStats = nonAdminUsers.map(user => {
     const userAccount = allAccounts.find(acc => acc.created_by === user.email);
     const userPortfolio = allPortfolios.filter(p => p.created_by === user.email);
     const portfolioValue = userPortfolio.reduce((sum, p) => sum + (p.shares * p.average_buy_price), 0);
@@ -85,24 +91,24 @@ export default function Admin() {
       totalValue,
       profitLoss,
       profitPercent,
-      trades: allTransactions.filter(t => t.created_by === user.email).length,
+      trades: nonAdminTransactions.filter(t => t.created_by === user.email).length,
     };
   }).sort((a, b) => b.totalValue - a.totalValue);
 
-  // App Economics
-  const totalUsers = allUsers.length;
-  const totalTrades = allTransactions.length;
-  const totalVolume = allTransactions.reduce((sum, t) => sum + t.total_amount, 0);
+  // App Economics (excluding admin)
+  const totalUsers = nonAdminUsers.length;
+  const totalTrades = nonAdminTransactions.length;
+  const totalVolume = nonAdminTransactions.reduce((sum, t) => sum + t.total_amount, 0);
   const avgTradeSize = totalVolume / totalTrades || 0;
-  const activeUsers = [...new Set(allTransactions.map(t => t.created_by))].length;
+  const activeUsers = [...new Set(nonAdminTransactions.map(t => t.created_by))].length;
 
-  // Trading activity over time (last 7 days)
+  // Trading activity over time (last 7 days, excluding admin)
   const activityData = [];
   for (let i = 6; i >= 0; i--) {
     const date = new Date();
     date.setDate(date.getDate() - i);
     const dateStr = date.toISOString().split('T')[0];
-    const dayTrades = allTransactions.filter(t => t.created_date?.startsWith(dateStr));
+    const dayTrades = nonAdminTransactions.filter(t => t.created_date?.startsWith(dateStr));
     activityData.push({
       date: date.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }),
       trades: dayTrades.length,
