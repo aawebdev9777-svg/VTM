@@ -215,32 +215,39 @@ export default function Admin() {
 
           <div className="border-t pt-4">
             <h3 className="text-sm font-semibold text-gray-700 mb-3">User Management</h3>
-            <div className="flex flex-wrap gap-3">
-              <Button
-                onClick={() => resetAccountsMutation.mutate()}
-                variant="outline"
-                className="gap-2"
-                disabled={resetAccountsMutation.isPending}
-              >
-                <Users className="w-4 h-4" />
-                Reset All Users to £10,000
-              </Button>
-              <Button
-                onClick={() => logoutAllUsersMutation.mutate()}
-                variant="destructive"
-                className="gap-2"
-                disabled={logoutAllUsersMutation.isPending}
-              >
-                <LogOut className="w-4 h-4" />
-                Logout All Users
-              </Button>
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  onClick={() => resetAccountsMutation.mutate()}
+                  variant="outline"
+                  className="gap-2"
+                  disabled={resetAccountsMutation.isPending}
+                >
+                  <Users className="w-4 h-4" />
+                  Reset All Users to £10,000
+                </Button>
+                <Button
+                  onClick={() => logoutAllUsersMutation.mutate()}
+                  variant="destructive"
+                  className="gap-2"
+                  disabled={logoutAllUsersMutation.isPending}
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout All Users
+                </Button>
+              </div>
+              {resetAccountsMutation.isSuccess && (
+                <p className="text-sm text-green-600">✓ Accounts reset successfully</p>
+              )}
+              {logoutAllUsersMutation.isSuccess && (
+                <p className="text-sm text-green-600">✓ All users logged out</p>
+              )}
             </div>
-            {resetAccountsMutation.isSuccess && (
-              <p className="text-sm text-green-600 mt-2">✓ Accounts reset successfully</p>
-            )}
-            {logoutAllUsersMutation.isSuccess && (
-              <p className="text-sm text-green-600 mt-2">✓ All users logged out</p>
-            )}
+          </div>
+
+          <div className="border-t pt-4 mt-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Send Money to User</h3>
+            <AdminSendMoney />
           </div>
         </CardContent>
       </Card>
