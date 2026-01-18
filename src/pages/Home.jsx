@@ -34,35 +34,43 @@ export default function Home() {
     refetchInterval: 30000,
   });
 
-  // Fetch user account
+  // Fetch user account (filtered by current user)
   const { data: accounts, isLoading: accountLoading } = useQuery({
-    queryKey: ['userAccount'],
-    queryFn: () => base44.entities.UserAccount.list(),
+    queryKey: ['userAccount', currentUser?.email],
+    queryFn: async () => {
+      const allAccounts = await base44.entities.UserAccount.list();
+      const userAccounts = allAccounts.filter(acc => acc.created_by === currentUser?.email);
+      return userAccounts.length > 0 ? userAccounts : [];
+    },
+    enabled: !!currentUser?.email,
   });
 
-  // Fetch portfolio
+  // Fetch portfolio (filtered by current user)
   const { data: portfolio = [], isLoading: portfolioLoading } = useQuery({
-    queryKey: ['portfolio'],
-    queryFn: () => base44.entities.Portfolio.list(),
+    queryKey: ['portfolio', currentUser?.email],
+    queryFn: async () => {
+      const allPortfolio = await base44.entities.Portfolio.list();
+      return allPortfolio.filter(p => p.created_by === currentUser?.email);
+    },
+    enabled: !!currentUser?.email,
   });
 
   // Create account if doesn't exist
   const createAccountMutation = useMutation({
     mutationFn: async () => {
-      const user = await base44.auth.me();
       return base44.entities.UserAccount.create({ 
         cash_balance: 10000, 
         initial_balance: 10000 
       });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userAccount'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] }),
   });
 
   useEffect(() => {
-    if (accounts && accounts.length === 0) {
+    if (currentUser?.email && accounts && accounts.length === 0) {
       createAccountMutation.mutate();
     }
-  }, [accounts]);
+  }, [accounts, currentUser?.email]);
 
   const account = accounts?.[0];
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
