@@ -276,26 +276,14 @@ export default function Home() {
                   £10,000 virtual cash • Live prices
                 </p>
               </div>
-              <div className="flex gap-2">
-                {isAdmin && (
-                  <Button
-                    variant={isSuperAdmin ? "default" : "outline"}
-                    size="sm"
-                    onClick={toggleSuperAdmin}
-                    className="gap-2"
-                  >
-                    {isSuperAdmin ? '👑 Super' : '👤 Normal'}
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => queryClient.invalidateQueries()}
-                  className="gap-2"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => queryClient.invalidateQueries()}
+                className="gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </Button>
             </div>
         </motion.div>
 
