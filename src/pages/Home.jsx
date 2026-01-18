@@ -56,17 +56,26 @@ export default function Home() {
      refetchInterval: 2000,
    });
 
-   // Subscribe to real-time portfolio updates
+   // Subscribe to real-time portfolio and account updates
    useEffect(() => {
      if (!currentUser?.email) return;
      
-     const unsubscribe = base44.entities.Portfolio.subscribe((event) => {
+     const unsubscribePortfolio = base44.entities.Portfolio.subscribe((event) => {
        if (event.data?.created_by === currentUser?.email) {
          queryClient.invalidateQueries({ queryKey: ['portfolio', currentUser?.email] });
        }
      });
 
-     return unsubscribe;
+     const unsubscribeAccount = base44.entities.UserAccount.subscribe((event) => {
+       if (event.data?.created_by === currentUser?.email) {
+         queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] });
+       }
+     });
+
+     return () => {
+       unsubscribePortfolio();
+       unsubscribeAccount();
+     };
    }, [currentUser?.email, queryClient]);
 
   // Create account if doesn't exist
