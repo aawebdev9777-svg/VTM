@@ -10,7 +10,8 @@ import {
   History, 
   TrendingUp, 
   LogOut,
-  User
+  User,
+  Wallet
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -20,6 +21,8 @@ export default function Layout({ children, currentPageName }) {
 
   const navigation = [
     { name: 'Home', href: createPageUrl('Home'), icon: Home },
+    { name: 'Portfolio', href: createPageUrl('Portfolio'), icon: TrendingUp },
+    { name: 'Wallet', href: createPageUrl('Wallet'), icon: Wallet },
     { name: 'Transactions', href: createPageUrl('Transactions'), icon: History },
   ];
 
