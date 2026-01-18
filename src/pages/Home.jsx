@@ -111,78 +111,78 @@ export default function Home() {
   }, [portfolio, queryClient]);
 
   // Trade mutation
-  const tradeMutation = useMutation({
-    mutationFn: async ({ type, stock, shares }) => {
-      const totalAmount = shares * stock.price_gbp;
-      
-      if (type === 'buy') {
-        // Update cash balance
-        await base44.entities.UserAccount.update(account.id, {
-          cash_balance: account.cash_balance - totalAmount
-        });
-        
-        // Check if already own this stock
-        const existingHolding = portfolio.find(p => p.symbol === stock.symbol);
-        
-        if (existingHolding) {
-          const newTotalShares = existingHolding.shares + shares;
-          const newAvgPrice = (
-            (existingHolding.shares * existingHolding.average_buy_price) + totalAmount
-          ) / newTotalShares;
-          
-          await base44.entities.Portfolio.update(existingHolding.id, {
-            shares: newTotalShares,
-            average_buy_price: newAvgPrice
-          });
-        } else {
-          await base44.entities.Portfolio.create({
-            symbol: stock.symbol,
-            company_name: stock.company_name,
-            shares: shares,
-            average_buy_price: stock.price_gbp
-          });
-        }
-        
-        // Record transaction
-        await base44.entities.Transaction.create({
-          symbol: stock.symbol,
-          company_name: stock.company_name,
-          type: 'buy',
-          shares: shares,
-          price_per_share: stock.price_gbp,
-          total_amount: totalAmount
-        });
-      } else {
-        // Sell
-        await base44.entities.UserAccount.update(account.id, {
-          cash_balance: account.cash_balance + totalAmount
-        });
-        
-        const existingHolding = portfolio.find(p => p.symbol === stock.symbol);
-        
-        if (existingHolding.shares === shares) {
-          await base44.entities.Portfolio.delete(existingHolding.id);
-        } else {
-          await base44.entities.Portfolio.update(existingHolding.id, {
-            shares: existingHolding.shares - shares
-          });
-        }
-        
-        await base44.entities.Transaction.create({
-          symbol: stock.symbol,
-          company_name: stock.company_name,
-          type: 'sell',
-          shares: shares,
-          price_per_share: stock.price_gbp,
-          total_amount: totalAmount
-        });
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['userAccount'] });
-      queryClient.invalidateQueries({ queryKey: ['portfolio'] });
-    },
-  });
+   const tradeMutation = useMutation({
+     mutationFn: async ({ type, stock, shares }) => {
+       const totalAmount = shares * stock.price_gbp;
+
+       if (type === 'buy') {
+         // Update cash balance
+         await base44.entities.UserAccount.update(account.id, {
+           cash_balance: account.cash_balance - totalAmount
+         });
+
+         // Check if already own this stock
+         const existingHolding = portfolio.find(p => p.symbol === stock.symbol);
+
+         if (existingHolding) {
+           const newTotalShares = existingHolding.shares + shares;
+           const newAvgPrice = (
+             (existingHolding.shares * existingHolding.average_buy_price) + totalAmount
+           ) / newTotalShares;
+
+           await base44.entities.Portfolio.update(existingHolding.id, {
+             shares: newTotalShares,
+             average_buy_price: newAvgPrice
+           });
+         } else {
+           await base44.entities.Portfolio.create({
+             symbol: stock.symbol,
+             company_name: stock.company_name,
+             shares: shares,
+             average_buy_price: stock.price_gbp
+           });
+         }
+
+         // Record transaction
+         await base44.entities.Transaction.create({
+           symbol: stock.symbol,
+           company_name: stock.company_name,
+           type: 'buy',
+           shares: shares,
+           price_per_share: stock.price_gbp,
+           total_amount: totalAmount
+         });
+       } else {
+         // Sell
+         await base44.entities.UserAccount.update(account.id, {
+           cash_balance: account.cash_balance + totalAmount
+         });
+
+         const existingHolding = portfolio.find(p => p.symbol === stock.symbol);
+
+         if (existingHolding.shares === shares) {
+           await base44.entities.Portfolio.delete(existingHolding.id);
+         } else {
+           await base44.entities.Portfolio.update(existingHolding.id, {
+             shares: existingHolding.shares - shares
+           });
+         }
+
+         await base44.entities.Transaction.create({
+           symbol: stock.symbol,
+           company_name: stock.company_name,
+           type: 'sell',
+           shares: shares,
+           price_per_share: stock.price_gbp,
+           total_amount: totalAmount
+         });
+       }
+     },
+     onSuccess: () => {
+       queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] });
+       queryClient.invalidateQueries({ queryKey: ['portfolio', currentUser?.email] });
+     },
+   });
 
   const handleTrade = (type, stock, shares) => {
     tradeMutation.mutate({ type, stock, shares });
