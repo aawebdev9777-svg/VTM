@@ -58,11 +58,21 @@ export default function Transactions() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex items-start gap-3">
                         <div className={`p-2 rounded-lg ${
-                          transaction.type === 'buy' 
-                            ? 'bg-green-100' 
-                            : 'bg-red-100'
+                          transaction.symbol === 'TRANSFER'
+                            ? transaction.type === 'buy'
+                              ? 'bg-blue-100'
+                              : 'bg-orange-100'
+                            : transaction.type === 'buy' 
+                              ? 'bg-green-100' 
+                              : 'bg-red-100'
                         }`}>
-                          {transaction.type === 'buy' ? (
+                          {transaction.symbol === 'TRANSFER' ? (
+                            transaction.type === 'buy' ? (
+                              <TrendingUp className="w-5 h-5 text-blue-600" />
+                            ) : (
+                              <TrendingDown className="w-5 h-5 text-orange-600" />
+                            )
+                          ) : transaction.type === 'buy' ? (
                             <TrendingUp className="w-5 h-5 text-green-600" />
                           ) : (
                             <TrendingDown className="w-5 h-5 text-red-600" />
@@ -70,15 +80,29 @@ export default function Transactions() {
                         </div>
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-bold text-gray-900">{transaction.symbol}</h3>
-                            <Badge variant={transaction.type === 'buy' ? 'default' : 'destructive'} className="uppercase">
-                              {transaction.type}
+                            <h3 className="font-bold text-gray-900">
+                              {transaction.symbol === 'TRANSFER' 
+                                ? (transaction.type === 'buy' ? '↓ Received' : '↑ Sent')
+                                : transaction.symbol
+                              }
+                            </h3>
+                            <Badge variant={
+                              transaction.symbol === 'TRANSFER'
+                                ? transaction.type === 'buy' ? 'secondary' : 'outline'
+                                : transaction.type === 'buy' ? 'default' : 'destructive'
+                            } className="uppercase">
+                              {transaction.symbol === 'TRANSFER' 
+                                ? (transaction.type === 'buy' ? 'Received' : 'Sent')
+                                : transaction.type
+                              }
                             </Badge>
                           </div>
                           <p className="text-sm text-gray-500">{transaction.company_name}</p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {transaction.shares?.toLocaleString()} shares @ £{transaction.price_per_share?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </p>
+                          {transaction.symbol !== 'TRANSFER' && (
+                            <p className="text-xs text-gray-400 mt-1">
+                              {transaction.shares?.toLocaleString()} shares @ £{transaction.price_per_share?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="text-left sm:text-right">
