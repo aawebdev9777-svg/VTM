@@ -90,20 +90,61 @@ export default function TopStocks({ onSelectStock }) {
           ))}
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {filteredStocks.map((stock, index) => (
-            <motion.button
-              key={stock.symbol}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.03 }}
-              onClick={() => onSelectStock(stock)}
-              className="p-3 rounded-lg border-2 border-gray-200 hover:border-violet-400 hover:bg-violet-50 transition-all text-left"
-            >
-              <div className="font-bold text-gray-900">{stock.symbol}</div>
-              <div className="text-xs text-gray-500 truncate">{stock.name}</div>
-            </motion.button>
-          ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {filteredStocks.map((stock, index) => {
+            const price = livePrices[stock.symbol] || stock.basePrice;
+            const change = priceChanges[stock.symbol] || 0;
+            const isPositive = change >= 0;
+
+            return (
+              <motion.button
+                key={stock.symbol}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.03 }}
+                onClick={() => onSelectStock({ ...stock, price_gbp: price, daily_change_percent: change })}
+                className="p-4 rounded-xl border-2 border-gray-200 hover:border-violet-400 hover:shadow-lg transition-all text-left bg-white"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <div className="font-bold text-gray-900 text-lg">{stock.symbol}</div>
+                    <div className="text-xs text-gray-500 truncate">{stock.name}</div>
+                  </div>
+                  <Activity className="w-4 h-4 text-violet-500" />
+                </div>
+                
+                <div className="flex items-end justify-between mt-3">
+                  <div className="text-xl font-bold text-gray-900">
+                    £{price.toFixed(2)}
+                  </div>
+                  <div className={`flex items-center gap-1 text-sm font-medium ${
+                    isPositive ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {isPositive ? (
+                      <TrendingUp className="w-4 h-4" />
+                    ) : (
+                      <TrendingDown className="w-4 h-4" />
+                    )}
+                    {Math.abs(change).toFixed(2)}%
+                  </div>
+                </div>
+                
+                {/* Mini price chart simulation */}
+                <div className="mt-3 flex items-end gap-0.5 h-8">
+                  {[...Array(12)].map((_, i) => {
+                    const height = 20 + Math.random() * 80;
+                    return (
+                      <div
+                        key={i}
+                        className={`flex-1 rounded-t ${isPositive ? 'bg-green-200' : 'bg-red-200'}`}
+                        style={{ height: `${height}%` }}
+                      />
+                    );
+                  })}
+                </div>
+              </motion.button>
+            );
+          })}
         </div>
       </CardContent>
     </Card>
