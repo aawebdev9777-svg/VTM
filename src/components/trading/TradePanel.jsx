@@ -57,9 +57,23 @@ export default function TradePanel({ selectedStock, cashBalance, portfolio, onTr
   return (
     <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-800 flex items-center justify-between">
-          <span>Trade {selectedStock.symbol}</span>
-          <span className="text-violet-600">£{selectedStock.price_gbp?.toFixed(2)}</span>
+        <CardTitle className="text-lg font-semibold text-gray-800">
+          <div className="flex items-center justify-between mb-2">
+            <span>Trade {selectedStock.symbol}</span>
+            <span className="text-violet-600">£{selectedStock.price_gbp?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+          </div>
+          <div className="flex items-center gap-2 mt-2">
+            <span className="text-sm text-gray-600">{selectedStock.company_name || selectedStock.name}</span>
+            {selectedStock.risk && (
+              <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                selectedStock.risk === 'High' ? 'bg-red-100 text-red-700' :
+                selectedStock.risk === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                'bg-green-100 text-green-700'
+              }`}>
+                {selectedStock.risk} Risk
+              </span>
+            )}
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
