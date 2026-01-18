@@ -30,9 +30,9 @@ export default function Home() {
 
   // Auto-update portfolio stock prices
   useEffect(() => {
+    if (!portfolio || portfolio.length === 0) return;
+    
     const updatePrices = async () => {
-      if (portfolio.length === 0) return;
-      
       const symbols = [...new Set(portfolio.map(p => p.symbol))];
       for (const symbol of symbols) {
         try {
