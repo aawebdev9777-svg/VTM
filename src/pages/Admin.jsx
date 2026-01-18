@@ -36,6 +36,15 @@ export default function Admin() {
     },
   });
 
+  const resetAccountsMutation = useMutation({
+    mutationFn: async () => {
+      await base44.functions.invoke('resetUserAccounts', {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allAccounts'] });
+    },
+  });
+
   const { data: allAccounts = [] } = useQuery({
     queryKey: ['allAccounts'],
     queryFn: async () => {
