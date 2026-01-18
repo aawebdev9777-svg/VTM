@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Shield, Users, TrendingUp, DollarSign, Activity, Award, Zap, TrendingDown, AlertTriangle } from 'lucide-react';
+import { Shield, Users, TrendingUp, DollarSign, Activity, Award, Zap, TrendingDown, AlertTriangle, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
