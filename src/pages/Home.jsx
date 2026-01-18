@@ -205,6 +205,7 @@ export default function Home() {
      onSuccess: async () => {
        await queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] });
        await queryClient.invalidateQueries({ queryKey: ['portfolio', currentUser?.email] });
+       await queryClient.invalidateQueries({ queryKey: ['recentTransactions'] });
      },
    });
 
