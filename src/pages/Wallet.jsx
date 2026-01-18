@@ -89,9 +89,27 @@ export default function Wallet() {
   });
 
   const { data: transactions = [] } = useQuery({
-    queryKey: ['recentTransactions'],
-    queryFn: () => base44.entities.Transaction.list('-created_date', 5),
+    queryKey: ['recentTransactions', currentUser?.email],
+    queryFn: async () => {
+      const allTransactions = await base44.entities.Transaction.list('-created_date', 20);
+      return allTransactions.filter(t => t.created_by === currentUser?.email);
+    },
+    enabled: !!currentUser?.email,
+    refetchInterval: 2000,
   });
+
+  // Subscribe to transaction updates
+  useEffect(() => {
+    if (!currentUser?.email) return;
+    
+    const unsubscribe = base44.entities.Transaction.subscribe((event) => {
+      if (event.data?.created_by === currentUser?.email) {
+        queryClient.invalidateQueries({ queryKey: ['recentTransactions', currentUser?.email] });
+      }
+    });
+
+    return () => unsubscribe();
+  }, [currentUser?.email, queryClient]);
 
   const account = accounts?.[0];
   const isAdmin = currentUser?.email === 'aa.web.dev9777@gmail.com';
