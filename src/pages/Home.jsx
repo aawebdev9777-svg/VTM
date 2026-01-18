@@ -295,7 +295,7 @@ export default function Home() {
           <div className="lg:sticky lg:top-6 h-fit space-y-4">
             <TradePanel
               selectedStock={selectedStock}
-              cashBalance={isSuperAdmin ? 999999999 : (account?.cash_balance || 0)}
+              cashBalance={account?.cash_balance || 0}
               portfolio={portfolio}
               onTrade={handleTrade}
             />
