@@ -127,6 +127,11 @@ export default function Wallet() {
        await base44.functions.invoke('transferMoney', { recipientEmail, amount });
      },
      onSuccess: () => {
+       confetti({
+         particleCount: 100,
+         spread: 70,
+         origin: { y: 0.6 }
+       });
        queryClient.invalidateQueries({ queryKey: ['userAccount'] });
        queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
        queryClient.invalidateQueries({ queryKey: ['allUsers'] });
