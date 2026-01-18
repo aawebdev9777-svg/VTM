@@ -341,131 +341,135 @@ export default function Wallet() {
         </motion.div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Send Money */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-        >
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Send className="w-5 h-5 text-violet-600" />
-                Send Money
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                  <Input
-                    placeholder="Search users by name or email..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
+      <div className="grid grid-cols-1 gap-6">
+         {/* Send Money */}
+         <motion.div
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ delay: 0.6 }}
+         >
+           <Card className="border-0 shadow-lg">
+             <CardHeader>
+               <CardTitle className="text-lg flex items-center gap-2">
+                 <Send className="w-5 h-5 text-violet-600" />
+                 Send Money
+               </CardTitle>
+             </CardHeader>
+             <CardContent>
+               <div className="space-y-4">
+                 <div className="relative">
+                   <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                   <Input
+                     placeholder="Search users by name or email..."
+                     value={searchQuery}
+                     onChange={(e) => setSearchQuery(e.target.value)}
+                     className="pl-10 text-base"
+                   />
+                 </div>
 
-                {searchQuery && filteredUsers.length > 0 && (
-                   <div className="max-h-48 overflow-y-auto space-y-2 border border-gray-200 rounded-lg p-2">
-                     {filteredUsers.slice(0, 5).map((user) => (
-                       <button
-                         key={user.email}
-                         onClick={() => {
-                           setSelectedRecipient(user);
-                           setSearchQuery('');
-                         }}
-                         className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
-                           selectedRecipient?.email === user.email
-                             ? 'border-violet-600 bg-violet-50'
-                             : 'border-gray-200 hover:border-violet-300'
-                         }`}
-                       >
-                         <p className="font-medium text-sm">{user.full_name}</p>
-                         <p className="text-xs text-gray-500">{user.email}</p>
-                       </button>
-                     ))}
+                 {searchQuery && filteredUsers.length > 0 && (
+                    <div className="max-h-64 overflow-y-auto space-y-2 border border-gray-200 rounded-lg p-2">
+                      {filteredUsers.slice(0, 5).map((user) => (
+                        <button
+                          key={user.email}
+                          onClick={() => {
+                            setSelectedRecipient(user);
+                            setSearchQuery('');
+                          }}
+                          className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                            selectedRecipient?.email === user.email
+                              ? 'border-violet-600 bg-violet-50'
+                              : 'border-gray-200 hover:border-violet-300'
+                          }`}
+                        >
+                          <p className="font-medium text-base">{user.full_name}</p>
+                          <p className="text-sm text-gray-500">{user.email}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {searchQuery && filteredUsers.length === 0 && (
+                    <p className="text-base text-gray-500 text-center py-4">No users found</p>
+                  )}
+
+                 {selectedRecipient && (
+                   <div className="space-y-4 pt-4 border-t">
+                     <div className="p-4 bg-violet-50 rounded-lg">
+                       <p className="text-sm text-gray-600">Sending to:</p>
+                       <p className="font-bold text-lg">{selectedRecipient.full_name}</p>
+                       <p className="text-sm text-gray-500">{selectedRecipient.email}</p>
+                     </div>
+                     <Input
+                       type="number"
+                       placeholder="Amount (£)"
+                       value={transferAmount}
+                       onChange={(e) => setTransferAmount(e.target.value)}
+                       min="0"
+                       step="0.01"
+                       className="text-base h-12"
+                     />
+                     <Button
+                       onClick={handleTransfer}
+                       disabled={!transferAmount || parseFloat(transferAmount) <= 0 || parseFloat(transferAmount) > cashBalance}
+                       className="w-full bg-violet-600 hover:bg-violet-700 h-12 text-base"
+                     >
+                       <Send className="w-4 h-4 mr-2" />
+                       Send £{transferAmount || '0'}
+                     </Button>
                    </div>
                  )}
-                 {searchQuery && filteredUsers.length === 0 && (
-                   <p className="text-sm text-gray-500 text-center py-3">No users found</p>
-                 )}
+               </div>
+             </CardContent>
+           </Card>
+         </motion.div>
 
-                {selectedRecipient && (
-                  <div className="space-y-3">
-                    <div className="p-3 bg-violet-50 rounded-lg">
-                      <p className="text-sm text-gray-600">Sending to:</p>
-                      <p className="font-medium">{selectedRecipient.full_name}</p>
-                    </div>
-                    <Input
-                      type="number"
-                      placeholder="Amount (£)"
-                      value={transferAmount}
-                      onChange={(e) => setTransferAmount(e.target.value)}
-                      min="0"
-                      step="0.01"
-                    />
-                    <Button
-                      onClick={handleTransfer}
-                      disabled={!transferAmount || parseFloat(transferAmount) <= 0 || parseFloat(transferAmount) > cashBalance}
-                      className="w-full bg-violet-600 hover:bg-violet-700"
-                    >
-                      <Send className="w-4 h-4 mr-2" />
-                      Send £{transferAmount || '0'}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Recent Activity */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-        >
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {transactions.length === 0 ? (
-                <p className="text-center py-6 text-gray-500">No transactions yet</p>
-              ) : (
-                <div className="space-y-3">
-                  {transactions.map((transaction) => (
-                    <div key={transaction.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          transaction.type === 'buy' ? 'bg-red-100' : 'bg-green-100'
-                        }`}>
-                          {transaction.type === 'buy' ? (
-                            <TrendingDown className="w-5 h-5 text-red-600" />
-                          ) : (
-                            <TrendingUp className="w-5 h-5 text-green-600" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">{transaction.symbol}</p>
-                          <p className="text-xs text-gray-500">{transaction.shares} shares</p>
-                        </div>
-                      </div>
-                      <p className={`font-bold ${
-                        transaction.type === 'buy' ? 'text-red-600' : 'text-green-600'
-                      }`}>
-                        {transaction.type === 'buy' ? '-' : '+'}£{transaction.total_amount?.toFixed(2)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
+         {/* Recent Activity */}
+         <motion.div
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           transition={{ delay: 0.7 }}
+         >
+           <Card className="border-0 shadow-lg">
+             <CardHeader>
+               <CardTitle className="text-lg">Recent Activity</CardTitle>
+             </CardHeader>
+             <CardContent>
+               {transactions.length === 0 ? (
+                 <p className="text-center py-8 text-gray-500 text-base">No transactions yet</p>
+               ) : (
+                 <div className="space-y-3">
+                   {transactions.map((transaction) => (
+                     <div key={transaction.id} className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
+                       <div className="flex items-center gap-4 flex-1">
+                         <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
+                           transaction.type === 'buy' ? 'bg-red-100' : 'bg-green-100'
+                         }`}>
+                           {transaction.type === 'buy' ? (
+                             <TrendingDown className="w-6 h-6 text-red-600" />
+                           ) : (
+                             <TrendingUp className="w-6 h-6 text-green-600" />
+                           )}
+                         </div>
+                         <div className="min-w-0">
+                           <p className="font-bold text-base text-gray-900">{transaction.symbol}</p>
+                           <p className="text-sm text-gray-500">{transaction.shares} shares · {transaction.company_name}</p>
+                         </div>
+                       </div>
+                       <div className="text-right ml-2">
+                         <p className={`font-bold text-base ${
+                           transaction.type === 'buy' ? 'text-red-600' : 'text-green-600'
+                         }`}>
+                           {transaction.type === 'buy' ? '-' : '+'}£{transaction.total_amount?.toFixed(2)}
+                         </p>
+                       </div>
+                     </div>
+                   ))}
+                 </div>
+               )}
+             </CardContent>
+           </Card>
+         </motion.div>
+       </div>
     </div>
   );
 }
