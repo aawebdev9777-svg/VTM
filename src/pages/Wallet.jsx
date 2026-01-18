@@ -243,6 +243,18 @@ export default function Wallet() {
             </CardHeader>
             <CardContent className="max-h-96 overflow-y-auto">
               <div className="space-y-2">
+                {isAdmin && (
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-400 mb-3">
+                    <div className="flex items-center gap-3">
+                      <Crown className="w-8 h-8 text-yellow-600" />
+                      <div>
+                        <p className="font-medium text-sm">{currentUser?.full_name}</p>
+                        <Badge className="bg-yellow-400 text-gray-900 text-xs mt-1">ADMIN</Badge>
+                      </div>
+                    </div>
+                    <p className="font-bold text-sm">£{cashBalance.toFixed(0)}</p>
+                  </div>
+                )}
                 {leaderboard.slice(0, 10).map((user) => (
                   <div
                     key={user.email}
