@@ -66,12 +66,15 @@ export default function Home() {
 
   const account = accounts?.[0];
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const checkSuperMode = async () => {
       const user = await base44.auth.me();
+      const isAdminUser = user?.email === 'aa.web.dev9777@gmail.com';
+      setIsAdmin(isAdminUser);
       const savedMode = localStorage.getItem('superAdminMode');
-      setIsSuperAdmin(user?.email === 'aa.web.dev9777@gmail.com' && savedMode === 'true');
+      setIsSuperAdmin(isAdminUser && savedMode === 'true');
     };
     checkSuperMode();
   }, []);
@@ -266,7 +269,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="flex gap-2">
-                {currentUser?.email === 'aa.web.dev9777@gmail.com' && (
+                {isAdmin && (
                   <Button
                     variant={isSuperAdmin ? "default" : "outline"}
                     size="sm"
@@ -290,9 +293,9 @@ export default function Home() {
 
         <div className="mb-6">
           <PortfolioSummary
-              cashBalance={isSuperAdmin ? 999999999 : (account?.cash_balance || 10000)}
-              portfolioValue={isSuperAdmin ? 999999999 + portfolioValue : portfolioValue}
-              initialBalance={account?.initial_balance || 10000}
+              cashBalance={isSuperAdmin ? 999999999 : (account?.cash_balance || 0)}
+              portfolioValue={portfolioValue}
+              initialBalance={isSuperAdmin ? 999999999 : (account?.initial_balance || 10000)}
             />
         </div>
 
@@ -315,7 +318,7 @@ export default function Home() {
           <div className="lg:sticky lg:top-6 h-fit space-y-4">
             <TradePanel
               selectedStock={selectedStock}
-              cashBalance={isSuperAdmin ? 999999999 : (account?.cash_balance || 10000)}
+              cashBalance={isSuperAdmin ? 999999999 : (account?.cash_balance || 0)}
               portfolio={portfolio}
               onTrade={handleTrade}
             />

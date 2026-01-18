@@ -101,8 +101,9 @@ export default function Wallet() {
     setIsSuperAdmin(isAdmin && savedMode === 'true');
   }, [isAdmin]);
 
-  const cashBalance = (isSuperAdmin ? 999999999 : account?.cash_balance) || 10000;
-  const initialBalance = account?.initial_balance || 10000;
+  const cashBalance = isSuperAdmin ? 999999999 : (account?.cash_balance || 0);
+  const initialBalance = isSuperAdmin ? 999999999 : (account?.initial_balance || 10000);
+
   const totalSpent = transactions.filter(t => t.type === 'buy').reduce((sum, t) => sum + t.total_amount, 0);
   const totalEarned = transactions.filter(t => t.type === 'sell').reduce((sum, t) => sum + t.total_amount, 0);
 
