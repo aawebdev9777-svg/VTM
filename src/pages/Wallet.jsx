@@ -121,24 +121,26 @@ export default function Wallet() {
   );
 
   // Transfer mutation
-  const transferMutation = useMutation({
-    mutationFn: async ({ recipientEmail, amount }) => {
-      await base44.functions.invoke('transferMoney', { recipientEmail, amount });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['userAccount'] });
-      queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
-      setTransferAmount('');
-      setSelectedRecipient(null);
-    },
-  });
+   const transferMutation = useMutation({
+     mutationFn: async ({ recipientEmail, amount }) => {
+       await base44.functions.invoke('transferMoney', { recipientEmail, amount });
+     },
+     onSuccess: () => {
+       queryClient.invalidateQueries({ queryKey: ['userAccount'] });
+       queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+       setTransferAmount('');
+       setSelectedRecipient(null);
+       setSearchQuery('');
+     },
+   });
 
-  const handleTransfer = () => {
-    const amount = parseFloat(transferAmount);
-    if (amount > 0 && amount <= cashBalance && selectedRecipient) {
-      transferMutation.mutate({ recipientEmail: selectedRecipient.email, amount });
-    }
-  };
+   const handleTransfer = () => {
+     const amount = parseFloat(transferAmount);
+     if (amount > 0 && amount <= cashBalance && selectedRecipient) {
+       transferMutation.mutate({ recipientEmail: selectedRecipient.email, amount });
+     }
+   };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 md:py-8">
