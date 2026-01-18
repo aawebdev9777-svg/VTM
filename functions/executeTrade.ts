@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
           average_buy_price: newAvgPrice
         });
       } else {
-        await base44.entities.Portfolio.create({
+        await base44.asServiceRole.entities.Portfolio.create({
           symbol: stock.symbol,
           company_name: stock.company_name,
           shares: shares,
