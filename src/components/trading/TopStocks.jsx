@@ -5,6 +5,16 @@ import { TrendingUp, TrendingDown, Star } from "lucide-react";
 import { motion } from "framer-motion";
 
 const TOP_STOCKS = [
+  { symbol: 'VTX', name: 'VirtualTech Corp.', sector: 'Technology' },
+  { symbol: 'QNTM', name: 'Quantum Dynamics', sector: 'Technology' },
+  { symbol: 'CYBER', name: 'CyberSecure Inc.', sector: 'Technology' },
+  { symbol: 'NEXG', name: 'NexGen Energy', sector: 'Energy' },
+  { symbol: 'BIOX', name: 'BioXcel Pharma', sector: 'Healthcare' },
+  { symbol: 'AERO', name: 'AeroSpace Systems', sector: 'Aerospace' },
+  { symbol: 'FINX', name: 'FinTech Global', sector: 'Finance' },
+  { symbol: 'MEDZ', name: 'MedZone Health', sector: 'Healthcare' },
+  { symbol: 'GRNE', name: 'GreenEarth Energy', sector: 'Energy' },
+  { symbol: 'ROBO', name: 'RoboTech Industries', sector: 'Technology' },
   { symbol: 'AAPL', name: 'Apple Inc.', sector: 'Technology' },
   { symbol: 'GOOGL', name: 'Alphabet Inc.', sector: 'Technology' },
   { symbol: 'MSFT', name: 'Microsoft Corp.', sector: 'Technology' },
