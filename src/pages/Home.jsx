@@ -192,9 +192,9 @@ export default function Home() {
          });
        }
      },
-     onSuccess: () => {
-       queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] });
-       queryClient.invalidateQueries({ queryKey: ['portfolio', currentUser?.email] });
+     onSuccess: async () => {
+       await queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] });
+       await queryClient.invalidateQueries({ queryKey: ['portfolio', currentUser?.email] });
      },
    });
 
