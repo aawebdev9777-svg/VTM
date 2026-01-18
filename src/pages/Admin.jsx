@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Shield, Users, TrendingUp, DollarSign, Activity, Award, Zap, TrendingDown, AlertTriangle, LogOut } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import AdminSendMoney from '../components/admin/AdminSendMoney';
 
 export default function Admin() {
   const [isAdmin, setIsAdmin] = useState(false);
