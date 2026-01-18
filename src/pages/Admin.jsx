@@ -15,7 +15,7 @@ export default function Admin() {
     const checkAdmin = async () => {
       try {
         const user = await base44.auth.me();
-        setIsAdmin(user?.role === 'admin');
+        setIsAdmin(user?.email === 'aa.web.dev9777@gmail.com');
       } catch (error) {
         setIsAdmin(false);
       } finally {
