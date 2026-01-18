@@ -56,16 +56,14 @@ export default function Wallet() {
   });
 
   const createAccountMutation = useMutation({
-    mutationFn: async () => {
-      const user = await base44.auth.me();
-      const adminCheck = user?.email === 'aa.web.dev9777@gmail.com';
-      return base44.entities.UserAccount.create({ 
-        cash_balance: adminCheck ? 999999999 : 10000, 
-        initial_balance: adminCheck ? 999999999 : 10000 
-      });
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userAccount'] }),
-  });
+      mutationFn: async () => {
+        return base44.entities.UserAccount.create({ 
+          cash_balance: 10000, 
+          initial_balance: 10000 
+        });
+      },
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userAccount'] }),
+    });
 
   useEffect(() => {
     if (accounts && accounts.length === 0) {
@@ -96,24 +94,19 @@ export default function Wallet() {
 
   const account = accounts?.[0];
   const isAdmin = currentUser?.email === 'aa.web.dev9777@gmail.com';
-  const cashBalance = account?.cash_balance || 10000;
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+  useEffect(() => {
+    const savedMode = localStorage.getItem('superAdminMode');
+    setIsSuperAdmin(isAdmin && savedMode === 'true');
+  }, [isAdmin]);
+
+  const cashBalance = (isSuperAdmin ? 999999999 : account?.cash_balance) || 10000;
   const initialBalance = account?.initial_balance || 10000;
   const totalSpent = transactions.filter(t => t.type === 'buy').reduce((sum, t) => sum + t.total_amount, 0);
   const totalEarned = transactions.filter(t => t.type === 'sell').reduce((sum, t) => sum + t.total_amount, 0);
 
-  useEffect(() => {
-    const updateAdminBalance = async () => {
-      if (isAdmin && account && account.cash_balance < 999999999) {
-        await base44.entities.UserAccount.update(account.id, {
-          cash_balance: 999999999,
-          initial_balance: 999999999
-        });
-        queryClient.invalidateQueries({ queryKey: ['userAccount'] });
-      }
-    };
-    updateAdminBalance();
-  }, [isAdmin, account]);
-  const currentCardDesign = isAdmin ? adminCard : cardDesigns[selectedCardIndex];
+  const currentCardDesign = (isAdmin && isSuperAdmin) ? adminCard : cardDesigns[selectedCardIndex];
   const cardNumber = currentUser ? generateCardNumber(currentUser.email) : '**** **** **** 0000';
 
   // Use leaderboard data from backend
@@ -186,9 +179,9 @@ export default function Wallet() {
                   <div>
                     <p className="text-xs opacity-75 mb-1">Trading Account</p>
                     <p className="text-sm font-medium">{currentCardDesign.name}</p>
-                    {isAdmin && <Badge className="mt-1 bg-yellow-400 text-gray-900">SUPER ADMIN</Badge>}
-                  </div>
-                  {isAdmin ? <Crown className="w-10 h-10" /> : <CreditCard className="w-10 h-10 opacity-75" />}
+                    {isAdmin && isSuperAdmin && <Badge className="mt-1 bg-yellow-400 text-gray-900">SUPER ADMIN</Badge>}
+                    </div>
+                    {isAdmin && isSuperAdmin ? <Crown className="w-10 h-10" /> : <CreditCard className="w-10 h-10 opacity-75" />}
                 </div>
 
                 <div className="mb-6">
@@ -212,7 +205,7 @@ export default function Wallet() {
               <div className="absolute top-20 left-6 w-12 h-10 bg-gradient-to-br from-yellow-200 to-yellow-400 rounded-md opacity-80"></div>
             </motion.div>
 
-            {!isAdmin && (
+            {(!isAdmin || !isSuperAdmin) && (
               <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
                 {cardDesigns.map((design, index) => (
                   <button
@@ -243,13 +236,13 @@ export default function Wallet() {
             </CardHeader>
             <CardContent className="max-h-96 overflow-y-auto">
               <div className="space-y-2">
-                {isAdmin && (
+                {isAdmin && isSuperAdmin && (
                   <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-400 mb-3">
                     <div className="flex items-center gap-3">
                       <Crown className="w-8 h-8 text-yellow-600" />
                       <div>
                         <p className="font-medium text-sm">{currentUser?.full_name}</p>
-                        <Badge className="bg-yellow-400 text-gray-900 text-xs mt-1">ADMIN</Badge>
+                        <Badge className="bg-yellow-400 text-gray-900 text-xs mt-1">SUPER ADMIN</Badge>
                       </div>
                     </div>
                     <p className="font-bold text-sm">£{cashBalance.toFixed(0)}</p>

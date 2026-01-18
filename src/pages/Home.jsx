@@ -44,10 +44,9 @@ export default function Home() {
   const createAccountMutation = useMutation({
     mutationFn: async () => {
       const user = await base44.auth.me();
-      const isAdmin = user?.email === 'aa.web.dev9777@gmail.com';
       return base44.entities.UserAccount.create({ 
-        cash_balance: isAdmin ? 999999999 : 10000, 
-        initial_balance: isAdmin ? 999999999 : 10000 
+        cash_balance: 10000, 
+        initial_balance: 10000 
       });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userAccount'] }),
@@ -60,6 +59,23 @@ export default function Home() {
   }, [accounts]);
 
   const account = accounts?.[0];
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkSuperMode = async () => {
+      const user = await base44.auth.me();
+      const savedMode = localStorage.getItem('superAdminMode');
+      setIsSuperAdmin(user?.email === 'aa.web.dev9777@gmail.com' && savedMode === 'true');
+    };
+    checkSuperMode();
+  }, []);
+
+  const toggleSuperAdmin = () => {
+    const newMode = !isSuperAdmin;
+    setIsSuperAdmin(newMode);
+    localStorage.setItem('superAdminMode', newMode.toString());
+    window.location.reload();
+  };
 
   // Auto-update portfolio stock prices
   useEffect(() => {
@@ -235,30 +251,43 @@ export default function Home() {
           className="mb-6"
         >
           <div className="flex items-center justify-between mb-2">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                Portfolio
-              </h1>
-              <p className="text-sm text-gray-500 mt-1">
-                £10,000 virtual cash • Live prices
-              </p>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+                  Portfolio
+                </h1>
+                <p className="text-sm text-gray-500 mt-1">
+                  £10,000 virtual cash • Live prices
+                </p>
+              </div>
+              <div className="flex gap-2">
+                {currentUser?.email === 'aa.web.dev9777@gmail.com' && (
+                  <Button
+                    variant={isSuperAdmin ? "default" : "outline"}
+                    size="sm"
+                    onClick={toggleSuperAdmin}
+                    className="gap-2"
+                  >
+                    {isSuperAdmin ? '👑 Super' : '👤 Normal'}
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => queryClient.invalidateQueries()}
+                  className="gap-2"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => queryClient.invalidateQueries()}
-              className="gap-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </Button>
-          </div>
         </motion.div>
 
         <div className="mb-6">
           <PortfolioSummary
-            cashBalance={account?.cash_balance || 10000}
-            portfolioValue={portfolioValue}
-          />
+              cashBalance={isSuperAdmin ? 999999999 : (account?.cash_balance || 10000)}
+              portfolioValue={isSuperAdmin ? 999999999 + portfolioValue : portfolioValue}
+              initialBalance={account?.initial_balance || 10000}
+            />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
@@ -276,7 +305,7 @@ export default function Home() {
           <div className="lg:sticky lg:top-6 h-fit space-y-4">
             <TradePanel
               selectedStock={selectedStock}
-              cashBalance={account?.cash_balance || 10000}
+              cashBalance={isSuperAdmin ? 999999999 : (account?.cash_balance || 10000)}
               portfolio={portfolio}
               onTrade={handleTrade}
             />

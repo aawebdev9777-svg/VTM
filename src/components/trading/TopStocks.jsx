@@ -5,24 +5,26 @@ import { TrendingUp, TrendingDown, Star, Activity } from "lucide-react";
 import { motion } from "framer-motion";
 
 const TOP_STOCKS = [
-  { symbol: 'APPL-P', name: 'Apple Pair Tech', sector: 'Technology', basePrice: 180, volatility: 0.02 },
-  { symbol: 'MSFT-P', name: 'MicroSoft Pair', sector: 'Technology', basePrice: 420, volatility: 0.015 },
-  { symbol: 'GOOGL-P', name: 'Google Pair', sector: 'Technology', basePrice: 145, volatility: 0.018 },
-  { symbol: 'AMZN-P', name: 'Amazon Pair', sector: 'Consumer', basePrice: 175, volatility: 0.025 },
-  { symbol: 'TSLA-P', name: 'Tesla Pair Motors', sector: 'Automotive', basePrice: 245, volatility: 0.035 },
-  { symbol: 'META-P', name: 'Meta Pair Social', sector: 'Technology', basePrice: 485, volatility: 0.022 },
-  { symbol: 'NVDA-P', name: 'Nvidia Pair Chips', sector: 'Technology', basePrice: 525, volatility: 0.028 },
-  { symbol: 'JPM-P', name: 'JPMorgan Pair Bank', sector: 'Finance', basePrice: 195, volatility: 0.012 },
-  { symbol: 'V-P', name: 'Visa Pair Payments', sector: 'Finance', basePrice: 285, volatility: 0.014 },
-  { symbol: 'WMT-P', name: 'Walmart Pair Retail', sector: 'Retail', basePrice: 165, volatility: 0.011 },
-  { symbol: 'JNJ-P', name: 'Johnson Pair Health', sector: 'Healthcare', basePrice: 155, volatility: 0.01 },
-  { symbol: 'DIS-P', name: 'Disney Pair Entertainment', sector: 'Entertainment', basePrice: 95, volatility: 0.02 },
-  { symbol: 'NFLX-P', name: 'Netflix Pair Streaming', sector: 'Entertainment', basePrice: 685, volatility: 0.03 },
-  { symbol: 'BA-P', name: 'Boeing Pair Aerospace', sector: 'Aerospace', basePrice: 215, volatility: 0.025 },
-  { symbol: 'NKE-P', name: 'Nike Pair Sports', sector: 'Apparel', basePrice: 105, volatility: 0.016 },
-  { symbol: 'CYBER-P', name: 'CyberSecure Pair', sector: 'Technology', basePrice: 325, volatility: 0.027 },
-  { symbol: 'BIOX-P', name: 'BioXcel Pair Pharma', sector: 'Healthcare', basePrice: 275, volatility: 0.032 },
-  { symbol: 'GRNE-P', name: 'GreenEarth Pair Energy', sector: 'Energy', basePrice: 145, volatility: 0.022 },
+  { symbol: 'QNTM', name: 'QuantumLeap Technologies', sector: 'Technology', basePrice: 185.50, volatility: 0.008 },
+  { symbol: 'NXON', name: 'Nexonn Systems', sector: 'Technology', basePrice: 420.75, volatility: 0.006 },
+  { symbol: 'ZYPH', name: 'Zypheron Labs', sector: 'Technology', basePrice: 142.30, volatility: 0.007 },
+  { symbol: 'VRTX', name: 'Vortexia Inc', sector: 'Consumer', basePrice: 178.90, volatility: 0.009 },
+  { symbol: 'ELTR', name: 'Electryx Motors', sector: 'Automotive', basePrice: 243.20, volatility: 0.012 },
+  { symbol: 'SYNX', name: 'Synaptic Networks', sector: 'Technology', basePrice: 488.45, volatility: 0.008 },
+  { symbol: 'NPHR', name: 'Nephron Semiconductors', sector: 'Technology', basePrice: 523.80, volatility: 0.01 },
+  { symbol: 'CRST', name: 'Crestmont Financial', sector: 'Finance', basePrice: 192.15, volatility: 0.005 },
+  { symbol: 'PLSM', name: 'Plasmic Payments', sector: 'Finance', basePrice: 287.60, volatility: 0.006 },
+  { symbol: 'MRKD', name: 'Markadian Retail Group', sector: 'Retail', basePrice: 167.45, volatility: 0.004 },
+  { symbol: 'BION', name: 'Bionex Healthcare', sector: 'Healthcare', basePrice: 153.90, volatility: 0.005 },
+  { symbol: 'STRM', name: 'Streamline Entertainment', sector: 'Entertainment', basePrice: 97.25, volatility: 0.008 },
+  { symbol: 'FLXM', name: 'FluxMedia Streaming', sector: 'Entertainment', basePrice: 682.40, volatility: 0.011 },
+  { symbol: 'AROS', name: 'Aerostar Aerospace', sector: 'Aerospace', basePrice: 218.35, volatility: 0.009 },
+  { symbol: 'VELO', name: 'Velocity Sportswear', sector: 'Apparel', basePrice: 107.80, volatility: 0.007 },
+  { symbol: 'CYBD', name: 'CyberDefense Systems', sector: 'Technology', basePrice: 322.50, volatility: 0.01 },
+  { symbol: 'GNTX', name: 'GeneTrix Pharma', sector: 'Healthcare', basePrice: 278.95, volatility: 0.012 },
+  { symbol: 'SOLR', name: 'SolarWind Energy', sector: 'Energy', basePrice: 143.70, volatility: 0.008 },
+  { symbol: 'ORBN', name: 'Orbinex Space Tech', sector: 'Aerospace', basePrice: 395.20, volatility: 0.011 },
+  { symbol: 'MTRX', name: 'Matrixion AI', sector: 'Technology', basePrice: 567.30, volatility: 0.009 },
 ];
 
 export default function TopStocks({ onSelectStock }) {
@@ -41,17 +43,20 @@ export default function TopStocks({ onSelectStock }) {
     setLivePrices(initialPrices);
     setPriceChanges(initialChanges);
 
-    // Update prices every 30 seconds
+    // Update prices every 30 seconds with realistic movement
     const interval = setInterval(() => {
-      const newPrices = {};
+      const newPrices = { ...livePrices };
       const newChanges = {};
       
       TOP_STOCKS.forEach(stock => {
-        const change = (Math.random() - 0.5) * 2 * stock.volatility;
-        const currentPrice = livePrices[stock.symbol] || stock.basePrice;
-        const newPrice = currentPrice * (1 + change);
-        newPrices[stock.symbol] = newPrice;
-        newChanges[stock.symbol] = change * 100;
+        const currentPrice = newPrices[stock.symbol] || stock.basePrice;
+        // Random walk with mean reversion towards base price
+        const drift = (stock.basePrice - currentPrice) * 0.01;
+        const randomChange = (Math.random() - 0.5) * stock.volatility;
+        const totalChange = drift + randomChange;
+        
+        newPrices[stock.symbol] = Math.max(currentPrice * (1 + totalChange), stock.basePrice * 0.5);
+        newChanges[stock.symbol] = totalChange * 100;
       });
       
       setLivePrices(newPrices);
