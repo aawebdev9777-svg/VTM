@@ -55,19 +55,20 @@ export default function Wallet() {
     queryFn: () => base44.entities.UserAccount.list(),
   });
 
+  const { data: leaderboardData = [] } = useQuery({
+    queryKey: ['leaderboard'],
+    queryFn: async () => {
+      const response = await base44.functions.invoke('getLeaderboard');
+      return response.data.leaderboard || [];
+    },
+  });
+
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsers'],
-    queryFn: () => base44.entities.User.list(),
-  });
-
-  const { data: allAccounts = [] } = useQuery({
-    queryKey: ['allAccounts'],
-    queryFn: () => base44.asServiceRole.entities.UserAccount.list(),
-  });
-
-  const { data: allPortfolios = [] } = useQuery({
-    queryKey: ['allPortfolios'],
-    queryFn: () => base44.asServiceRole.entities.Portfolio.list(),
+    queryFn: async () => {
+      const response = await base44.functions.invoke('getAllUsers');
+      return response.data.users || [];
+    },
   });
 
   const { data: transactions = [] } = useQuery({
@@ -85,19 +86,8 @@ export default function Wallet() {
   const currentCardDesign = isAdmin ? adminCard : cardDesigns[selectedCardIndex];
   const cardNumber = currentUser ? generateCardNumber(currentUser.email) : '**** **** **** 0000';
 
-  // Leaderboard
-  const leaderboard = allUsers.map(user => {
-    const userAccount = allAccounts.find(acc => acc.created_by === user.email);
-    const userPortfolio = allPortfolios.filter(p => p.created_by === user.email);
-    const portfolioValue = userPortfolio.reduce((sum, p) => sum + (p.shares * p.average_buy_price), 0);
-    const totalValue = (userAccount?.cash_balance || 10000) + portfolioValue;
-    return {
-      email: user.email,
-      name: user.full_name || user.email,
-      totalValue,
-      rank: 0,
-    };
-  }).sort((a, b) => b.totalValue - a.totalValue).map((user, index) => ({ ...user, rank: index + 1 }));
+  // Use leaderboard data from backend
+  const leaderboard = leaderboardData;
 
   // Search users
   const filteredUsers = allUsers.filter(user => 
@@ -109,25 +99,11 @@ export default function Wallet() {
   // Transfer mutation
   const transferMutation = useMutation({
     mutationFn: async ({ recipientEmail, amount }) => {
-      const recipientAccounts = await base44.asServiceRole.entities.UserAccount.filter({ created_by: recipientEmail });
-      
-      if (recipientAccounts.length === 0) {
-        throw new Error('Recipient account not found');
-      }
-
-      const recipientAccount = recipientAccounts[0];
-      
-      await base44.entities.UserAccount.update(account.id, {
-        cash_balance: account.cash_balance - amount
-      });
-      
-      await base44.asServiceRole.entities.UserAccount.update(recipientAccount.id, {
-        cash_balance: recipientAccount.cash_balance + amount
-      });
+      await base44.functions.invoke('transferMoney', { recipientEmail, amount });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userAccount'] });
-      queryClient.invalidateQueries({ queryKey: ['allAccounts'] });
+      queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
       setTransferAmount('');
       setSelectedRecipient(null);
     },
