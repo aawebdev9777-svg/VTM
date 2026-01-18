@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
+import StockTicker from './components/trading/StockTicker';
 import { 
   Menu, 
   X, 
@@ -52,6 +53,9 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50 to-slate-100">
+      {/* Stock Ticker */}
+      <StockTicker />
+
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40 shadow-sm">
         <div className="max-w-7xl mx-auto px-4">

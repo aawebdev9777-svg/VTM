@@ -309,6 +309,7 @@ export default function Home() {
             <StockNews 
               symbol={selectedStock?.symbol} 
               companyName={selectedStock?.company_name || selectedStock?.name}
+              autoLoad={!selectedStock}
             />
             <HoldingsList 
               portfolio={portfolio} 

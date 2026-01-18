@@ -5,21 +5,25 @@ import { Newspaper, ExternalLink, TrendingUp, Clock, Loader2 } from "lucide-reac
 import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from '@/api/base44Client';
 
-export default function StockNews({ symbol, companyName }) {
+export default function StockNews({ symbol, companyName, autoLoad = false }) {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!symbol) return;
+    if (!symbol && !autoLoad) return;
 
     const fetchNews = async () => {
       setLoading(true);
       setError(null);
       
       try {
+        const searchTerm = autoLoad 
+          ? 'latest stock market news and trending stocks today'
+          : `${companyName || symbol} stock`;
+        
         const response = await base44.integrations.Core.InvokeLLM({
-          prompt: `Find the latest 5 news articles about ${companyName || symbol} stock. For each article provide: headline (max 80 chars), summary (max 150 chars), source, and publish_date (format: "X hours ago" or "X days ago"). Return as JSON array.`,
+          prompt: `Find the latest 5 news articles about ${searchTerm}. For each article provide: headline (max 80 chars), summary (max 150 chars), source, and publish_date (format: "X hours ago" or "X days ago"). Return as JSON array.`,
           add_context_from_internet: true,
           response_json_schema: {
             type: "object",
@@ -51,9 +55,9 @@ export default function StockNews({ symbol, companyName }) {
     };
 
     fetchNews();
-  }, [symbol, companyName]);
+  }, [symbol, companyName, autoLoad]);
 
-  if (!symbol) {
+  if (!symbol && !autoLoad) {
     return (
       <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
         <CardHeader>
@@ -75,7 +79,7 @@ export default function StockNews({ symbol, companyName }) {
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
           <Newspaper className="w-5 h-5 text-blue-600" />
-          Latest News: {symbol}
+          {symbol ? `Latest News: ${symbol}` : 'Market News'}
         </CardTitle>
       </CardHeader>
       <CardContent>
