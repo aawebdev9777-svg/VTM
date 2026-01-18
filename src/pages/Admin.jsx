@@ -59,7 +59,18 @@ export default function Admin() {
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsers'],
-    queryFn: () => base44.asServiceRole.entities.User.list(),
+    queryFn: async () => {
+      try {
+        const user = await base44.auth.me();
+        if (user?.email !== 'aa.web.dev9777@gmail.com') {
+          return [];
+        }
+        return await base44.asServiceRole.entities.User.list();
+      } catch (error) {
+        console.error('Failed to fetch users:', error);
+        return [];
+      }
+    },
     enabled: isAdmin,
   });
 
