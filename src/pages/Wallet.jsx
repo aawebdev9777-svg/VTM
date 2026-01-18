@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Wallet as WalletIcon, CreditCard, TrendingUp, TrendingDown, DollarSign, Crown, Users, Search, Send, Award } from 'lucide-react';
+import { Wallet as WalletIcon, CreditCard, TrendingUp, TrendingDown, DollarSign, Crown, Users, Search, Send, Award, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
