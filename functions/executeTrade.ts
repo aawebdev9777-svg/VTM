@@ -12,9 +12,9 @@ Deno.serve(async (req) => {
     const { type, stock, shares } = await req.json();
     const totalAmount = shares * stock.price_gbp;
 
-    // Get user's account
-    const allAccounts = await base44.asServiceRole.entities.UserAccount.list();
-    const account = allAccounts.find(acc => acc.created_by === user.email);
+    // Get user's account (filter by user email)
+    const accounts = await base44.entities.UserAccount.list();
+    const account = accounts[0]; // User should only have 1 account
 
     if (!account) {
       return Response.json({ error: 'User account not found' }, { status: 404 });
