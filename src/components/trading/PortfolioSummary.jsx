@@ -3,10 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Wallet, PiggyBank } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function PortfolioSummary({ cashBalance, portfolioValue, totalProfit }) {
+export default function PortfolioSummary({ cashBalance, portfolioValue, initialBalance = 10000 }) {
   const totalValue = cashBalance + portfolioValue;
-  const profitPercentage = ((totalValue - 10000) / 10000) * 100;
-  const isProfit = profitPercentage >= 0;
+  const totalReturn = totalValue - initialBalance;
+  const returnPercentage = initialBalance > 0 ? (totalReturn / initialBalance) * 100 : 0;
+  const isProfit = returnPercentage >= 0;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
@@ -76,7 +77,7 @@ export default function PortfolioSummary({ cashBalance, portfolioValue, totalPro
           </CardHeader>
           <CardContent className="relative z-10">
             <p className="text-2xl md:text-3xl font-bold">
-              {isProfit ? '+' : ''}{profitPercentage.toFixed(2)}%
+              {isProfit ? '+' : ''}{returnPercentage.toFixed(2)}%
             </p>
             <p className="text-xs md:text-sm opacity-75 mt-1">
               £{totalValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total
