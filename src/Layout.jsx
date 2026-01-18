@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from './utils';
 import { base44 } from '@/api/base44Client';
@@ -11,19 +11,34 @@ import {
   TrendingUp, 
   LogOut,
   User,
-  Wallet
+  Wallet,
+  Shield
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Layout({ children, currentPageName }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const user = await base44.auth.me();
+        setIsAdmin(user?.role === 'admin');
+      } catch (error) {
+        setIsAdmin(false);
+      }
+    };
+    checkAdmin();
+  }, []);
 
   const navigation = [
     { name: 'Home', href: createPageUrl('Home'), icon: Home },
     { name: 'Portfolio', href: createPageUrl('Portfolio'), icon: TrendingUp },
     { name: 'Wallet', href: createPageUrl('Wallet'), icon: Wallet },
     { name: 'Transactions', href: createPageUrl('Transactions'), icon: History },
+    ...(isAdmin ? [{ name: 'Admin', href: createPageUrl('Admin'), icon: Shield }] : []),
   ];
 
   const isActive = (pageName) => {
