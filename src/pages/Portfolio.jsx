@@ -11,10 +11,22 @@ import { motion } from 'framer-motion';
 
 export default function Portfolio() {
   const queryClient = useQueryClient();
+  const [currentUser, setCurrentUser] = useState(null);
+  const [sellDialogOpen, setSellDialogOpen] = useState(false);
+  const [selectedHolding, setSelectedHolding] = useState(null);
+  const [sellShares, setSellShares] = useState('');
+
+  useEffect(() => {
+    base44.auth.me().then(setCurrentUser);
+  }, []);
 
   const { data: portfolio = [] } = useQuery({
-    queryKey: ['portfolio'],
-    queryFn: () => base44.entities.Portfolio.list(),
+    queryKey: ['portfolio', currentUser?.email],
+    queryFn: async () => {
+      const allPortfolio = await base44.entities.Portfolio.list();
+      return allPortfolio.filter(p => p.created_by === currentUser?.email);
+    },
+    enabled: !!currentUser?.email,
     refetchInterval: 2000,
   });
 
@@ -25,8 +37,12 @@ export default function Portfolio() {
   });
 
   const { data: accounts } = useQuery({
-    queryKey: ['userAccount'],
-    queryFn: () => base44.entities.UserAccount.list(),
+    queryKey: ['userAccount', currentUser?.email],
+    queryFn: async () => {
+      const allAccounts = await base44.entities.UserAccount.list();
+      return allAccounts.filter(acc => acc.created_by === currentUser?.email);
+    },
+    enabled: !!currentUser?.email,
     refetchInterval: 2000,
   });
 
