@@ -163,42 +163,61 @@ export default function Admin() {
         </p>
       </motion.div>
 
-      {/* Market Simulation */}
+      {/* Admin Controls */}
       <Card className="border-0 shadow-lg mb-6 bg-gradient-to-br from-violet-50 to-purple-50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="w-5 h-5 text-violet-600" />
-            Market Simulation
+            Admin Controls
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3">
+        <CardContent className="space-y-4">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Market Simulation</h3>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                onClick={() => simulateEventMutation.mutate('crash')}
+                variant="destructive"
+                className="gap-2"
+                disabled={simulateEventMutation.isPending}
+              >
+                <TrendingDown className="w-4 h-4" />
+                Simulate Crash (-15%)
+              </Button>
+              <Button
+                onClick={() => simulateEventMutation.mutate('boost')}
+                className="gap-2 bg-green-600 hover:bg-green-700"
+                disabled={simulateEventMutation.isPending}
+              >
+                <TrendingUp className="w-4 h-4" />
+                Simulate Boost (+12%)
+              </Button>
+              <Button
+                onClick={() => simulateEventMutation.mutate('dip')}
+                variant="outline"
+                className="gap-2"
+                disabled={simulateEventMutation.isPending}
+              >
+                <AlertTriangle className="w-4 h-4" />
+                Simulate Dip (-7%)
+              </Button>
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">User Management</h3>
             <Button
-              onClick={() => simulateEventMutation.mutate('crash')}
-              variant="destructive"
-              className="gap-2"
-              disabled={simulateEventMutation.isPending}
-            >
-              <TrendingDown className="w-4 h-4" />
-              Simulate Crash (-15%)
-            </Button>
-            <Button
-              onClick={() => simulateEventMutation.mutate('boost')}
-              className="gap-2 bg-green-600 hover:bg-green-700"
-              disabled={simulateEventMutation.isPending}
-            >
-              <TrendingUp className="w-4 h-4" />
-              Simulate Boost (+12%)
-            </Button>
-            <Button
-              onClick={() => simulateEventMutation.mutate('dip')}
+              onClick={() => resetAccountsMutation.mutate()}
               variant="outline"
               className="gap-2"
-              disabled={simulateEventMutation.isPending}
+              disabled={resetAccountsMutation.isPending}
             >
-              <AlertTriangle className="w-4 h-4" />
-              Simulate Dip (-7%)
+              <Users className="w-4 h-4" />
+              Reset All Users to £10,000
             </Button>
+            {resetAccountsMutation.isSuccess && (
+              <p className="text-sm text-green-600 mt-2">✓ Accounts reset successfully</p>
+            )}
           </div>
         </CardContent>
       </Card>
