@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,9 +11,16 @@ import { createPageUrl } from '../utils';
 import { format } from 'date-fns';
 
 export default function Transactions() {
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setCurrentUser);
+  }, []);
+
   const { data: transactions = [], isLoading } = useQuery({
-    queryKey: ['transactions'],
-    queryFn: () => base44.entities.Transaction.list('-created_date', 50),
+    queryKey: ['transactions', currentUser?.email],
+    queryFn: () => base44.entities.Transaction.filter({ created_by: currentUser?.email }, '-created_date', 50),
+    enabled: !!currentUser?.email,
   });
 
   return (
