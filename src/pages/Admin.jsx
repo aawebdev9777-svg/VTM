@@ -174,6 +174,11 @@ export default function Admin() {
         </p>
       </motion.div>
 
+      {/* Market Stats */}
+      <div className="mb-6">
+        <MarketStats />
+      </div>
+
       {/* Admin Controls */}
       <Card className="border-0 shadow-lg mb-6 bg-gradient-to-br from-violet-50 to-purple-50">
         <CardHeader>
