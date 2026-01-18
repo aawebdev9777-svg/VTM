@@ -52,7 +52,7 @@ export default function HoldingsList({ portfolio, currentPrices }) {
                   <div>
                     <h3 className="font-bold text-gray-900">{holding.symbol}</h3>
                     <p className="text-sm text-gray-500">{holding.company_name}</p>
-                    <p className="text-xs text-gray-400 mt-1">{holding.shares} shares @ £{holding.average_buy_price?.toFixed(2)}</p>
+                    <p className="text-xs text-gray-400 mt-1">{holding.shares.toLocaleString()} shares @ £{holding.average_buy_price?.toFixed(2)}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-gray-900">
@@ -60,7 +60,7 @@ export default function HoldingsList({ portfolio, currentPrices }) {
                     </p>
                     <p className={`text-sm flex items-center justify-end gap-1 ${isProfit ? 'text-green-600' : 'text-red-600'}`}>
                       {isProfit ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                      {isProfit ? '+' : ''}£{profitLoss.toFixed(2)} ({isProfit ? '+' : ''}{profitPercent.toFixed(2)}%)
+                      {isProfit ? '+' : ''}£{profitLoss.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({isProfit ? '+' : ''}{profitPercent.toFixed(2)}%)
                     </p>
                   </div>
                 </div>

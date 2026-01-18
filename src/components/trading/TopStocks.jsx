@@ -33,38 +33,56 @@ export default function TopStocks({ onSelectStock }) {
   const [priceChanges, setPriceChanges] = useState({});
   
   useEffect(() => {
-    // Initialize prices
+    // Initialize prices with slight variation from base
     const initialPrices = {};
     const initialChanges = {};
     TOP_STOCKS.forEach(stock => {
-      initialPrices[stock.symbol] = stock.basePrice;
-      initialChanges[stock.symbol] = 0;
+      const variation = (Math.random() - 0.5) * 0.02;
+      initialPrices[stock.symbol] = stock.basePrice * (1 + variation);
+      initialChanges[stock.symbol] = variation * 100;
     });
     setLivePrices(initialPrices);
     setPriceChanges(initialChanges);
 
     // Update prices every 30 seconds with realistic movement
     const interval = setInterval(() => {
-      const newPrices = { ...livePrices };
-      const newChanges = {};
-      
-      TOP_STOCKS.forEach(stock => {
-        const currentPrice = newPrices[stock.symbol] || stock.basePrice;
-        // Random walk with mean reversion towards base price
-        const drift = (stock.basePrice - currentPrice) * 0.01;
-        const randomChange = (Math.random() - 0.5) * stock.volatility;
-        const totalChange = drift + randomChange;
+      setLivePrices(prevPrices => {
+        const newPrices = {};
+        const newChanges = {};
         
-        newPrices[stock.symbol] = Math.max(currentPrice * (1 + totalChange), stock.basePrice * 0.5);
-        newChanges[stock.symbol] = totalChange * 100;
+        TOP_STOCKS.forEach(stock => {
+          const currentPrice = prevPrices[stock.symbol] || stock.basePrice;
+          
+          // Realistic price movement simulation
+          // 1. Mean reversion - tendency to drift back to base price
+          const deviation = (currentPrice - stock.basePrice) / stock.basePrice;
+          const meanReversion = -deviation * 0.05;
+          
+          // 2. Random walk component
+          const randomWalk = (Math.random() - 0.5) * 2 * stock.volatility;
+          
+          // 3. Momentum - small continuation of previous trend
+          const momentum = (prevPrices[stock.symbol] > stock.basePrice ? 0.001 : -0.001);
+          
+          // Combined change
+          const totalChange = meanReversion + randomWalk + momentum;
+          
+          // Apply change with bounds
+          const newPrice = currentPrice * (1 + totalChange);
+          const minPrice = stock.basePrice * 0.7;
+          const maxPrice = stock.basePrice * 1.3;
+          
+          newPrices[stock.symbol] = Math.max(minPrice, Math.min(maxPrice, newPrice));
+          newChanges[stock.symbol] = ((newPrices[stock.symbol] - currentPrice) / currentPrice) * 100;
+        });
+        
+        setPriceChanges(newChanges);
+        return newPrices;
       });
-      
-      setLivePrices(newPrices);
-      setPriceChanges(newChanges);
     }, 30000);
 
     return () => clearInterval(interval);
-  }, [livePrices]);
+  }, []);
   
   const sectors = ['all', ...new Set(TOP_STOCKS.map(s => s.sector))];
   
@@ -120,7 +138,7 @@ export default function TopStocks({ onSelectStock }) {
                 
                 <div className="flex items-end justify-between mt-3">
                   <div className="text-xl font-bold text-gray-900">
-                    £{price.toFixed(2)}
+                    £{price.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </div>
                   <div className={`flex items-center gap-1 text-sm font-medium ${
                     isPositive ? 'text-green-600' : 'text-red-600'

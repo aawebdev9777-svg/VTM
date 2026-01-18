@@ -77,7 +77,7 @@ export default function Portfolio() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Total Value</p>
-                  <p className="text-lg font-bold text-gray-900">£{totalValue.toLocaleString()}</p>
+                  <p className="text-lg font-bold text-gray-900">£{totalValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </CardContent>
@@ -93,7 +93,7 @@ export default function Portfolio() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Invested</p>
-                  <p className="text-lg font-bold text-gray-900">£{totalPortfolioValue.toLocaleString()}</p>
+                  <p className="text-lg font-bold text-gray-900">£{totalPortfolioValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </CardContent>
@@ -116,7 +116,7 @@ export default function Portfolio() {
                 <div>
                   <p className="text-xs text-gray-500">P/L Amount</p>
                   <p className={`text-lg font-bold ${totalProfitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {totalProfitLoss >= 0 ? '+' : ''}£{totalProfitLoss.toFixed(2)}
+                    {totalProfitLoss >= 0 ? '+' : ''}£{totalProfitLoss.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
               </div>
@@ -185,16 +185,16 @@ export default function Portfolio() {
                           <p className="text-xs text-gray-500">{holding.company_name}</p>
                         </div>
                       </td>
-                      <td className="text-right py-4 px-4 text-gray-900">{holding.shares}</td>
-                      <td className="text-right py-4 px-4 text-gray-900">£{holding.average_buy_price?.toFixed(2)}</td>
-                      <td className="text-right py-4 px-4 text-gray-900">£{holding.currentPrice?.toFixed(2)}</td>
+                      <td className="text-right py-4 px-4 text-gray-900">{holding.shares.toLocaleString()}</td>
+                      <td className="text-right py-4 px-4 text-gray-900">£{holding.average_buy_price?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="text-right py-4 px-4 text-gray-900">£{holding.currentPrice?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                       <td className="text-right py-4 px-4 font-medium text-gray-900">
                         £{holding.currentValue?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                       <td className="text-right py-4 px-4">
                         <div className="flex flex-col items-end gap-1">
                           <p className={`font-bold ${holding.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {holding.profitLoss >= 0 ? '+' : ''}£{holding.profitLoss?.toFixed(2)}
+                            {holding.profitLoss >= 0 ? '+' : ''}£{holding.profitLoss?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </p>
                           <Badge variant={holding.profitLoss >= 0 ? 'default' : 'destructive'} className="text-xs">
                             {holding.profitLossPercent >= 0 ? '+' : ''}{holding.profitLossPercent?.toFixed(2)}%

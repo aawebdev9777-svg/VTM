@@ -17,7 +17,12 @@ import { createPageUrl } from '../utils';
 export default function Home() {
   const [selectedStock, setSelectedStock] = useState(null);
   const [currentPrices, setCurrentPrices] = useState({});
+  const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    base44.auth.me().then(setCurrentUser);
+  }, []);
 
   // Fetch and update stock prices every 30 seconds
   const { data: stockPrices = [] } = useQuery({
