@@ -269,9 +269,9 @@ export default function Home() {
 
         <div className="mb-6">
           <PortfolioSummary
-              cashBalance={isSuperAdmin ? 999999999 : (account?.cash_balance || 0)}
+              cashBalance={account?.cash_balance || 0}
               portfolioValue={portfolioValue}
-              initialBalance={isSuperAdmin ? 999999999 : (account?.initial_balance || 10000)}
+              initialBalance={account?.initial_balance || 10000}
             />
         </div>
 
