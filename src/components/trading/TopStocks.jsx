@@ -26,7 +26,40 @@ const TOP_STOCKS = [
 ];
 
 export default function TopStocks({ onSelectStock }) {
-  const [selectedSector, setSelectedSector] = React.useState('all');
+  const [selectedSector, setSelectedSector] = useState('all');
+  const [livePrices, setLivePrices] = useState({});
+  const [priceChanges, setPriceChanges] = useState({});
+  
+  useEffect(() => {
+    // Initialize prices
+    const initialPrices = {};
+    const initialChanges = {};
+    TOP_STOCKS.forEach(stock => {
+      initialPrices[stock.symbol] = stock.basePrice;
+      initialChanges[stock.symbol] = 0;
+    });
+    setLivePrices(initialPrices);
+    setPriceChanges(initialChanges);
+
+    // Update prices every 30 seconds
+    const interval = setInterval(() => {
+      const newPrices = {};
+      const newChanges = {};
+      
+      TOP_STOCKS.forEach(stock => {
+        const change = (Math.random() - 0.5) * 2 * stock.volatility;
+        const currentPrice = livePrices[stock.symbol] || stock.basePrice;
+        const newPrice = currentPrice * (1 + change);
+        newPrices[stock.symbol] = newPrice;
+        newChanges[stock.symbol] = change * 100;
+      });
+      
+      setLivePrices(newPrices);
+      setPriceChanges(newChanges);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [livePrices]);
   
   const sectors = ['all', ...new Set(TOP_STOCKS.map(s => s.sector))];
   
