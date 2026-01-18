@@ -53,8 +53,21 @@ export default function Home() {
        return allPortfolio.filter(p => p.created_by === currentUser?.email);
      },
      enabled: !!currentUser?.email,
-     refetchInterval: 5000,
+     refetchInterval: 2000,
    });
+
+   // Subscribe to real-time portfolio updates
+   useEffect(() => {
+     if (!currentUser?.email) return;
+     
+     const unsubscribe = base44.entities.Portfolio.subscribe((event) => {
+       if (event.data?.created_by === currentUser?.email) {
+         queryClient.invalidateQueries({ queryKey: ['portfolio', currentUser?.email] });
+       }
+     });
+
+     return unsubscribe;
+   }, [currentUser?.email, queryClient]);
 
   // Create account if doesn't exist
   const createAccountMutation = useMutation({
