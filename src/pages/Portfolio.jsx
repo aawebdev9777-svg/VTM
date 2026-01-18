@@ -257,7 +257,8 @@ export default function Portfolio() {
                     <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Current</th>
                     <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Value</th>
                     <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">P/L</th>
-                  </tr>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Action</th>
+                    </tr>
                 </thead>
                 <tbody>
                   {portfolioWithMetrics.map((holding, index) => (
