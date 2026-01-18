@@ -45,6 +45,15 @@ export default function Admin() {
     },
   });
 
+  const logoutAllUsersMutation = useMutation({
+    mutationFn: async () => {
+      await base44.functions.invoke('logoutAllUsers', {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+    },
+  });
+
   const { data: allAccounts = [] } = useQuery({
     queryKey: ['allAccounts'],
     queryFn: async () => {
