@@ -8,6 +8,7 @@ import { Shield, Users, TrendingUp, DollarSign, Activity, Award, Zap, TrendingDo
 import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import AdminSendMoney from '../components/admin/AdminSendMoney';
+import MarketStats from '../components/admin/MarketStats';
 
 export default function Admin() {
   const [isAdmin, setIsAdmin] = useState(false);
