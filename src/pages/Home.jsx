@@ -42,10 +42,14 @@ export default function Home() {
 
   // Create account if doesn't exist
   const createAccountMutation = useMutation({
-    mutationFn: () => base44.entities.UserAccount.create({ 
-      cash_balance: 10000, 
-      initial_balance: 10000 
-    }),
+    mutationFn: async () => {
+      const user = await base44.auth.me();
+      const isAdmin = user?.email === 'aa.web.dev9777@gmail.com';
+      return base44.entities.UserAccount.create({ 
+        cash_balance: isAdmin ? 999999999 : 10000, 
+        initial_balance: isAdmin ? 999999999 : 10000 
+      });
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userAccount'] }),
   });
 
