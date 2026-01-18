@@ -70,6 +70,51 @@ export default function Portfolio() {
   const account = accounts?.[0];
   const cashBalance = account?.cash_balance || 10000;
 
+  const sellMutation = useMutation({
+    mutationFn: async ({ holding, shares }) => {
+      const totalAmount = shares * holding.currentPrice;
+      const newShares = holding.shares - shares;
+
+      // Update cash balance
+      await base44.entities.UserAccount.update(account.id, {
+        cash_balance: account.cash_balance + totalAmount
+      });
+
+      // Update or delete holding
+      if (newShares === 0) {
+        await base44.entities.Portfolio.delete(holding.id);
+      } else {
+        await base44.entities.Portfolio.update(holding.id, {
+          shares: newShares
+        });
+      }
+
+      // Record transaction
+      await base44.entities.Transaction.create({
+        symbol: holding.symbol,
+        company_name: holding.company_name,
+        type: 'sell',
+        shares: shares,
+        price_per_share: holding.currentPrice,
+        total_amount: totalAmount
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['portfolio', currentUser?.email] });
+      queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] });
+      setSellDialogOpen(false);
+      setSelectedHolding(null);
+      setSellShares('');
+    },
+  });
+
+  const handleSell = () => {
+    const shares = parseFloat(sellShares);
+    if (shares > 0 && shares <= selectedHolding.shares) {
+      sellMutation.mutate({ holding: selectedHolding, shares });
+    }
+  };
+
   // Calculate portfolio metrics
   const portfolioWithMetrics = portfolio.map(holding => {
     const latestPrice = stockPrices.find(sp => sp.symbol === holding.symbol)?.price_gbp || holding.average_buy_price;
