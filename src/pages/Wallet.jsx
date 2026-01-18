@@ -50,10 +50,39 @@ export default function Wallet() {
     getUser();
   }, []);
 
+  const createAccountMutation = useMutation({
+    mutationFn: async () => {
+      return base44.entities.UserAccount.create({ 
+        cash_balance: isAdmin ? 999999999 : 10000, 
+        initial_balance: isAdmin ? 999999999 : 10000 
+      });
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userAccount'] }),
+  });
+
   const { data: accounts } = useQuery({
     queryKey: ['userAccount'],
     queryFn: () => base44.entities.UserAccount.list(),
   });
+
+  useEffect(() => {
+    if (accounts && accounts.length === 0) {
+      createAccountMutation.mutate();
+    }
+  }, [accounts]);
+
+  useEffect(() => {
+    const updateAdminBalance = async () => {
+      if (isAdmin && account && account.cash_balance < 999999999) {
+        await base44.entities.UserAccount.update(account.id, {
+          cash_balance: 999999999,
+          initial_balance: 999999999
+        });
+        queryClient.invalidateQueries({ queryKey: ['userAccount'] });
+      }
+    };
+    updateAdminBalance();
+  }, [isAdmin, account]);
 
   const { data: leaderboardData = [] } = useQuery({
     queryKey: ['leaderboard'],
