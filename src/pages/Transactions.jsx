@@ -28,7 +28,7 @@ export default function Transactions() {
           Transaction History
         </h1>
         <p className="text-sm text-gray-500 mt-1">
-          All your buy and sell transactions
+          All your trades and transfers
         </p>
       </motion.div>
 
