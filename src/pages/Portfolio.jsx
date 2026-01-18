@@ -7,21 +7,46 @@ import { Briefcase, TrendingUp, TrendingDown, DollarSign, Percent } from 'lucide
 import { motion } from 'framer-motion';
 
 export default function Portfolio() {
+  const queryClient = useQueryClient();
+
   const { data: portfolio = [] } = useQuery({
     queryKey: ['portfolio'],
     queryFn: () => base44.entities.Portfolio.list(),
+    refetchInterval: 2000,
   });
 
   const { data: stockPrices = [] } = useQuery({
     queryKey: ['stockPrices'],
     queryFn: () => base44.entities.StockPrice.list(),
-    refetchInterval: 30000,
+    refetchInterval: 2000,
   });
 
   const { data: accounts } = useQuery({
     queryKey: ['userAccount'],
     queryFn: () => base44.entities.UserAccount.list(),
+    refetchInterval: 2000,
   });
+
+  // Subscribe to real-time updates
+  useEffect(() => {
+    const unsubscribePortfolio = base44.entities.Portfolio.subscribe(() => {
+      queryClient.invalidateQueries({ queryKey: ['portfolio'] });
+    });
+
+    const unsubscribePrices = base44.entities.StockPrice.subscribe(() => {
+      queryClient.invalidateQueries({ queryKey: ['stockPrices'] });
+    });
+
+    const unsubscribeAccount = base44.entities.UserAccount.subscribe(() => {
+      queryClient.invalidateQueries({ queryKey: ['userAccount'] });
+    });
+
+    return () => {
+      unsubscribePortfolio();
+      unsubscribePrices();
+      unsubscribeAccount();
+    };
+  }, [queryClient]);
 
   const account = accounts?.[0];
   const cashBalance = account?.cash_balance || 10000;
