@@ -299,6 +299,14 @@ export default function Home() {
         </div>
 
       <TradingChat />
+
+      <div className="mt-12 bg-white/60 backdrop-blur-sm rounded-xl border border-gray-200 p-6">
+        <StockNews 
+          symbol={selectedStock?.symbol} 
+          companyName={selectedStock?.company_name || selectedStock?.name}
+          autoLoad={!selectedStock}
+        />
+      </div>
     </div>
   );
 }
