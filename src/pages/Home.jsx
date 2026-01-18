@@ -305,12 +305,12 @@ export default function Home() {
               onSelectStock={handleSelectStock} 
               selectedStock={selectedStock}
             />
-            <TopStocks onSelectStock={handleSelectStock} />
             <StockNews 
               symbol={selectedStock?.symbol} 
               companyName={selectedStock?.company_name || selectedStock?.name}
               autoLoad={!selectedStock}
             />
+            <TopStocks onSelectStock={handleSelectStock} />
             <HoldingsList 
               portfolio={portfolio} 
               currentPrices={currentPrices}
