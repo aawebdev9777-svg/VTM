@@ -8,6 +8,7 @@ import HoldingsList from '../components/trading/HoldingsList';
 import TopStocks from '../components/trading/TopStocks';
 import AlertsPanel from '../components/alerts/AlertsPanel';
 import TradingChat from '../components/chat/TradingChat';
+import StockNews from '../components/news/StockNews';
 import { Loader2, RefreshCw, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -302,6 +303,10 @@ export default function Home() {
               selectedStock={selectedStock}
             />
             <TopStocks onSelectStock={handleSelectStock} />
+            <StockNews 
+              symbol={selectedStock?.symbol} 
+              companyName={selectedStock?.company_name || selectedStock?.name}
+            />
             <HoldingsList 
               portfolio={portfolio} 
               currentPrices={currentPrices}
