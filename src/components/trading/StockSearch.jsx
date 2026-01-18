@@ -17,6 +17,7 @@ const POPULAR_STOCKS = [
   { symbol: 'JPM', name: 'JPMorgan Chase' },
   { symbol: 'V', name: 'Visa Inc.' },
   { symbol: 'WMT', name: 'Walmart Inc.' },
+  { symbol: 'ABPF', name: 'AB Portfolio Finance' },
 ];
 
 export default function StockSearch({ onSelectStock, selectedStock }) {
@@ -27,36 +28,8 @@ export default function StockSearch({ onSelectStock, selectedStock }) {
   const searchStock = async (symbol) => {
     setIsSearching(true);
     try {
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Get the current live stock price for ticker symbol: ${symbol}. 
-        
-        Return:
-        - The exact company name
-        - Current price in USD (as a number)
-        - Today's percentage change (as a number, can be negative)
-        
-        Use real-time market data. Be precise and accurate.`,
-        add_context_from_internet: true,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            symbol: { type: "string" },
-            company_name: { type: "string" },
-            price_usd: { type: "number" },
-            daily_change_percent: { type: "number" }
-          }
-        }
-      });
-      
-      // Convert USD to GBP (approximate rate: 1 USD = 0.79 GBP)
-      const gbpRate = 0.79;
-      const stockData = {
-        ...result,
-        symbol: symbol.toUpperCase(),
-        price_gbp: result.price_usd * gbpRate
-      };
-      
-      setSearchResults(stockData);
+      const response = await base44.functions.invoke('getStockPrice', { symbol: symbol.toUpperCase() });
+      setSearchResults(response.data);
     } catch (error) {
       console.error('Failed to fetch stock:', error);
       setSearchResults(null);

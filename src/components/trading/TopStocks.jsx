@@ -21,6 +21,7 @@ const TOP_STOCKS = [
   { symbol: 'NFLX', name: 'Netflix Inc.', sector: 'Entertainment' },
   { symbol: 'BA', name: 'Boeing Co.', sector: 'Aerospace' },
   { symbol: 'NKE', name: 'Nike Inc.', sector: 'Apparel' },
+  { symbol: 'ABPF', name: 'AB Portfolio Finance', sector: 'Finance' },
 ];
 
 export default function TopStocks({ onSelectStock }) {
