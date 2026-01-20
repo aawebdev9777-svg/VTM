@@ -7,17 +7,16 @@ import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from "framer-motion";
 
 const POPULAR_STOCKS = [
-  { symbol: 'AAPL', name: 'Apple Inc.' },
-  { symbol: 'MSFT', name: 'Microsoft Corp.' },
-  { symbol: 'GOOGL', name: 'Alphabet Inc.' },
-  { symbol: 'AMZN', name: 'Amazon.com Inc.' },
-  { symbol: 'TSLA', name: 'Tesla Inc.' },
-  { symbol: 'META', name: 'Meta Platforms' },
-  { symbol: 'NVDA', name: 'NVIDIA Corp.' },
-  { symbol: 'JPM', name: 'JPMorgan Chase' },
-  { symbol: 'V', name: 'Visa Inc.' },
-  { symbol: 'WMT', name: 'Walmart Inc.' },
-  { symbol: 'ABPF', name: 'AB Portfolio Finance' },
+  { symbol: 'AAPL', name: 'Apple' },
+  { symbol: 'MSFT', name: 'Microsoft' },
+  { symbol: 'GOOGL', name: 'Alphabet' },
+  { symbol: 'AMZN', name: 'Amazon' },
+  { symbol: 'TSLA', name: 'Tesla' },
+  { symbol: 'META', name: 'Meta' },
+  { symbol: 'NVDA', name: 'NVIDIA' },
+  { symbol: 'JPM', name: 'JPMorgan' },
+  { symbol: 'V', name: 'Visa' },
+  { symbol: 'WMT', name: 'Walmart' },
 ];
 
 export default function StockSearch({ onSelectStock, selectedStock }) {
