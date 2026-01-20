@@ -43,7 +43,16 @@ export default function Admin() {
       await base44.functions.invoke('resetUserAccounts', {});
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allAccounts'] });
+      queryClient.invalidateQueries();
+    },
+  });
+
+  const resetAllDataMutation = useMutation({
+    mutationFn: async () => {
+      await base44.functions.invoke('resetAllUsers', {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries();
     },
   });
 
@@ -58,23 +67,23 @@ export default function Admin() {
 
   const { data: allAccounts = [] } = useQuery({
     queryKey: ['allAccounts'],
-    queryFn: async () => {
-      const accounts = await base44.asServiceRole.entities.UserAccount.list();
-      return accounts;
-    },
+    queryFn: () => base44.asServiceRole.entities.UserAccount.list(),
     enabled: isAdmin,
+    refetchInterval: 5000,
   });
 
   const { data: allPortfolios = [] } = useQuery({
     queryKey: ['allPortfolios'],
     queryFn: () => base44.asServiceRole.entities.Portfolio.list(),
     enabled: isAdmin,
+    refetchInterval: 5000,
   });
 
   const { data: allTransactions = [] } = useQuery({
     queryKey: ['allTransactions'],
     queryFn: () => base44.asServiceRole.entities.Transaction.list(),
     enabled: isAdmin,
+    refetchInterval: 5000,
   });
 
   const { data: allUsers = [] } = useQuery({
@@ -231,11 +240,20 @@ export default function Admin() {
                   disabled={resetAccountsMutation.isPending}
                 >
                   <Users className="w-4 h-4" />
-                  Reset All Users to £10,000
+                  Reset All Balances
+                </Button>
+                <Button
+                  onClick={() => resetAllDataMutation.mutate()}
+                  variant="destructive"
+                  className="gap-2"
+                  disabled={resetAllDataMutation.isPending}
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                  Reset ALL Data
                 </Button>
                 <Button
                   onClick={() => logoutAllUsersMutation.mutate()}
-                  variant="destructive"
+                  variant="outline"
                   className="gap-2"
                   disabled={logoutAllUsersMutation.isPending}
                 >
@@ -244,7 +262,10 @@ export default function Admin() {
                 </Button>
               </div>
               {resetAccountsMutation.isSuccess && (
-                <p className="text-sm text-green-600">✓ Accounts reset successfully</p>
+                <p className="text-sm text-green-600">✓ Balances reset successfully</p>
+              )}
+              {resetAllDataMutation.isSuccess && (
+                <p className="text-sm text-green-600">✓ All data reset successfully</p>
               )}
               {logoutAllUsersMutation.isSuccess && (
                 <p className="text-sm text-green-600">✓ All users logged out</p>
