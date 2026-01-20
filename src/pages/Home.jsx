@@ -83,11 +83,14 @@ export default function Home() {
 
   const buyMutation = useMutation({
     mutationFn: async ({ stock, shares }) => {
-      await base44.functions.invoke('buyStock', { stock, shares });
+      const response = await base44.functions.invoke('buyStock', { stock, shares });
+      return response.data;
     },
     onSuccess: async () => {
+      // Force immediate refetch
       await queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] });
       await queryClient.invalidateQueries({ queryKey: ['portfolio', currentUser?.email] });
+      await queryClient.refetchQueries({ queryKey: ['portfolio', currentUser?.email] });
     },
   });
 

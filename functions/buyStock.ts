@@ -29,10 +29,11 @@ Deno.serve(async (req) => {
       cash_balance: account.cash_balance - totalAmount
     });
 
-    // Check if holding exists
-    const allPortfolio = await base44.asServiceRole.entities.Portfolio.list();
-    const existingHolding = allPortfolio.find(p => p.symbol === stock.symbol && p.created_by === user.email);
+    // Check if holding exists for this user
+    const userPortfolio = await base44.entities.Portfolio.filter({ created_by: user.email });
+    const existingHolding = userPortfolio.find(p => p.symbol === stock.symbol);
 
+    let portfolioRecord;
     if (existingHolding) {
       // Update existing holding
       const newTotalShares = existingHolding.shares + shares;
@@ -40,13 +41,13 @@ Deno.serve(async (req) => {
         (existingHolding.shares * existingHolding.average_buy_price) + totalAmount
       ) / newTotalShares;
 
-      await base44.asServiceRole.entities.Portfolio.update(existingHolding.id, {
+      portfolioRecord = await base44.entities.Portfolio.update(existingHolding.id, {
         shares: newTotalShares,
         average_buy_price: newAvgPrice
       });
     } else {
-      // Create new holding with created_by
-      await base44.entities.Portfolio.create({
+      // Create new holding (created_by set automatically)
+      portfolioRecord = await base44.entities.Portfolio.create({
         symbol: stock.symbol,
         company_name: stock.company_name,
         shares: shares,
@@ -76,7 +77,11 @@ Deno.serve(async (req) => {
       portfolio_value_after: 0
     });
 
-    return Response.json({ success: true, transaction });
+    return Response.json({ 
+      success: true, 
+      transaction,
+      portfolio: portfolioRecord
+    });
   } catch (error) {
     console.error('Buy error:', error);
     return Response.json({ error: error.message }, { status: 500 });
