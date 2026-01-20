@@ -10,10 +10,10 @@ export default function BuyStockPanel({ selectedStock, cashBalance, onBuy, isLoa
 
   if (!selectedStock) {
     return (
-      <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-        <CardContent className="py-12 text-center">
-          <AlertCircle className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-          <p className="text-gray-500">Select a stock to buy</p>
+      <Card className="border-0 shadow-md bg-gradient-to-br from-gray-50 to-gray-100">
+        <CardContent className="py-8 text-center">
+          <AlertCircle className="w-10 h-10 mx-auto text-gray-300 mb-2" />
+          <p className="text-sm text-gray-500">Select a stock to trade</p>
         </CardContent>
       </Card>
     );
@@ -31,18 +31,18 @@ export default function BuyStockPanel({ selectedStock, cashBalance, onBuy, isLoa
   };
 
   return (
-    <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold">
+    <Card className="border-0 shadow-md bg-gradient-to-br from-white to-gray-50">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base font-semibold">
           <div className="flex items-center justify-between">
-            <span>Buy {selectedStock.symbol}</span>
-            <span className="text-violet-600 text-2xl font-bold">£{selectedStock.price_gbp?.toFixed(2)}</span>
+            <span className="text-gray-700">Buy {selectedStock.symbol}</span>
+            <span className="text-violet-600 text-xl font-bold">£{selectedStock.price_gbp?.toFixed(2)}</span>
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         <div>
-          <label className="text-sm text-gray-600 block mb-2">Number of Shares</label>
+          <label className="text-xs text-gray-600 block mb-1.5">Shares</label>
           <Input
             type="number"
             min="1"
@@ -50,31 +50,25 @@ export default function BuyStockPanel({ selectedStock, cashBalance, onBuy, isLoa
             placeholder="0"
             value={shares}
             onChange={(e) => setShares(e.target.value)}
-            className="text-lg font-semibold"
+            className="text-base font-semibold h-10"
           />
-          <p className="text-xs text-gray-500 mt-1">Max: {maxBuyable} shares</p>
+          <p className="text-xs text-gray-500 mt-1">Max: {maxBuyable}</p>
         </div>
 
         <div className="grid grid-cols-3 gap-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
-              const s = Math.floor(maxBuyable * 0.25);
-              setShares(s.toString());
-            }}
-            className="text-xs"
+            onClick={() => setShares(Math.floor(maxBuyable * 0.25).toString())}
+            className="text-xs h-8"
           >
             25%
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
-              const s = Math.floor(maxBuyable * 0.5);
-              setShares(s.toString());
-            }}
-            className="text-xs"
+            onClick={() => setShares(Math.floor(maxBuyable * 0.5).toString())}
+            className="text-xs h-8"
           >
             50%
           </Button>
@@ -82,45 +76,41 @@ export default function BuyStockPanel({ selectedStock, cashBalance, onBuy, isLoa
             variant="outline"
             size="sm"
             onClick={() => setShares(maxBuyable.toString())}
-            className="text-xs"
+            className="text-xs h-8"
           >
             Max
           </Button>
         </div>
 
-        <motion.div 
-          className="p-4 rounded-xl bg-violet-50 border border-violet-200"
-          animate={{ scale: shares ? [1, 1.02, 1] : 1 }}
-        >
+        <div className="p-3 rounded-lg bg-violet-50 border border-violet-200">
           <div className="text-center">
-            <p className="text-gray-600 text-sm">Total Cost</p>
-            <p className="text-3xl font-bold text-violet-600">
+            <p className="text-gray-600 text-xs">Total</p>
+            <p className="text-2xl font-bold text-violet-600">
               £{totalCost.toFixed(2)}
             </p>
-            <p className="text-xs text-gray-500 mt-1">Available: £{cashBalance.toFixed(2)}</p>
           </div>
-        </motion.div>
+        </div>
 
         <Button
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 text-lg font-semibold"
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 text-base font-semibold"
           onClick={handleBuy}
           disabled={!canBuy || isLoading}
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               Buying...
             </>
           ) : (
             <>
-              <ShoppingCart className="w-5 h-5 mr-2" />
+              <ShoppingCart className="w-4 h-4 mr-2" />
               Buy {shares || 0} Shares
             </>
           )}
         </Button>
 
         {totalCost > cashBalance && shares && (
-          <p className="text-sm text-red-500 text-center">Insufficient funds</p>
+          <p className="text-xs text-red-500 text-center">Insufficient funds</p>
         )}
       </CardContent>
     </Card>

@@ -45,8 +45,8 @@ Deno.serve(async (req) => {
         average_buy_price: newAvgPrice
       });
     } else {
-      // Create new holding
-      await base44.asServiceRole.entities.Portfolio.create({
+      // Create new holding with created_by
+      await base44.entities.Portfolio.create({
         symbol: stock.symbol,
         company_name: stock.company_name,
         shares: shares,
@@ -55,18 +55,17 @@ Deno.serve(async (req) => {
     }
 
     // Record transaction
-    const transaction = await base44.asServiceRole.entities.Transaction.create({
+    const transaction = await base44.entities.Transaction.create({
       symbol: stock.symbol,
       company_name: stock.company_name,
       type: 'buy',
       shares: shares,
       price_per_share: stock.price_gbp,
-      total_amount: totalAmount,
-      created_by: user.email
+      total_amount: totalAmount
     });
 
     // Record history
-    await base44.asServiceRole.entities.PortfolioHistory.create({
+    await base44.entities.PortfolioHistory.create({
       symbol: stock.symbol,
       company_name: stock.company_name,
       action: 'buy',

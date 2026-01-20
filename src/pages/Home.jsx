@@ -144,29 +144,33 @@ export default function Home() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
+    <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6 pb-20">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
+        className="mb-4"
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Portfolio</h1>
-            <p className="text-gray-500 mt-2">£10,000 virtual cash • Live prices</p>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
+                ABPF Trading
+              </h1>
+            </div>
+            <p className="text-xs md:text-sm text-gray-500 mt-1">Virtual Portfolio • Live Market Data</p>
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={() => queryClient.invalidateQueries()}
-            className="gap-2"
+            className="gap-2 h-8"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-3 h-3" />
           </Button>
         </div>
       </motion.div>
 
-      <div className="mb-8">
+      <div className="mb-4">
         <PortfolioSummary
           cashBalance={account?.cash_balance || 0}
           portfolioValue={portfolioValue}
@@ -174,8 +178,14 @@ export default function Home() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 space-y-4">
+          <BuyStockPanel
+            selectedStock={selectedStock}
+            cashBalance={account?.cash_balance || 0}
+            onBuy={handleBuy}
+            isLoading={buyMutation.isPending}
+          />
           <StockSearch 
             onSelectStock={handleSelectStock} 
             selectedStock={selectedStock}
@@ -185,22 +195,9 @@ export default function Home() {
             portfolio={portfolio} 
             currentPrices={currentPrices}
           />
-          <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-gray-200 p-6">
-            <StockNews 
-              symbol={selectedStock?.symbol} 
-              companyName={selectedStock?.company_name || selectedStock?.name}
-              autoLoad={!selectedStock}
-            />
-          </div>
         </div>
 
-        <div className="lg:sticky lg:top-6 h-fit space-y-6">
-          <BuyStockPanel
-            selectedStock={selectedStock}
-            cashBalance={account?.cash_balance || 0}
-            onBuy={handleBuy}
-            isLoading={buyMutation.isPending}
-          />
+        <div className="space-y-4">
           <AlertsPanel selectedStock={selectedStock} />
         </div>
       </div>

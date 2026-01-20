@@ -59,25 +59,25 @@ export default function TopStocks({ onSelectStock }) {
     : REAL_STOCKS.filter(s => s.sector === selectedSector);
 
   return (
-    <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-      <CardHeader>
+    <Card className="border-0 shadow-md bg-gradient-to-br from-white to-gray-50">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            <Star className="w-5 h-5 text-yellow-500" />
-            Real Market Prices
+          <CardTitle className="text-base font-semibold text-gray-800 flex items-center gap-2">
+            <Star className="w-4 h-4 text-yellow-500" />
+            Market Prices
           </CardTitle>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => refetch()}
             disabled={isRefetching}
-            className="gap-2"
+            className="gap-2 h-7"
           >
-            <RefreshCw className={`w-4 h-4 ${isRefetching ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3 h-3 ${isRefetching ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         <div className="flex gap-2 flex-wrap">
           {sectors.map(sector => (
             <Button
@@ -92,7 +92,7 @@ export default function TopStocks({ onSelectStock }) {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
           {filteredStocks.map((stock, index) => {
             const stockPrice = priceMap[stock.symbol];
             const currentPrice = stockPrice?.price || 0;
@@ -104,7 +104,7 @@ export default function TopStocks({ onSelectStock }) {
                 key={stock.symbol}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.03 }}
+                transition={{ delay: index * 0.02 }}
                 onClick={() => {
                   if (currentPrice > 0) {
                     onSelectStock({
@@ -116,43 +116,28 @@ export default function TopStocks({ onSelectStock }) {
                   }
                 }}
                 disabled={!currentPrice}
-                className="p-4 rounded-xl border-2 border-gray-200 hover:border-violet-400 hover:shadow-lg transition-all text-left bg-white disabled:opacity-50"
+                className="p-3 rounded-lg border border-gray-200 hover:border-violet-400 hover:shadow-md transition-all text-left bg-white disabled:opacity-50"
               >
                 <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <div className="font-bold text-gray-900 text-lg">{stock.symbol}</div>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        stock.riskLevel === 'High' ? 'bg-red-100 text-red-700' :
-                        stock.riskLevel === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-green-100 text-green-700'
-                      }`}>
-                        {stock.riskLevel}
-                      </span>
-                    </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-gray-900 text-sm">{stock.symbol}</div>
                     <div className="text-xs text-gray-500 truncate">{stock.name}</div>
                   </div>
-                  <Activity className="w-4 h-4 text-violet-500" />
                 </div>
-                
-                <div className="flex items-end justify-between mt-3">
-                  <div className="text-xl font-bold text-gray-900">
+
+                <div className="flex items-end justify-between">
+                  <div className="text-base font-bold text-gray-900">
                     {currentPrice > 0 ? (
-                      `£${currentPrice.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      `£${currentPrice.toFixed(2)}`
                     ) : (
-                      <span className="text-sm text-gray-400">Loading...</span>
+                      <span className="text-xs text-gray-400">...</span>
                     )}
                   </div>
                   {currentPrice > 0 && (
-                    <div className={`flex items-center gap-1 text-sm font-medium ${
+                    <div className={`text-xs font-medium ${
                       isPositive ? 'text-green-600' : 'text-red-600'
                     }`}>
-                      {isPositive ? (
-                        <TrendingUp className="w-4 h-4" />
-                      ) : (
-                        <TrendingDown className="w-4 h-4" />
-                      )}
-                      {isPositive ? '+' : ''}{dailyChange.toFixed(2)}%
+                      {isPositive ? '+' : ''}{dailyChange.toFixed(1)}%
                     </div>
                   )}
                 </div>
