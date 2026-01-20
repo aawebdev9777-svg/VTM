@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Trash2, AlertTriangle, User } from 'lucide-react';
+import { Trash2, AlertTriangle, User, RotateCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import {
   AlertDialog,
@@ -19,27 +19,40 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function Settings() {
-  const [deleting, setDeleting] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    base44.auth.me().then(setCurrentUser);
+  }, []);
 
   const { data: accounts = [] } = useQuery({
-    queryKey: ['userAccount'],
-    queryFn: () => base44.entities.UserAccount.list(),
+    queryKey: ['userAccount', currentUser?.email],
+    queryFn: () => base44.entities.UserAccount.filter({ created_by: currentUser?.email }),
+    enabled: !!currentUser?.email,
   });
 
   const { data: portfolio = [] } = useQuery({
-    queryKey: ['portfolio'],
-    queryFn: () => base44.entities.Portfolio.list(),
+    queryKey: ['portfolio', currentUser?.email],
+    queryFn: () => base44.entities.Portfolio.filter({ created_by: currentUser?.email }),
+    enabled: !!currentUser?.email,
   });
 
   const { data: transactions = [] } = useQuery({
-    queryKey: ['transactions'],
-    queryFn: () => base44.entities.Transaction.list(),
+    queryKey: ['transactions', currentUser?.email],
+    queryFn: () => base44.entities.Transaction.filter({ created_by: currentUser?.email }),
+    enabled: !!currentUser?.email,
   });
 
-  const handleDeleteAccount = async () => {
-    setDeleting(true);
-    try {
-      // Delete all user data
+  const resetDataMutation = useMutation({
+    mutationFn: () => base44.functions.invoke('resetMyData', {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+    },
+  });
+
+  const deleteAccountMutation = useMutation({
+    mutationFn: async () => {
       for (const item of portfolio) {
         await base44.entities.Portfolio.delete(item.id);
       }
@@ -49,16 +62,13 @@ export default function Settings() {
       for (const item of accounts) {
         await base44.entities.UserAccount.delete(item.id);
       }
-
-      // Logout after deletion
+    },
+    onSuccess: () => {
       setTimeout(() => {
         base44.auth.logout();
       }, 1000);
-    } catch (error) {
-      console.error('Error deleting account:', error);
-      setDeleting(false);
-    }
-  };
+    },
+  });
 
   const account = accounts?.[0];
 
@@ -100,6 +110,63 @@ export default function Settings() {
           </CardContent>
         </Card>
 
+        <Card className="border-0 shadow-lg border-orange-200">
+          <CardHeader>
+            <CardTitle className="text-orange-600 flex items-center gap-2">
+              <RotateCcw className="w-5 h-5" />
+              Reset Account
+            </CardTitle>
+            <CardDescription>Start fresh with £10,000</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Alert className="mb-4 border-orange-200 bg-orange-50">
+              <AlertTriangle className="h-4 w-4 text-orange-600" />
+              <AlertDescription className="text-orange-800">
+                This will delete all your trading data and reset your balance to £10,000.
+              </AlertDescription>
+            </Alert>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="w-full border-orange-300 text-orange-600 hover:bg-orange-50"
+                  disabled={resetDataMutation.isPending}
+                >
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  {resetDataMutation.isPending ? 'Resetting...' : 'Reset My Data'}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Reset your trading account?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete:
+                    <ul className="list-disc list-inside mt-2 space-y-1">
+                      <li>All portfolio holdings ({portfolio.length} stocks)</li>
+                      <li>Transaction history ({transactions.length} trades)</li>
+                      <li>Watchlist and alerts</li>
+                    </ul>
+                    <p className="mt-2 font-semibold">Your balance will reset to £10,000</p>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => resetDataMutation.mutate()}
+                    className="bg-orange-600 hover:bg-orange-700"
+                  >
+                    Yes, Reset Account
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            {resetDataMutation.isSuccess && (
+              <p className="text-sm text-green-600 mt-3 text-center">✓ Account reset successfully!</p>
+            )}
+          </CardContent>
+        </Card>
+
         <Card className="border-0 shadow-lg border-red-200">
           <CardHeader>
             <CardTitle className="text-red-600 flex items-center gap-2">
@@ -118,9 +185,13 @@ export default function Settings() {
 
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" className="w-full" disabled={deleting}>
+                <Button 
+                  variant="destructive" 
+                  className="w-full" 
+                  disabled={deleteAccountMutation.isPending}
+                >
                   <Trash2 className="w-4 h-4 mr-2" />
-                  {deleting ? 'Deleting...' : 'Delete Account'}
+                  {deleteAccountMutation.isPending ? 'Deleting...' : 'Delete Account'}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -139,7 +210,7 @@ export default function Settings() {
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
-                    onClick={handleDeleteAccount}
+                    onClick={() => deleteAccountMutation.mutate()}
                     className="bg-red-600 hover:bg-red-700"
                   >
                     Yes, Delete Everything
