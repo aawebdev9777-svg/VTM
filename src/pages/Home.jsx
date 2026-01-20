@@ -30,20 +30,14 @@ export default function Home() {
 
   const { data: accounts, isLoading: accountLoading } = useQuery({
     queryKey: ['userAccount', currentUser?.email],
-    queryFn: async () => {
-      const allAccounts = await base44.entities.UserAccount.list();
-      return allAccounts.filter(acc => acc.created_by === currentUser?.email);
-    },
+    queryFn: () => base44.entities.UserAccount.filter({ created_by: currentUser?.email }),
     enabled: !!currentUser?.email,
     refetchInterval: 2000,
   });
 
   const { data: portfolio = [], isLoading: portfolioLoading } = useQuery({
     queryKey: ['portfolio', currentUser?.email],
-    queryFn: async () => {
-      const allPortfolio = await base44.entities.Portfolio.list();
-      return allPortfolio.filter(p => p.created_by === currentUser?.email);
-    },
+    queryFn: () => base44.entities.Portfolio.filter({ created_by: currentUser?.email }),
     enabled: !!currentUser?.email,
     refetchInterval: 2000,
   });
