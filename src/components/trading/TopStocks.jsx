@@ -1,128 +1,81 @@
 import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, TrendingDown, Star, Activity } from "lucide-react";
+import { TrendingUp, TrendingDown, Star, Activity, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 
-const TOP_STOCKS = [
-  { symbol: 'QNTM', name: 'QuantumLeap Technologies', sector: 'Technology', basePrice: 185.50, volatility: 0.008, risk: 'Medium' },
-  { symbol: 'NXON', name: 'Nexonn Systems', sector: 'Technology', basePrice: 420.75, volatility: 0.006, risk: 'Low' },
-  { symbol: 'ZYPH', name: 'Zypheron Labs', sector: 'Technology', basePrice: 142.30, volatility: 0.007, risk: 'Medium' },
-  { symbol: 'VRTX', name: 'Vortexia Inc', sector: 'Consumer', basePrice: 178.90, volatility: 0.009, risk: 'Medium' },
-  { symbol: 'ELTR', name: 'Electryx Motors', sector: 'Automotive', basePrice: 243.20, volatility: 0.012, risk: 'High' },
-  { symbol: 'SYNX', name: 'Synaptic Networks', sector: 'Technology', basePrice: 488.45, volatility: 0.008, risk: 'Medium' },
-  { symbol: 'NPHR', name: 'Nephron Semiconductors', sector: 'Technology', basePrice: 523.80, volatility: 0.01, risk: 'High' },
-  { symbol: 'CRST', name: 'Crestmont Financial', sector: 'Finance', basePrice: 192.15, volatility: 0.005, risk: 'Low' },
-  { symbol: 'PLSM', name: 'Plasmic Payments', sector: 'Finance', basePrice: 287.60, volatility: 0.006, risk: 'Low' },
-  { symbol: 'MRKD', name: 'Markadian Retail Group', sector: 'Retail', basePrice: 167.45, volatility: 0.004, risk: 'Low' },
-  { symbol: 'BION', name: 'Bionex Healthcare', sector: 'Healthcare', basePrice: 153.90, volatility: 0.005, risk: 'Low' },
-  { symbol: 'STRM', name: 'Streamline Entertainment', sector: 'Entertainment', basePrice: 97.25, volatility: 0.008, risk: 'Medium' },
-  { symbol: 'FLXM', name: 'FluxMedia Streaming', sector: 'Entertainment', basePrice: 682.40, volatility: 0.011, risk: 'High' },
-  { symbol: 'AROS', name: 'Aerostar Aerospace', sector: 'Aerospace', basePrice: 218.35, volatility: 0.009, risk: 'Medium' },
-  { symbol: 'VELO', name: 'Velocity Sportswear', sector: 'Apparel', basePrice: 107.80, volatility: 0.007, risk: 'Medium' },
-  { symbol: 'CYBD', name: 'CyberDefense Systems', sector: 'Technology', basePrice: 322.50, volatility: 0.01, risk: 'High' },
-  { symbol: 'GNTX', name: 'GeneTrix Pharma', sector: 'Healthcare', basePrice: 278.95, volatility: 0.012, risk: 'High' },
-  { symbol: 'SOLR', name: 'SolarWind Energy', sector: 'Energy', basePrice: 143.70, volatility: 0.008, risk: 'Medium' },
-  { symbol: 'ORBN', name: 'Orbinex Space Tech', sector: 'Aerospace', basePrice: 395.20, volatility: 0.011, risk: 'High' },
-  { symbol: 'MTRX', name: 'Matrixion AI', sector: 'Technology', basePrice: 567.30, volatility: 0.009, risk: 'Medium' },
+const REAL_STOCKS = [
+  { symbol: 'AAPL', name: 'Apple Inc.', sector: 'Technology', riskLevel: 'Low' },
+  { symbol: 'MSFT', name: 'Microsoft', sector: 'Technology', riskLevel: 'Low' },
+  { symbol: 'GOOGL', name: 'Alphabet', sector: 'Technology', riskLevel: 'Medium' },
+  { symbol: 'AMZN', name: 'Amazon', sector: 'E-commerce', riskLevel: 'Medium' },
+  { symbol: 'TSLA', name: 'Tesla Inc.', sector: 'Automotive', riskLevel: 'High' },
+  { symbol: 'META', name: 'Meta', sector: 'Technology', riskLevel: 'Medium' },
+  { symbol: 'NVDA', name: 'NVIDIA', sector: 'Technology', riskLevel: 'High' },
+  { symbol: 'NFLX', name: 'Netflix', sector: 'Entertainment', riskLevel: 'Medium' },
+  { symbol: 'AMD', name: 'AMD Inc.', sector: 'Technology', riskLevel: 'High' },
+  { symbol: 'INTC', name: 'Intel', sector: 'Technology', riskLevel: 'Medium' },
+  { symbol: 'JPM', name: 'JPMorgan', sector: 'Finance', riskLevel: 'Low' },
+  { symbol: 'V', name: 'Visa Inc.', sector: 'Finance', riskLevel: 'Low' },
+  { symbol: 'WMT', name: 'Walmart', sector: 'Retail', riskLevel: 'Low' },
+  { symbol: 'DIS', name: 'Disney', sector: 'Entertainment', riskLevel: 'Medium' },
+  { symbol: 'PYPL', name: 'PayPal', sector: 'Finance', riskLevel: 'High' },
+  { symbol: 'CSCO', name: 'Cisco', sector: 'Technology', riskLevel: 'Low' },
+  { symbol: 'ADBE', name: 'Adobe', sector: 'Technology', riskLevel: 'Medium' },
+  { symbol: 'CRM', name: 'Salesforce', sector: 'Technology', riskLevel: 'Medium' },
+  { symbol: 'ORCL', name: 'Oracle', sector: 'Technology', riskLevel: 'Low' },
+  { symbol: 'IBM', name: 'IBM', sector: 'Technology', riskLevel: 'Low' },
 ];
 
 export default function TopStocks({ onSelectStock }) {
   const [selectedSector, setSelectedSector] = useState('all');
-  const [livePrices, setLivePrices] = useState({});
-  const [priceChanges, setPriceChanges] = useState({});
-  const [marketTrend, setMarketTrend] = useState(0);
-  
+
+  const { data: stockPrices = [], refetch, isRefetching } = useQuery({
+    queryKey: ['stockPrices'],
+    queryFn: () => base44.entities.StockPrice.list(),
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  // Trigger initial price update
   useEffect(() => {
-    // Initialize prices with slight variation from base
-    const initialPrices = {};
-    const initialChanges = {};
-    TOP_STOCKS.forEach(stock => {
-      const variation = (Math.random() - 0.5) * 0.02;
-      initialPrices[stock.symbol] = stock.basePrice * (1 + variation);
-      initialChanges[stock.symbol] = variation * 100;
-    });
-    setLivePrices(initialPrices);
-    setPriceChanges(initialChanges);
-
-    // Update prices every 30 seconds with realistic movement
-    const interval = setInterval(() => {
-      // Market events: rare crashes (1%), boosts (2%), or dips (5%)
-      const random = Math.random();
-      let marketEvent = 0;
-      if (random < 0.01) {
-        marketEvent = -0.15; // 15% crash
-        setMarketTrend(-0.15);
-      } else if (random < 0.03) {
-        marketEvent = 0.08; // 8% boost
-        setMarketTrend(0.08);
-      } else if (random < 0.08) {
-        marketEvent = -0.05; // 5% dip (buy opportunity!)
-        setMarketTrend(-0.05);
-      } else {
-        setMarketTrend(0);
-      }
-
-      setLivePrices(prevPrices => {
-        const newPrices = {};
-        const newChanges = {};
-        
-        TOP_STOCKS.forEach(stock => {
-          const currentPrice = prevPrices[stock.symbol] || stock.basePrice;
-          
-          // 1. Mean reversion - tendency to drift back to base price
-          const deviation = (currentPrice - stock.basePrice) / stock.basePrice;
-          const meanReversion = -deviation * 0.08;
-          
-          // 2. Random walk component
-          const randomWalk = (Math.random() - 0.5) * 2 * stock.volatility;
-          
-          // 3. Momentum with buy-the-dip behavior
-          let momentum = 0;
-          if (currentPrice < stock.basePrice * 0.85) {
-            momentum = 0.003; // Strong bounce from oversold
-          } else if (currentPrice < stock.basePrice * 0.95) {
-            momentum = 0.002; // Moderate recovery
-          } else if (currentPrice > stock.basePrice * 1.15) {
-            momentum = -0.002; // Profit taking
-          }
-          
-          // 4. Market-wide events
-          const marketImpact = marketEvent * (0.8 + Math.random() * 0.4);
-          
-          // Combined change
-          const totalChange = meanReversion + randomWalk + momentum + marketImpact;
-          
-          // Apply change with bounds
-          const newPrice = currentPrice * (1 + totalChange);
-          const minPrice = stock.basePrice * 0.6;
-          const maxPrice = stock.basePrice * 1.4;
-          
-          newPrices[stock.symbol] = Math.max(minPrice, Math.min(maxPrice, newPrice));
-          newChanges[stock.symbol] = ((newPrices[stock.symbol] - currentPrice) / currentPrice) * 100;
-        });
-        
-        setPriceChanges(newChanges);
-        return newPrices;
-      });
-    }, 30000);
-
-    return () => clearInterval(interval);
+    base44.functions.invoke('updateStockPrices', {}).catch(err => console.error('Price update failed:', err));
   }, []);
+
+  // Create price map
+  const priceMap = stockPrices.reduce((acc, stock) => {
+    acc[stock.symbol] = {
+      price: stock.price_gbp,
+      change: stock.daily_change_percent
+    };
+    return acc;
+  }, {});
   
-  const sectors = ['all', ...new Set(TOP_STOCKS.map(s => s.sector))];
+  const sectors = ['all', ...new Set(REAL_STOCKS.map(s => s.sector))];
   
   const filteredStocks = selectedSector === 'all' 
-    ? TOP_STOCKS 
-    : TOP_STOCKS.filter(s => s.sector === selectedSector);
+    ? REAL_STOCKS 
+    : REAL_STOCKS.filter(s => s.sector === selectedSector);
 
   return (
     <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-          <Star className="w-5 h-5 text-yellow-500" />
-          Popular Stocks
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <Star className="w-5 h-5 text-yellow-500" />
+            Real Market Prices
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isRefetching}
+            className="gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefetching ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex gap-2 flex-wrap">
@@ -141,9 +94,10 @@ export default function TopStocks({ onSelectStock }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {filteredStocks.map((stock, index) => {
-            const price = livePrices[stock.symbol] || stock.basePrice;
-            const change = priceChanges[stock.symbol] || 0;
-            const isPositive = change >= 0;
+            const stockPrice = priceMap[stock.symbol];
+            const currentPrice = stockPrice?.price || 0;
+            const dailyChange = stockPrice?.change || 0;
+            const isPositive = dailyChange >= 0;
 
             return (
               <motion.button
@@ -151,19 +105,29 @@ export default function TopStocks({ onSelectStock }) {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.03 }}
-                onClick={() => onSelectStock({ ...stock, price_gbp: price, daily_change_percent: change, risk: stock.risk })}
-                className="p-4 rounded-xl border-2 border-gray-200 hover:border-violet-400 hover:shadow-lg transition-all text-left bg-white"
+                onClick={() => {
+                  if (currentPrice > 0) {
+                    onSelectStock({
+                      symbol: stock.symbol,
+                      company_name: stock.name,
+                      price_gbp: currentPrice,
+                      daily_change_percent: dailyChange
+                    });
+                  }
+                }}
+                disabled={!currentPrice}
+                className="p-4 rounded-xl border-2 border-gray-200 hover:border-violet-400 hover:shadow-lg transition-all text-left bg-white disabled:opacity-50"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <div className="font-bold text-gray-900 text-lg">{stock.symbol}</div>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        stock.risk === 'High' ? 'bg-red-100 text-red-700' :
-                        stock.risk === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                        stock.riskLevel === 'High' ? 'bg-red-100 text-red-700' :
+                        stock.riskLevel === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
                         'bg-green-100 text-green-700'
                       }`}>
-                        {stock.risk}
+                        {stock.riskLevel}
                       </span>
                     </div>
                     <div className="text-xs text-gray-500 truncate">{stock.name}</div>
@@ -173,32 +137,24 @@ export default function TopStocks({ onSelectStock }) {
                 
                 <div className="flex items-end justify-between mt-3">
                   <div className="text-xl font-bold text-gray-900">
-                    £{price.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </div>
-                  <div className={`flex items-center gap-1 text-sm font-medium ${
-                    isPositive ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {isPositive ? (
-                      <TrendingUp className="w-4 h-4" />
+                    {currentPrice > 0 ? (
+                      `£${currentPrice.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                     ) : (
-                      <TrendingDown className="w-4 h-4" />
+                      <span className="text-sm text-gray-400">Loading...</span>
                     )}
-                    {Math.abs(change).toFixed(2)}%
                   </div>
-                </div>
-                
-                {/* Mini price chart simulation */}
-                <div className="mt-3 flex items-end gap-0.5 h-8">
-                  {[...Array(12)].map((_, i) => {
-                    const height = 20 + Math.random() * 80;
-                    return (
-                      <div
-                        key={i}
-                        className={`flex-1 rounded-t ${isPositive ? 'bg-green-200' : 'bg-red-200'}`}
-                        style={{ height: `${height}%` }}
-                      />
-                    );
-                  })}
+                  {currentPrice > 0 && (
+                    <div className={`flex items-center gap-1 text-sm font-medium ${
+                      isPositive ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {isPositive ? (
+                        <TrendingUp className="w-4 h-4" />
+                      ) : (
+                        <TrendingDown className="w-4 h-4" />
+                      )}
+                      {isPositive ? '+' : ''}{dailyChange.toFixed(2)}%
+                    </div>
+                  )}
                 </div>
               </motion.button>
             );
