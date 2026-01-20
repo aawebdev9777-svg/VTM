@@ -65,9 +65,10 @@ export default function Home() {
 
   const createAccountMutation = useMutation({
     mutationFn: async () => {
+      const initialAmount = 10000;
       return base44.entities.UserAccount.create({ 
-        cash_balance: 10000, 
-        initial_balance: 10000 
+        cash_balance: initialAmount, 
+        initial_balance: initialAmount 
       });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] }),
@@ -177,7 +178,7 @@ export default function Home() {
         <PortfolioSummary
           cashBalance={account?.cash_balance || 0}
           portfolioValue={portfolioValue}
-          initialBalance={account?.initial_balance || 10000}
+          initialBalance={account?.initial_balance || account?.cash_balance || 10000}
         />
       </div>
 
