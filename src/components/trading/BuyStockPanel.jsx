@@ -43,24 +43,24 @@ export default function BuyStockPanel({ selectedStock, cashBalance, onBuy, isLoa
       <CardContent className="space-y-3">
         <div>
           <label className="text-xs text-gray-600 block mb-1.5">Shares (Max: {maxBuyable})</label>
-
-        <div className="flex gap-2">
-          <Input
-            type="number"
-            min="1"
-            step="1"
-            placeholder="0"
-            value={shares}
-            onChange={(e) => setShares(e.target.value)}
-            className="text-base font-semibold h-10 flex-1"
-          />
-          <Button
-            variant="outline"
-            onClick={() => setShares(maxBuyable.toString())}
-            className="px-6 h-10 font-semibold"
-          >
-            MAX
-          </Button>
+          <div className="flex gap-2">
+            <Input
+              type="number"
+              min="1"
+              step="1"
+              placeholder="0"
+              value={shares}
+              onChange={(e) => setShares(e.target.value)}
+              className="text-base font-semibold h-10 flex-1"
+            />
+            <Button
+              variant="outline"
+              onClick={() => setShares(maxBuyable.toString())}
+              className="px-6 h-10 font-semibold"
+            >
+              MAX
+            </Button>
+          </div>
         </div>
 
         <div className="p-3 rounded-lg bg-violet-50 border border-violet-200">
