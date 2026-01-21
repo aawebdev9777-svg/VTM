@@ -13,11 +13,13 @@ export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cash
         
         const dailyChange = display.change || 0;
         
-        // Buy dip signals
+        // Buy dip signals - match what price will do
         if (dailyChange < -2) {
           const allocation = cashBalance * 0.10;
           const shares = Math.floor(allocation / display.price);
-          const potentialGain = shares * display.price * 0.03; // 3% recovery target
+          // Dips tend to recover 50-100% of the fall
+          const recoveryTarget = Math.abs(dailyChange) * 0.75;
+          const potentialGain = shares * display.price * (recoveryTarget / 100);
           
           return {
             symbol: stock.symbol,
@@ -26,16 +28,17 @@ export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cash
             change: dailyChange,
             allocation: 10,
             shares,
-            reason: 'Strong dip - recovery play',
+            reason: 'Strong dip - will bounce',
             signal: 'strong',
             icon: TrendingDown,
             potentialGain,
-            potentialPercent: 3
+            potentialPercent: recoveryTarget
           };
-        } else if (dailyChange < -1) {
+        } else if (dailyChange < -0.8) {
           const allocation = cashBalance * 0.06;
           const shares = Math.floor(allocation / display.price);
-          const potentialGain = shares * display.price * 0.02; // 2% recovery target
+          const recoveryTarget = Math.abs(dailyChange) * 0.6;
+          const potentialGain = shares * display.price * (recoveryTarget / 100);
           
           return {
             symbol: stock.symbol,
@@ -44,19 +47,21 @@ export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cash
             change: dailyChange,
             allocation: 6,
             shares,
-            reason: 'Moderate dip',
+            reason: 'Dip opportunity',
             signal: 'moderate',
             icon: TrendingDown,
             potentialGain,
-            potentialPercent: 2
+            potentialPercent: recoveryTarget
           };
         }
         
-        // Buy uptrend signals (momentum)
-        if (dailyChange > 1.5) {
+        // Buy uptrend signals - follow momentum
+        if (dailyChange > 1.2) {
           const allocation = cashBalance * 0.08;
           const shares = Math.floor(allocation / display.price);
-          const potentialGain = shares * display.price * 0.04; // 4% momentum continuation
+          // Momentum continues 50-80% more
+          const continuationTarget = dailyChange * 0.65;
+          const potentialGain = shares * display.price * (continuationTarget / 100);
           
           return {
             symbol: stock.symbol,
@@ -65,16 +70,17 @@ export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cash
             change: dailyChange,
             allocation: 8,
             shares,
-            reason: 'Strong uptrend - momentum play',
+            reason: 'Hot trend - momentum play',
             signal: 'hot',
             icon: TrendingUp,
             potentialGain,
-            potentialPercent: 4
+            potentialPercent: continuationTarget
           };
-        } else if (dailyChange > 0.5) {
+        } else if (dailyChange > 0.4) {
           const allocation = cashBalance * 0.05;
           const shares = Math.floor(allocation / display.price);
-          const potentialGain = shares * display.price * 0.025; // 2.5% upside
+          const continuationTarget = dailyChange * 0.5;
+          const potentialGain = shares * display.price * (continuationTarget / 100);
           
           return {
             symbol: stock.symbol,
@@ -87,7 +93,7 @@ export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cash
             signal: 'bullish',
             icon: TrendingUp,
             potentialGain,
-            potentialPercent: 2.5
+            potentialPercent: continuationTarget
           };
         }
         

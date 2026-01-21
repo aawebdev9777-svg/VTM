@@ -24,30 +24,53 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Fetch REAL-TIME price from server
-    const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${stock.symbol.toUpperCase()}?interval=1d&range=5d`;
-    const priceResponse = await fetch(yahooUrl, {
-      headers: { 'User-Agent': 'Mozilla/5.0' }
+    // Use existing stock price if available
+    const existingPrices = await base44.asServiceRole.entities.StockPrice.filter({ 
+      symbol: stock.symbol.toUpperCase() 
     });
-    const priceData = await priceResponse.json();
 
-    if (!priceData.chart?.result?.[0]) {
-      return Response.json({ 
-        success: false, 
-        data: null, 
-        error: 'Stock not found or market data unavailable' 
-      }, { status: 404 });
+    let priceGBP;
+    let meta;
+
+    if (existingPrices.length > 0 && existingPrices[0].price_gbp) {
+      // Use cached price
+      priceGBP = existingPrices[0].price_gbp;
+      meta = { longName: stock.company_name || stock.symbol };
+    } else {
+      // Fallback to Yahoo Finance
+      try {
+        const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${stock.symbol.toUpperCase()}?interval=1d&range=5d`;
+        const priceResponse = await fetch(yahooUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        const priceData = await priceResponse.json();
+
+        if (!priceData.chart?.result?.[0]) {
+          return Response.json({ 
+            success: false, 
+            data: null, 
+            error: 'Stock price unavailable' 
+          }, { status: 404 });
+        }
+
+        meta = priceData.chart.result[0].meta;
+        const priceUSD = meta.regularMarketPrice;
+
+        // Get live USD to GBP rate
+        const fxResponse = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+        const fxData = await fxResponse.json();
+        const usdToGbp = fxData.rates?.GBP || 0.79;
+        priceGBP = priceUSD * usdToGbp;
+      } catch (err) {
+        console.error('Price fetch failed:', err);
+        return Response.json({ 
+          success: false, 
+          data: null, 
+          error: 'Unable to fetch stock price' 
+        }, { status: 500 });
+      }
     }
-
-    const meta = priceData.chart.result[0].meta;
-    const priceUSD = meta.regularMarketPrice;
-
-    // Get live USD to GBP rate
-    const fxResponse = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-    const fxData = await fxResponse.json();
-    const usdToGbp = fxData.rates?.GBP || 0.79;
     
-    const priceGBP = priceUSD * usdToGbp;
     const pricePennies = Math.round(priceGBP * 100); // Convert to integer pennies
     const totalCostPennies = pricePennies * shares;
 
