@@ -15,6 +15,8 @@ export default function AIWidget() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [lastAutoScroll, setLastAutoScroll] = useState(Date.now());
+  const scrollRef = React.useRef(null);
 
   useEffect(() => {
     if (isOpen && !conversation) {
@@ -41,10 +43,23 @@ export default function AIWidget() {
     const unsubscribe = base44.agents.subscribeToConversation(conversation.id, (data) => {
       setMessages(data.messages);
       setIsLoading(false);
+      setLastAutoScroll(Date.now());
     });
 
     return () => unsubscribe();
   }, [conversation?.id]);
+
+  // Auto-scroll and auto-refresh every 5 minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+      setLastAutoScroll(Date.now());
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSend = async () => {
     if (!input.trim() || !conversation || isLoading) return;
@@ -107,12 +122,13 @@ export default function AIWidget() {
 
               {!isMinimized && (
                 <>
-                  <ScrollArea className="flex-1 p-4">
+                  <ScrollArea className="flex-1 p-4" ref={scrollRef}>
                     <div className="space-y-3">
                       {messages.length === 0 && (
                         <div className="text-center py-6 text-sm text-gray-500">
                           <Bot className="w-10 h-10 mx-auto text-violet-600 mb-2" />
                           <p>Ask me about your portfolio!</p>
+                          <p className="text-xs mt-2 text-violet-500">Try: "What should I buy?" or "Analyze my portfolio"</p>
                         </div>
                       )}
 
