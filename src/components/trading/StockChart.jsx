@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 
 export default function StockChart({ symbol, priceGbp, dailyChangePercent }) {
   const [historicalData, setHistoricalData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState(30);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -13,7 +15,7 @@ export default function StockChart({ symbol, priceGbp, dailyChangePercent }) {
         setIsLoading(true);
         const response = await base44.functions.invoke('getStockHistory', {
           symbol,
-          days: 30
+          days: timeRange
         });
         setHistoricalData(response.data.data || []);
       } catch (error) {
@@ -27,7 +29,7 @@ export default function StockChart({ symbol, priceGbp, dailyChangePercent }) {
     if (symbol) {
       fetchHistory();
     }
-  }, [symbol]);
+  }, [symbol, timeRange]);
   const isPositive = dailyChangePercent >= 0;
   const lineColor = isPositive ? '#10b981' : '#ef4444';
 
@@ -48,10 +50,10 @@ export default function StockChart({ symbol, priceGbp, dailyChangePercent }) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-600">30-Day Chart</span>
+          <span className="text-sm font-medium text-gray-600">Price Chart</span>
           {isPositive ? (
             <TrendingUp className="w-4 h-4 text-green-600" />
           ) : (
@@ -61,6 +63,33 @@ export default function StockChart({ symbol, priceGbp, dailyChangePercent }) {
         <span className={`text-sm font-semibold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
           {isPositive ? '+' : ''}{dailyChangePercent?.toFixed(2)}%
         </span>
+      </div>
+
+      <div className="flex gap-2">
+        <Button
+          onClick={() => setTimeRange(1)}
+          variant={timeRange === 1 ? 'default' : 'outline'}
+          size="sm"
+          className="text-xs"
+        >
+          1D
+        </Button>
+        <Button
+          onClick={() => setTimeRange(30)}
+          variant={timeRange === 30 ? 'default' : 'outline'}
+          size="sm"
+          className="text-xs"
+        >
+          1M
+        </Button>
+        <Button
+          onClick={() => setTimeRange(365)}
+          variant={timeRange === 365 ? 'default' : 'outline'}
+          size="sm"
+          className="text-xs"
+        >
+          1Y
+        </Button>
       </div>
       
       <ResponsiveContainer width="100%" height={180}>
