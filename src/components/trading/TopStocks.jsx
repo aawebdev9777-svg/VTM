@@ -34,7 +34,14 @@ export default function TopStocks({ onSelectStock }) {
 
   const { data: stockPrices = [], refetch, isRefetching } = useQuery({
     queryKey: ['stockPrices'],
-    queryFn: () => base44.entities.StockPrice.list(),
+    queryFn: async () => {
+      try {
+        const response = await base44.functions.invoke('getUpdatedPrices', {});
+        return response.data.prices || [];
+      } catch {
+        return base44.entities.StockPrice.list();
+      }
+    },
     refetchInterval: 5000,
   });
 
