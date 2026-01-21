@@ -16,6 +16,7 @@ export default function Portfolio() {
   const [selectedHolding, setSelectedHolding] = useState(null);
   const [sellShares, setSellShares] = useState('');
   const [displayPrices, setDisplayPrices] = useState({});
+  const [momentum, setMomentum] = useState({});
 
   useEffect(() => {
     base44.auth.me().then(setCurrentUser);
@@ -53,19 +54,39 @@ export default function Portfolio() {
         };
         return acc;
       }, {}));
+      
+      // Initialize momentum for new stocks
+      setMomentum(prev => {
+        const updated = { ...prev };
+        stockPrices.forEach(stock => {
+          if (!updated[stock.symbol]) {
+            updated[stock.symbol] = (Math.random() * 0.4 - 0.2);
+          }
+        });
+        return updated;
+      });
     }
   }, [stockPrices]);
 
-  // Animate prices between real data updates
+  // Animate prices between real data updates with momentum
   useEffect(() => {
     const interval = setInterval(() => {
+      setMomentum(m => {
+        const updated = { ...m };
+        for (const symbol in updated) {
+          const trendAdjustment = (Math.random() * 0.1 - 0.05);
+          updated[symbol] = Math.max(-0.5, Math.min(0.5, updated[symbol] + trendAdjustment));
+        }
+        return updated;
+      });
+
       setDisplayPrices(prev => {
         const updated = {};
         for (const symbol in prev) {
           const current = prev[symbol];
-          const movementPercent = (Math.random() * 0.3 - 0.15);
+          const movementPercent = momentum[symbol] || 0;
           const newPrice = current.basePrice * (1 + movementPercent / 100);
-          const newChange = current.baseChange + (Math.random() * 0.1 - 0.05);
+          const newChange = current.baseChange + movementPercent;
           
           updated[symbol] = {
             price: parseFloat(newPrice.toFixed(2)),
@@ -79,7 +100,7 @@ export default function Portfolio() {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [momentum]);
 
   const { data: accounts } = useQuery({
     queryKey: ['userAccount', currentUser?.email],
