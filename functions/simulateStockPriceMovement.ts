@@ -11,12 +11,11 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, updated: 0 });
     }
 
-    // Update each stock with realistic market movement
+    // Update each stock with small realistic intraday movement (±0.5%)
     for (const stock of prices) {
-      // Random change between -2% and +3% (realistic daily volatility)
-      const changePercent = (Math.random() * 5 - 2);
+      const changePercent = (Math.random() * 1 - 0.5);
       const newPrice = stock.price_gbp * (1 + changePercent / 100);
-      const newChange = stock.daily_change_percent + (Math.random() * 1 - 0.5);
+      const newChange = stock.daily_change_percent + (Math.random() * 0.2 - 0.1);
 
       await base44.asServiceRole.entities.StockPrice.update(stock.id, {
         price_gbp: parseFloat(newPrice.toFixed(2)),
