@@ -282,7 +282,12 @@ export default function Home() {
         </div>
 
         <div className="space-y-4">
-          <BuyAnalysis stockPrices={stockPrices} displayPrices={displayPrices} cashBalance={account?.cash_balance || 0} totalPortfolioValue={portfolioValue + copyTradeValue} />
+          <BuyAnalysis 
+            stockPrices={stockPrices} 
+            displayPrices={displayPrices} 
+            cashBalance={account?.cash_balance || 0} 
+            totalPortfolioValue={portfolioValue + copyTradeValue} 
+          />
           <AlertsPanel selectedStock={selectedStock} />
         </div>
       </div>
