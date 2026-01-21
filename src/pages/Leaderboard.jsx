@@ -307,6 +307,7 @@ export default function Leaderboard() {
                     </div>
 
                     <div className="text-right">
+                      <p className="text-xs text-gray-500 mb-1">Total Value</p>
                       <p className="text-lg font-bold text-gray-900">
                         £{(trader.totalValue || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
@@ -314,6 +315,11 @@ export default function Leaderboard() {
                         (trader.percentageReturn || 0) >= 0 ? 'text-green-600' : 'text-red-600'
                       }`}>
                         {(trader.percentageReturn || 0) >= 0 ? '+' : ''}{(trader.percentageReturn || 0).toFixed(2)}%
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Cash: £{(trader.balance || 0).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} • 
+                        Stocks: £{(trader.portfolioValue || 0).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} • 
+                        Copy: £{(trader.copyTradeValue || 0).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                       </p>
                     </div>
 
