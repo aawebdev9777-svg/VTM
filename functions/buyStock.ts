@@ -167,7 +167,7 @@ Deno.serve(async (req) => {
 
     // Send buy confirmation email
     try {
-      await base44.functions.invoke('sendBuyConfirmationEmail', {
+      await base44.asServiceRole.functions.invoke('sendBuyConfirmationEmail', {
         symbol: stock.symbol.toUpperCase(),
         company_name: meta.longName || meta.shortName || stock.symbol.toUpperCase(),
         shares: shares,
