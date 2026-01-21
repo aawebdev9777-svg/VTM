@@ -85,9 +85,8 @@ Deno.serve(async (req) => {
 
             // Record transaction
             await base44.asServiceRole.entities.Transaction.create({
-                created_by: targetUserEmail,
                 symbol: symbol,
-                company_name: symbol,
+                company_name: companyMap[symbol] || symbol,
                 type: 'buy',
                 shares: 1,
                 price_per_share: 0,
