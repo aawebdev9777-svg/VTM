@@ -70,35 +70,35 @@ export default function Admin() {
     queryKey: ['allAccounts'],
     queryFn: () => base44.asServiceRole.entities.UserAccount.list(),
     enabled: isAdmin,
-    refetchInterval: 30000,
+    refetchInterval: 5000,
   });
 
   const { data: allPortfolios = [] } = useQuery({
     queryKey: ['allPortfolios'],
     queryFn: () => base44.asServiceRole.entities.Portfolio.list(),
     enabled: isAdmin,
-    refetchInterval: 30000,
+    refetchInterval: 5000,
   });
 
   const { data: allTransactions = [] } = useQuery({
     queryKey: ['allTransactions'],
     queryFn: () => base44.asServiceRole.entities.Transaction.list('-created_date', 500),
     enabled: isAdmin,
-    refetchInterval: 30000,
+    refetchInterval: 5000,
   });
 
   const { data: allSocialPosts = [] } = useQuery({
     queryKey: ['allSocialPosts'],
     queryFn: () => base44.asServiceRole.entities.SocialPost.list('-created_date', 50),
     enabled: isAdmin,
-    refetchInterval: 60000,
+    refetchInterval: 5000,
   });
 
   const { data: allCopyTrades = [] } = useQuery({
     queryKey: ['allCopyTrades'],
     queryFn: () => base44.asServiceRole.entities.CopyTrade.list(),
     enabled: isAdmin,
-    refetchInterval: 30000,
+    refetchInterval: 5000,
   });
 
   const { data: allUsers = [] } = useQuery({
@@ -116,7 +116,7 @@ export default function Admin() {
       }
     },
     enabled: isAdmin,
-    refetchInterval: 60000,
+    refetchInterval: 5000,
   });
 
   if (loading) {
