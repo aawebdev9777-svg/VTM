@@ -1,38 +1,51 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
 
 export default function StockChart({ symbol, priceGbp, dailyChangePercent }) {
-  // Generate simulated 30-day historical data based on current price
-  const generateHistoricalData = () => {
-    const data = [];
-    const days = 30;
-    let price = priceGbp;
-    
-    // Work backwards from current price
-    for (let i = days; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      
-      // Add some realistic variation
-      const variation = (Math.random() - 0.5) * (priceGbp * 0.03);
-      price = price - variation;
-      
-      data.push({
-        date: date.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }),
-        price: parseFloat(price.toFixed(2))
-      });
-    }
-    
-    // Ensure last point is the actual current price
-    data[data.length - 1].price = priceGbp;
-    
-    return data;
-  };
+  const [historicalData, setHistoricalData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const historicalData = generateHistoricalData();
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        setIsLoading(true);
+        const response = await base44.functions.invoke('getStockHistory', {
+          symbol,
+          days: 30
+        });
+        setHistoricalData(response.data.data || []);
+      } catch (error) {
+        console.error('Failed to fetch stock history:', error);
+        setHistoricalData([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (symbol) {
+      fetchHistory();
+    }
+  }, [symbol]);
   const isPositive = dailyChangePercent >= 0;
   const lineColor = isPositive ? '#10b981' : '#ef4444';
+
+  if (isLoading) {
+    return (
+      <div className="h-[220px] flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+      </div>
+    );
+  }
+
+  if (!historicalData.length) {
+    return (
+      <div className="h-[220px] flex items-center justify-center">
+        <p className="text-sm text-gray-400">Chart unavailable</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2">
