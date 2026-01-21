@@ -224,18 +224,18 @@ export default function Leaderboard() {
                         )}
                       </div>
                       <p className="text-xs text-gray-500">
-                        Balance: £{trader.balance.toFixed(2)}
+                        Balance: £{(trader.balance || 0).toFixed(2)}
                       </p>
                     </div>
 
                     <div className="text-right">
                       <p className="text-lg font-bold text-gray-900">
-                        £{trader.totalValue.toFixed(2)}
+                        £{(trader.totalValue || 0).toFixed(2)}
                       </p>
                       <p className={`text-xs font-semibold ${
-                        trader.percentageReturn >= 0 ? 'text-green-600' : 'text-red-600'
+                        (trader.percentageReturn || 0) >= 0 ? 'text-green-600' : 'text-red-600'
                       }`}>
-                        {trader.percentageReturn >= 0 ? '+' : ''}{trader.percentageReturn.toFixed(2)}%
+                        {(trader.percentageReturn || 0) >= 0 ? '+' : ''}{(trader.percentageReturn || 0).toFixed(2)}%
                       </p>
                     </div>
 
@@ -267,7 +267,7 @@ export default function Leaderboard() {
                                   {trader.email.split('@')[0]}
                                 </p>
                                 <p className="text-xs text-gray-600">
-                                  Performance: {trader.percentageReturn >= 0 ? '+' : ''}{trader.percentageReturn.toFixed(2)}%
+                                  Performance: {(trader.percentageReturn || 0) >= 0 ? '+' : ''}{(trader.percentageReturn || 0).toFixed(2)}%
                                 </p>
                               </div>
                             </div>
