@@ -39,6 +39,7 @@ export default function Layout({ children, currentPageName }) {
   const navigation = [
     { name: 'Home', href: createPageUrl('Home'), icon: Home },
     { name: 'Portfolio', href: createPageUrl('Portfolio'), icon: TrendingUp },
+    { name: 'Performance', href: createPageUrl('PortfolioPerformance'), icon: TrendingUp },
     { name: 'Transactions', href: createPageUrl('Transactions'), icon: History },
     { name: 'Leaderboard', href: createPageUrl('Leaderboard'), icon: Trophy },
     { name: 'Wallet', href: createPageUrl('Wallet'), icon: Wallet },

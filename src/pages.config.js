@@ -5,6 +5,7 @@ import Portfolio from './pages/Portfolio';
 import Settings from './pages/Settings';
 import Transactions from './pages/Transactions';
 import Wallet from './pages/Wallet';
+import PortfolioPerformance from './pages/PortfolioPerformance';
 import __Layout from './Layout.jsx';
 
 
@@ -16,6 +17,7 @@ export const PAGES = {
     "Settings": Settings,
     "Transactions": Transactions,
     "Wallet": Wallet,
+    "PortfolioPerformance": PortfolioPerformance,
 }
 
 export const pagesConfig = {
