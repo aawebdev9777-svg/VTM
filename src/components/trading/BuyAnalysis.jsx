@@ -103,9 +103,8 @@ export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cash
       })
       .filter(Boolean)
       .sort((a, b) => {
-        // Prioritize strong signals
-        const priority = { strong: 0, hot: 1, moderate: 2, bullish: 3 };
-        return priority[a.signal] - priority[b.signal];
+        // Sort by potential gain amount (highest first)
+        return b.potentialGain - a.potentialGain;
       })
       .slice(0, 6);
   }, [stockPrices, displayPrices, totalValue]);
