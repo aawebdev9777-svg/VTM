@@ -196,8 +196,12 @@ export default function Portfolio() {
 
   const totalPortfolioValue = portfolioWithMetrics.reduce((sum, h) => sum + h.currentValue, 0);
   const totalCostBasis = portfolioWithMetrics.reduce((sum, h) => sum + h.costBasis, 0);
-  const totalProfitLoss = totalPortfolioValue - totalCostBasis;
-  const totalProfitLossPercent = totalCostBasis > 0 ? (totalProfitLoss / totalCostBasis) * 100 : 0;
+  
+  // Combined metrics including copy trades
+  const combinedInvested = totalCostBasis + totalCopyTradeInvested;
+  const combinedCurrentValue = totalPortfolioValue + totalCopyTradeValue;
+  const combinedProfitLoss = (totalPortfolioValue - totalCostBasis) + totalCopyTradePL;
+  const combinedProfitLossPercent = combinedInvested > 0 ? (combinedProfitLoss / combinedInvested) * 100 : 0;
   const totalValue = cashBalance + totalPortfolioValue + totalCopyTradeValue;
 
   return (
@@ -243,7 +247,7 @@ export default function Portfolio() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Invested</p>
-                  <p className="text-lg font-bold text-gray-900">£{totalPortfolioValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                  <p className="text-lg font-bold text-gray-900">£{combinedInvested.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </CardContent>
@@ -254,21 +258,21 @@ export default function Portfolio() {
           <Card className="border-0 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                  totalProfitLoss >= 0 ? 'bg-green-100' : 'bg-red-100'
-                }`}>
-                  {totalProfitLoss >= 0 ? (
-                    <TrendingUp className="w-6 h-6 text-green-600" />
-                  ) : (
-                    <TrendingDown className="w-6 h-6 text-red-600" />
-                  )}
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">P/L Amount</p>
-                  <p className={`text-lg font-bold ${totalProfitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {totalProfitLoss >= 0 ? '+' : ''}£{totalProfitLoss.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                </div>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                combinedProfitLoss >= 0 ? 'bg-green-100' : 'bg-red-100'
+              }`}>
+                {combinedProfitLoss >= 0 ? (
+                  <TrendingUp className="w-6 h-6 text-green-600" />
+                ) : (
+                  <TrendingDown className="w-6 h-6 text-red-600" />
+                )}
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">P/L Amount</p>
+                <p className={`text-lg font-bold ${combinedProfitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {combinedProfitLoss >= 0 ? '+' : ''}£{combinedProfitLoss.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </div>
               </div>
             </CardContent>
           </Card>
@@ -278,17 +282,17 @@ export default function Portfolio() {
           <Card className="border-0 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                  totalProfitLossPercent >= 0 ? 'bg-green-100' : 'bg-red-100'
-                }`}>
-                  <Percent className={`w-6 h-6 ${totalProfitLossPercent >= 0 ? 'text-green-600' : 'text-red-600'}`} />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">P/L Percent</p>
-                  <p className={`text-lg font-bold ${totalProfitLossPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {totalProfitLossPercent >= 0 ? '+' : ''}{totalProfitLossPercent.toFixed(2)}%
-                  </p>
-                </div>
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                combinedProfitLossPercent >= 0 ? 'bg-green-100' : 'bg-red-100'
+              }`}>
+                <Percent className={`w-6 h-6 ${combinedProfitLossPercent >= 0 ? 'text-green-600' : 'text-red-600'}`} />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">P/L Percent</p>
+                <p className={`text-lg font-bold ${combinedProfitLossPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {combinedProfitLossPercent >= 0 ? '+' : ''}{combinedProfitLossPercent.toFixed(2)}%
+                </p>
+              </div>
               </div>
             </CardContent>
           </Card>
