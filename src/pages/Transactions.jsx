@@ -21,6 +21,7 @@ export default function Transactions() {
     queryKey: ['transactions', currentUser?.email],
     queryFn: () => base44.entities.Transaction.filter({ created_by: currentUser?.email }, '-created_date', 50),
     enabled: !!currentUser?.email,
+    refetchInterval: 3000,
   });
 
   return (
@@ -69,6 +70,10 @@ export default function Transactions() {
                             ? transaction.type === 'buy'
                               ? 'bg-blue-100'
                               : 'bg-orange-100'
+                            : transaction.symbol === 'COPY'
+                              ? transaction.type === 'buy'
+                                ? 'bg-violet-100'
+                                : 'bg-purple-100'
                             : transaction.type === 'buy' 
                               ? 'bg-green-100' 
                               : 'bg-red-100'
@@ -78,6 +83,12 @@ export default function Transactions() {
                               <TrendingUp className="w-5 h-5 text-blue-600" />
                             ) : (
                               <TrendingDown className="w-5 h-5 text-orange-600" />
+                            )
+                          ) : transaction.symbol === 'COPY' ? (
+                            transaction.type === 'buy' ? (
+                              <TrendingUp className="w-5 h-5 text-violet-600" />
+                            ) : (
+                              <TrendingDown className="w-5 h-5 text-purple-600" />
                             )
                           ) : transaction.type === 'buy' ? (
                             <TrendingUp className="w-5 h-5 text-green-600" />
@@ -105,7 +116,7 @@ export default function Transactions() {
                             </Badge>
                           </div>
                           <p className="text-sm text-gray-500">{transaction.company_name}</p>
-                          {transaction.symbol !== 'TRANSFER' && (
+                          {transaction.symbol !== 'TRANSFER' && transaction.symbol !== 'COPY' && (
                             <p className="text-xs text-gray-400 mt-1">
                               {transaction.shares?.toLocaleString()} shares @ £{transaction.price_per_share?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </p>
