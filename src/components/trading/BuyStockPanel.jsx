@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, ShoppingCart, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
-import AdvancedStockChart from './AdvancedStockChart';
+import StockChart from './StockChart';
 
 export default function BuyStockPanel({ selectedStock, cashBalance, onBuy, isLoading }) {
   const [shares, setShares] = useState('');
@@ -42,7 +42,7 @@ export default function BuyStockPanel({ selectedStock, cashBalance, onBuy, isLoa
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <AdvancedStockChart 
+        <StockChart 
           symbol={selectedStock.symbol}
           priceGbp={selectedStock.price_gbp}
           dailyChangePercent={selectedStock.daily_change_percent}
