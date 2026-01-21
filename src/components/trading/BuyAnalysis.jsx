@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingDown, AlertCircle } from 'lucide-react';
+import { TrendingDown, TrendingUp, AlertCircle, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cashBalance = 0 }) {
@@ -13,11 +13,11 @@ export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cash
         
         const dailyChange = display.change || 0;
         
-        // Buy signal logic
+        // Buy dip signals
         if (dailyChange < -2) {
-          // Strong dip - allocate 10% of cash
           const allocation = cashBalance * 0.10;
           const shares = Math.floor(allocation / display.price);
+          const potentialGain = shares * display.price * 0.03; // 3% recovery target
           
           return {
             symbol: stock.symbol,
@@ -26,13 +26,16 @@ export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cash
             change: dailyChange,
             allocation: 10,
             shares,
-            reason: 'Strong dip detected',
-            signal: 'strong'
+            reason: 'Strong dip - recovery play',
+            signal: 'strong',
+            icon: TrendingDown,
+            potentialGain,
+            potentialPercent: 3
           };
         } else if (dailyChange < -1) {
-          // Moderate dip - allocate 6% of cash
           const allocation = cashBalance * 0.06;
           const shares = Math.floor(allocation / display.price);
+          const potentialGain = shares * display.price * 0.02; // 2% recovery target
           
           return {
             symbol: stock.symbol,
@@ -42,63 +45,129 @@ export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cash
             allocation: 6,
             shares,
             reason: 'Moderate dip',
-            signal: 'moderate'
+            signal: 'moderate',
+            icon: TrendingDown,
+            potentialGain,
+            potentialPercent: 2
+          };
+        }
+        
+        // Buy uptrend signals (momentum)
+        if (dailyChange > 1.5) {
+          const allocation = cashBalance * 0.08;
+          const shares = Math.floor(allocation / display.price);
+          const potentialGain = shares * display.price * 0.04; // 4% momentum continuation
+          
+          return {
+            symbol: stock.symbol,
+            name: stock.name || stock.symbol,
+            price: display.price,
+            change: dailyChange,
+            allocation: 8,
+            shares,
+            reason: 'Strong uptrend - momentum play',
+            signal: 'hot',
+            icon: TrendingUp,
+            potentialGain,
+            potentialPercent: 4
+          };
+        } else if (dailyChange > 0.5) {
+          const allocation = cashBalance * 0.05;
+          const shares = Math.floor(allocation / display.price);
+          const potentialGain = shares * display.price * 0.025; // 2.5% upside
+          
+          return {
+            symbol: stock.symbol,
+            name: stock.name || stock.symbol,
+            price: display.price,
+            change: dailyChange,
+            allocation: 5,
+            shares,
+            reason: 'Positive momentum',
+            signal: 'bullish',
+            icon: TrendingUp,
+            potentialGain,
+            potentialPercent: 2.5
           };
         }
         
         return null;
       })
       .filter(Boolean)
-      .sort((a, b) => a.change - b.change)
-      .slice(0, 5);
+      .sort((a, b) => {
+        // Prioritize strong signals
+        const priority = { strong: 0, hot: 1, moderate: 2, bullish: 3 };
+        return priority[a.signal] - priority[b.signal];
+      })
+      .slice(0, 6);
   }, [stockPrices, displayPrices, cashBalance]);
 
   if (recommendations.length === 0) {
     return null;
   }
 
+  const signalColors = {
+    strong: 'from-red-50 to-orange-50 border-red-500',
+    hot: 'from-green-50 to-emerald-50 border-green-500',
+    moderate: 'from-yellow-50 to-amber-50 border-yellow-500',
+    bullish: 'from-blue-50 to-cyan-50 border-blue-500'
+  };
+
   return (
-    <Card className="border-0 shadow-md bg-gradient-to-br from-emerald-50 to-green-50 border-l-4 border-green-500">
+    <Card className={`border-0 shadow-md bg-gradient-to-br ${signalColors[recommendations[0]?.signal] || signalColors.moderate} border-l-4`}>
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold text-gray-800 flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-green-600" />
-          📊 Buy Analysis
+          <Zap className="w-4 h-4 text-yellow-600 animate-pulse" />
+          📊 Smart Trading Picks
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {recommendations.map((rec, idx) => (
-          <motion.div
-            key={rec.symbol}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: idx * 0.1 }}
-            className="p-3 rounded-lg bg-white border border-green-200"
-          >
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <div className="font-semibold text-gray-900 text-sm">{rec.symbol}</div>
-                <div className="text-xs text-gray-500">{rec.reason}</div>
+        {recommendations.map((rec, idx) => {
+          const Icon = rec.icon;
+          return (
+            <motion.div
+              key={rec.symbol}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: idx * 0.08 }}
+              className="p-3 rounded-lg bg-white border-2 border-gray-100 hover:border-gray-300 transition-all"
+            >
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-start gap-2 flex-1">
+                  <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${rec.change < 0 ? 'text-red-600' : 'text-green-600'}`} />
+                  <div>
+                    <div className="font-bold text-gray-900 text-sm">{rec.symbol}</div>
+                    <div className="text-xs text-gray-500">{rec.reason}</div>
+                  </div>
+                </div>
+                <Badge variant={rec.signal === 'strong' || rec.signal === 'hot' ? 'default' : 'secondary'} className="text-xs flex-shrink-0">
+                  {rec.change > 0 ? '+' : ''}{rec.change.toFixed(2)}%
+                </Badge>
               </div>
-              <Badge variant={rec.signal === 'strong' ? 'default' : 'secondary'} className="text-xs">
-                {rec.change.toFixed(2)}%
-              </Badge>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-gray-50 p-2 rounded">
-                <div className="text-gray-600">Allocate</div>
-                <div className="font-bold text-gray-900">{rec.allocation}% (£{(rec.allocation * cashBalance / 100).toFixed(2)})</div>
+              
+              <div className="grid grid-cols-3 gap-2 text-xs mb-2">
+                <div className="bg-gray-50 p-2 rounded">
+                  <div className="text-gray-600 text-xs">Allocate</div>
+                  <div className="font-bold text-gray-900">{rec.allocation}%</div>
+                  <div className="text-gray-500">£{(rec.allocation * cashBalance / 100).toFixed(0)}</div>
+                </div>
+                <div className="bg-gray-50 p-2 rounded">
+                  <div className="text-gray-600 text-xs">Buy</div>
+                  <div className="font-bold text-gray-900">{rec.shares}</div>
+                  <div className="text-gray-500">shares</div>
+                </div>
+                <div className="bg-green-50 p-2 rounded border border-green-200">
+                  <div className="text-green-700 text-xs font-semibold">Potential</div>
+                  <div className="font-bold text-green-900">+£{rec.potentialGain.toFixed(0)}</div>
+                  <div className="text-green-600 text-xs">+{rec.potentialPercent}%</div>
+                </div>
               </div>
-              <div className="bg-gray-50 p-2 rounded">
-                <div className="text-gray-600">Buy</div>
-                <div className="font-bold text-gray-900">{rec.shares} shares</div>
-              </div>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          );
+        })}
         
-        <div className="pt-2 mt-2 border-t border-green-200 text-xs text-gray-600">
-          💡 Tip: Follow allocation amounts for optimal risk management
+        <div className="pt-2 mt-2 border-t border-gray-200 text-xs text-gray-600">
+          ⚡ Updates live • Follow allocations • Potential gains estimated
         </div>
       </CardContent>
     </Card>
