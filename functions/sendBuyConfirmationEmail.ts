@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
         </div>
       </div>
 
-      <p style="margin-top: 30px; color: #666; font-size: 14px;">📊 Your portfolio has been updated. Monitor your positions and watch for trading opportunities!</p>
+      <p style="margin-top: 30px; color: #666; font-size: 14px;">💡 Are you following the best traders? Copy their trades and boost your portfolio! 🚀</p>
     </div>
     <div class="footer">
       <p>VTM Trading Platform | Keep your eye on the market 📈</p>
