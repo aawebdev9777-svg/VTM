@@ -8,6 +8,13 @@ import { motion } from "framer-motion";
 export default function BuyStockPanel({ selectedStock, cashBalance, onBuy, isLoading }) {
   const [shares, setShares] = useState('');
 
+  const handleBuy = () => {
+    if (canBuy) {
+      onBuy(selectedStock, parseFloat(shares));
+      setShares('');
+    }
+  };
+
   if (!selectedStock) {
     return (
       <Card className="border-0 shadow-md bg-gradient-to-br from-gray-50 to-gray-100">
@@ -20,15 +27,8 @@ export default function BuyStockPanel({ selectedStock, cashBalance, onBuy, isLoa
   }
 
   const totalCost = parseFloat(shares || 0) * selectedStock.price_gbp;
-  const canBuy = totalCost <= cashBalance && parseFloat(shares) > 0;
+  const canBuy = totalCost <= cashBalance && parseFloat(shares) > 0 && !isLoading;
   const maxBuyable = Math.floor(cashBalance / selectedStock.price_gbp);
-
-  const handleBuy = () => {
-    if (canBuy) {
-      onBuy(selectedStock, parseFloat(shares));
-      setShares('');
-    }
-  };
 
   return (
     <Card className="border-0 shadow-md bg-gradient-to-br from-white to-gray-50">
@@ -98,14 +98,14 @@ export default function BuyStockPanel({ selectedStock, cashBalance, onBuy, isLoa
         </div>
 
         <Button
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 text-base font-semibold"
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-2.5 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleBuy}
           disabled={!canBuy || isLoading}
         >
           {isLoading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Buying...
+              Processing...
             </>
           ) : (
             <>

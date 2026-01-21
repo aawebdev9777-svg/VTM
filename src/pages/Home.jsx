@@ -89,10 +89,15 @@ export default function Home() {
     },
     onSuccess: async () => {
       // Force immediate refetch
-      await queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] });
-      await queryClient.invalidateQueries({ queryKey: ['portfolio', currentUser?.email] });
-      await queryClient.refetchQueries({ queryKey: ['portfolio', currentUser?.email] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] }),
+        queryClient.invalidateQueries({ queryKey: ['portfolio', currentUser?.email] }),
+        queryClient.refetchQueries({ queryKey: ['portfolio', currentUser?.email] })
+      ]);
     },
+    onError: (error) => {
+      console.error('Buy failed:', error);
+    }
   });
 
   const handleBuy = (stock, shares) => {
