@@ -86,26 +86,35 @@ export default function AdvancedStockChart({ symbol, priceGbp, dailyChangePercen
     // Add moving averages
     if (indicators.sma20) {
       const sma20 = calculateSMA(historicalData, 20);
-      const smaSeries = chart.addLineSeries({ color: '#f59e0b', lineWidth: 1 });
-      smaSeries.setData(historicalData
-        .map((d, i) => ({ time: d.time, value: sma20[i] }))
-        .filter(d => d.value !== null));
+      const smaData = historicalData
+        .map((d, i) => sma20[i] !== null ? { time: d.time, value: sma20[i] } : null)
+        .filter(d => d !== null);
+      if (smaData.length) {
+        const smaSeries = chart.addLineSeries({ color: '#f59e0b', lineWidth: 1 });
+        smaSeries.setData(smaData);
+      }
     }
 
     if (indicators.sma50) {
       const sma50 = calculateSMA(historicalData, 50);
-      const smaSeries = chart.addLineSeries({ color: '#8b5cf6', lineWidth: 1 });
-      smaSeries.setData(historicalData
-        .map((d, i) => ({ time: d.time, value: sma50[i] }))
-        .filter(d => d.value !== null));
+      const smaData = historicalData
+        .map((d, i) => sma50[i] !== null ? { time: d.time, value: sma50[i] } : null)
+        .filter(d => d !== null);
+      if (smaData.length) {
+        const smaSeries = chart.addLineSeries({ color: '#8b5cf6', lineWidth: 1 });
+        smaSeries.setData(smaData);
+      }
     }
 
     if (indicators.ema12) {
       const ema12 = calculateEMA(historicalData, 12);
-      const emaSeries = chart.addLineSeries({ color: '#ec4899', lineWidth: 1 });
-      emaSeries.setData(historicalData
-        .map((d, i) => ({ time: d.time, value: ema12[i] }))
-        .filter(d => d.value !== null));
+      const emaData = historicalData
+        .map((d, i) => ema12[i] !== null ? { time: d.time, value: ema12[i] } : null)
+        .filter(d => d !== null);
+      if (emaData.length) {
+        const emaSeries = chart.addLineSeries({ color: '#ec4899', lineWidth: 1 });
+        emaSeries.setData(emaData);
+      }
     }
 
     chart.timeScale().fitContent();

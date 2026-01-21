@@ -80,13 +80,21 @@ export const calculateMACD = (data, fastPeriod = 12, slowPeriod = 26, signalPeri
 
 // Convert price data to OHLC if needed
 export const enrichChartData = (data) => {
-  return data.map(item => ({
-    time: Math.floor(new Date(item.date).getTime() / 1000),
-    open: item.price,
-    high: item.price,
-    low: item.price,
-    close: item.price,
-    value: item.price,
-    date: item.date
-  }));
+  return data
+    .map(item => {
+      const dateMs = new Date(item.date).getTime();
+      if (isNaN(dateMs)) return null;
+      
+      return {
+        time: Math.floor(dateMs / 1000),
+        open: item.price,
+        high: item.price,
+        low: item.price,
+        close: item.price,
+        value: item.price,
+        date: item.date
+      };
+    })
+    .filter(item => item !== null)
+    .sort((a, b) => a.time - b.time);
 };
