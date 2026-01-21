@@ -20,36 +20,44 @@ Deno.serve(async (req) => {
     const rateData = await rateRes.json();
     const gbpRate = rateData.rates.GBP;
 
-    // Fetch and update all prices
-    for (const symbol of symbols) {
-      const url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?modules=price`;
-      const response = await fetch(url);
-      const data = await response.json();
+    // Fetch all prices in parallel for speed
+    const pricePromises = symbols.map(async (symbol) => {
+      try {
+        const url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?modules=price`;
+        const response = await fetch(url);
+        const data = await response.json();
 
-      if (data?.quoteSummary?.result?.[0]?.price) {
-        const price = data.quoteSummary.result[0].price;
-        const usdPrice = price.regularMarketPrice?.raw || 0;
-        const gbpPrice = usdPrice * gbpRate;
-        const dailyChange = price.regularMarketChangePercent?.raw || 0;
+        if (data?.quoteSummary?.result?.[0]?.price) {
+          const price = data.quoteSummary.result[0].price;
+          const usdPrice = price.regularMarketPrice?.raw || 0;
+          const gbpPrice = usdPrice * gbpRate;
+          const dailyChange = price.regularMarketChangePercent?.raw || 0;
 
-        // Get existing or create new
-        const existing = await base44.asServiceRole.entities.StockPrice.filter({ symbol });
-        if (existing.length > 0) {
-          await base44.asServiceRole.entities.StockPrice.update(existing[0].id, {
-            price_gbp: parseFloat(gbpPrice.toFixed(2)),
-            price_usd: parseFloat(usdPrice.toFixed(2)),
-            daily_change_percent: parseFloat(dailyChange.toFixed(2)),
-            updated_at: new Date().toISOString()
-          });
-        } else {
-          await base44.asServiceRole.entities.StockPrice.create({
+          return {
             symbol,
             price_gbp: parseFloat(gbpPrice.toFixed(2)),
             price_usd: parseFloat(usdPrice.toFixed(2)),
             daily_change_percent: parseFloat(dailyChange.toFixed(2)),
             updated_at: new Date().toISOString()
-          });
+          };
         }
+      } catch (err) {
+        console.error(`Failed to fetch ${symbol}:`, err.message);
+      }
+      return null;
+    });
+
+    const fetchedPrices = (await Promise.all(pricePromises)).filter(Boolean);
+    
+    // Get all existing records and batch update/create
+    const existing = await base44.asServiceRole.entities.StockPrice.list();
+    const existingMap = Object.fromEntries(existing.map(e => [e.symbol, e.id]));
+
+    for (const priceData of fetchedPrices) {
+      if (existingMap[priceData.symbol]) {
+        await base44.asServiceRole.entities.StockPrice.update(existingMap[priceData.symbol], priceData);
+      } else {
+        await base44.asServiceRole.entities.StockPrice.create(priceData);
       }
     }
 
