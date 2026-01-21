@@ -15,21 +15,24 @@ Deno.serve(async (req) => {
     // Fetch live USD to GBP conversion once
     const fxResponse = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
     const fxData = await fxResponse.json();
-    const usdToGbp = fxData.rates.GBP || 0.79;
+    const usdToGbp = fxData.rates?.GBP || 0.79;
 
     for (const symbol of symbols) {
       try {
-        // Fetch from Alpha Vantage (more reliable than Yahoo)
-        const apiUrl = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=demo`;
-        const response = await fetch(apiUrl);
+        // Fetch from Yahoo Finance (free, no API key)
+        const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=5d`;
+        const response = await fetch(yahooUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
         const data = await response.json();
 
-        if (!data['Global Quote'] || Object.keys(data['Global Quote']).length === 0) continue;
+        if (!data.chart?.result?.[0]) continue;
 
-        const quote = data['Global Quote'];
-        const currentPrice = parseFloat(quote['05. price']);
-        const previousClose = parseFloat(quote['08. previous close']);
-        const dailyChange = parseFloat(quote['10. change percent'].replace('%', ''));
+        const result = data.chart.result[0];
+        const meta = result.meta;
+        const currentPrice = meta.regularMarketPrice;
+        const previousClose = meta.chartPreviousClose || meta.previousClose;
+        const dailyChange = ((currentPrice - previousClose) / previousClose) * 100;
 
         const priceGBP = currentPrice * usdToGbp;
 
