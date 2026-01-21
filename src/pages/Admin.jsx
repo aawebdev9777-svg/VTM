@@ -253,6 +253,17 @@ export default function Admin() {
               >
                 🎁 Give Starter Stock
               </Button>
+              <Button
+                onClick={async () => {
+                  if (confirm('Create/update bot accounts (Julian, Chris, Thomas Neve)?')) {
+                    await base44.functions.invoke('createBots', {});
+                    queryClient.invalidateQueries();
+                  }
+                }}
+                className="gap-2 bg-indigo-600 hover:bg-indigo-700"
+              >
+                🤖 Create Top 3 Bots
+              </Button>
             </div>
           </div>
 
