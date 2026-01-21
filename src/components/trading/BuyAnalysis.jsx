@@ -4,7 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { TrendingDown, TrendingUp, AlertCircle, Zap } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cashBalance = 0 }) {
+export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cashBalance = 0, totalPortfolioValue = 0 }) {
+  const totalValue = cashBalance + totalPortfolioValue;
+  
   const recommendations = useMemo(() => {
     return stockPrices
       .map(stock => {
@@ -15,7 +17,7 @@ export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cash
         
         // Buy dip signals - match what price will do
         if (dailyChange < -2) {
-          const allocation = cashBalance * 0.10;
+          const allocation = totalValue * 0.10;
           const shares = Math.floor(allocation / display.price);
           // Dips tend to recover 50-100% of the fall
           const recoveryTarget = Math.abs(dailyChange) * 0.75;
@@ -35,7 +37,7 @@ export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cash
             potentialPercent: recoveryTarget
           };
         } else if (dailyChange < -0.8) {
-          const allocation = cashBalance * 0.06;
+          const allocation = totalValue * 0.06;
           const shares = Math.floor(allocation / display.price);
           const recoveryTarget = Math.abs(dailyChange) * 0.6;
           const potentialGain = shares * display.price * (recoveryTarget / 100);
@@ -57,7 +59,7 @@ export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cash
         
         // Buy uptrend signals - follow momentum
         if (dailyChange > 1.2) {
-          const allocation = cashBalance * 0.08;
+          const allocation = totalValue * 0.08;
           const shares = Math.floor(allocation / display.price);
           // Momentum continues 50-80% more
           const continuationTarget = dailyChange * 0.65;
@@ -77,7 +79,7 @@ export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cash
             potentialPercent: continuationTarget
           };
         } else if (dailyChange > 0.4) {
-          const allocation = cashBalance * 0.05;
+          const allocation = totalValue * 0.05;
           const shares = Math.floor(allocation / display.price);
           const continuationTarget = dailyChange * 0.5;
           const potentialGain = shares * display.price * (continuationTarget / 100);
@@ -106,7 +108,7 @@ export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cash
         return priority[a.signal] - priority[b.signal];
       })
       .slice(0, 6);
-  }, [stockPrices, displayPrices, cashBalance]);
+  }, [stockPrices, displayPrices, totalValue]);
 
   if (recommendations.length === 0) {
     return null;
@@ -155,16 +157,16 @@ export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cash
                 <div className="bg-gray-50 p-2 rounded">
                   <div className="text-gray-600 text-xs">Allocate</div>
                   <div className="font-bold text-gray-900">{rec.allocation}%</div>
-                  <div className="text-gray-500">£{(rec.allocation * cashBalance / 100).toFixed(0)}</div>
+                  <div className="text-gray-500">£{(rec.allocation * totalValue / 100).toLocaleString('en-GB', {maximumFractionDigits: 0})}</div>
                 </div>
                 <div className="bg-gray-50 p-2 rounded">
                   <div className="text-gray-600 text-xs">Buy</div>
-                  <div className="font-bold text-gray-900">{rec.shares}</div>
+                  <div className="font-bold text-gray-900">{rec.shares.toLocaleString()}</div>
                   <div className="text-gray-500">shares</div>
                 </div>
                 <div className="bg-green-50 p-2 rounded border border-green-200">
                   <div className="text-green-700 text-xs font-semibold">Potential</div>
-                  <div className="font-bold text-green-900">+£{Math.round(rec.potentialGain)}</div>
+                  <div className="font-bold text-green-900">+£{Math.round(rec.potentialGain).toLocaleString()}</div>
                   <div className="text-green-600 text-xs">+{rec.potentialPercent.toFixed(1)}%</div>
                 </div>
               </div>
