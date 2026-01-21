@@ -50,6 +50,14 @@ export default function Leaderboard() {
     queryKey: ['myCopyTrades', currentUser?.email],
     queryFn: () => base44.entities.CopyTrade.filter({ follower_email: currentUser?.email }),
     enabled: !!currentUser?.email,
+    refetchInterval: 5000,
+  });
+
+  const { data: copiers = [] } = useQuery({
+    queryKey: ['copiers', currentUser?.email],
+    queryFn: () => base44.entities.CopyTrade.filter({ leader_email: currentUser?.email, is_active: true }),
+    enabled: !!currentUser?.email,
+    refetchInterval: 5000,
   });
 
   const startCopyTradeMutation = useMutation({
@@ -181,17 +189,55 @@ export default function Leaderboard() {
         </TabsList>
 
         <TabsContent value="leaderboard">
+      {copiers.length > 0 && (
+        <Card className="border-0 shadow-lg mb-6 bg-green-50">
+          <CardContent className="p-4">
+            <p className="text-sm font-semibold text-green-900 mb-2">People Copying You ({copiers.length})</p>
+            <div className="space-y-2">
+              {copiers.map(ct => {
+                const leaderData = leaderboard.find(l => l.email === currentUser?.email);
+                const currentValue = ct.investment_amount * (1 + ((leaderData?.percentageReturn || 0) / 100));
+                const profitLoss = currentValue - ct.investment_amount;
+                
+                return (
+                  <div key={ct.id} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-700">{ct.follower_email.split('@')[0]}</span>
+                    <div className="text-right">
+                      <span className="font-bold text-gray-900">£{currentValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className={`text-xs ml-2 ${profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        ({profitLoss >= 0 ? '+' : ''}£{profitLoss.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {myCopyTrades.filter(ct => ct.is_active).length > 0 && (
         <Card className="border-0 shadow-lg mb-6 bg-violet-50">
           <CardContent className="p-4">
-            <p className="text-sm font-semibold text-violet-900 mb-2">Active Copy Trades</p>
+            <p className="text-sm font-semibold text-violet-900 mb-2">Your Copy Trades</p>
             <div className="space-y-2">
-              {myCopyTrades.filter(ct => ct.is_active).map(ct => (
-                <div key={ct.id} className="flex items-center justify-between text-sm">
-                  <span className="text-gray-700">Copying {ct.leader_email.split('@')[0]}</span>
-                  <span className="font-bold text-violet-600">£{ct.investment_amount.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                </div>
-              ))}
+              {myCopyTrades.filter(ct => ct.is_active).map(ct => {
+                const leaderData = leaderboard.find(l => l.email === ct.leader_email);
+                const currentValue = ct.investment_amount * (1 + ((leaderData?.percentageReturn || 0) / 100));
+                const profitLoss = currentValue - ct.investment_amount;
+                
+                return (
+                  <div key={ct.id} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-700">Copying {ct.leader_email.split('@')[0]}</span>
+                    <div className="text-right">
+                      <span className="font-bold text-violet-900">£{currentValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className={`text-xs ml-2 ${profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        ({profitLoss >= 0 ? '+' : ''}£{profitLoss.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
