@@ -72,13 +72,7 @@ export default function Wallet() {
     }
   }, [accounts]);
 
-  const { data: leaderboardData = [] } = useQuery({
-    queryKey: ['leaderboard'],
-    queryFn: async () => {
-      const response = await base44.functions.invoke('getLeaderboard');
-      return response.data.leaderboard || [];
-    },
-  });
+
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsers'],
@@ -129,9 +123,6 @@ export default function Wallet() {
   const currentCardDesign = (isAdmin && isSuperAdmin) ? adminCard : cardDesigns[selectedCardIndex];
   const cardNumber = currentUser ? generateCardNumber(currentUser.email) : '**** **** **** 0000';
 
-  // Use leaderboard data from backend
-  const leaderboard = leaderboardData;
-
   // Search users
   const filteredUsers = allUsers.filter(user => 
     user.email !== currentUser?.email && 
@@ -151,13 +142,13 @@ export default function Wallet() {
          origin: { y: 0.6 }
        });
        queryClient.invalidateQueries({ queryKey: ['userAccount'] });
-       queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
        queryClient.invalidateQueries({ queryKey: ['allUsers'] });
+       queryClient.invalidateQueries({ queryKey: ['recentTransactions'] });
        setTransferAmount('');
        setSelectedRecipient(null);
        setSearchQuery('');
      },
-   });
+     });
 
    const handleTransfer = () => {
      const amount = parseFloat(transferAmount);
@@ -248,7 +239,7 @@ export default function Wallet() {
           </div>
         </motion.div>
 
-        {/* Leaderboard */}
+        {/* Quick Stats */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -257,47 +248,26 @@ export default function Wallet() {
           <Card className="border-0 shadow-lg h-full">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Award className="w-5 h-5 text-amber-500" />
-                Leaderboard
+                <TrendingUp className="w-5 h-5 text-violet-600" />
+                Quick Stats
               </CardTitle>
             </CardHeader>
-            <CardContent className="max-h-96 overflow-y-auto">
-              <div className="space-y-2">
-                {isAdmin && isSuperAdmin && (
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-400 mb-3">
-                    <div className="flex items-center gap-3">
-                      <Crown className="w-8 h-8 text-yellow-600" />
-                      <div>
-                        <p className="font-medium text-sm">{currentUser?.full_name}</p>
-                        <Badge className="bg-yellow-400 text-gray-900 text-xs mt-1">SUPER ADMIN</Badge>
-                      </div>
-                    </div>
-                    <p className="font-bold text-sm">£{cashBalance.toFixed(0)}</p>
-                  </div>
-                )}
-                {leaderboard.slice(0, 10).map((user) => (
-                  <div
-                    key={user.email}
-                    className={`flex items-center justify-between p-3 rounded-lg ${
-                      user.email === currentUser?.email ? 'bg-violet-100' : 'bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-                        user.rank === 1 ? 'bg-yellow-400 text-gray-900' :
-                        user.rank === 2 ? 'bg-gray-300 text-gray-700' :
-                        user.rank === 3 ? 'bg-amber-600 text-white' :
-                        'bg-gray-200 text-gray-600'
-                      }`}>
-                        {user.rank}
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">{user.name}</p>
-                      </div>
-                    </div>
-                    <p className="font-bold text-sm">£{user.totalValue.toFixed(0)}</p>
-                  </div>
-                ))}
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm text-gray-600">Recent Trades</span>
+                  <span className="font-bold text-gray-900">{transactions.length}</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm text-gray-600">Net Profit/Loss</span>
+                  <span className={`font-bold ${totalEarned - totalSpent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    £{(totalEarned - totalSpent).toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm text-gray-600">Available</span>
+                  <span className="font-bold text-violet-600">£{cashBalance.toFixed(2)}</span>
+                </div>
               </div>
             </CardContent>
           </Card>
