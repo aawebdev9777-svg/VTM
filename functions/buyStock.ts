@@ -165,6 +165,19 @@ Deno.serve(async (req) => {
     const updatedAccount = await base44.entities.UserAccount.filter({ created_by: user.email });
     const updatedHoldings = await base44.entities.Portfolio.filter({ created_by: user.email });
 
+    // Send buy confirmation email
+    try {
+      await base44.functions.invoke('sendBuyConfirmationEmail', {
+        symbol: stock.symbol.toUpperCase(),
+        company_name: meta.longName || meta.shortName || stock.symbol.toUpperCase(),
+        shares: shares,
+        price_per_share: parseFloat((pricePennies / 100).toFixed(2)),
+        total_amount: parseFloat((totalCostPennies / 100).toFixed(2))
+      });
+    } catch (emailError) {
+      console.error('Failed to send confirmation email:', emailError.message);
+    }
+
     return Response.json({
       success: true,
       data: {
