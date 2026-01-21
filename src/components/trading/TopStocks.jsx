@@ -33,6 +33,7 @@ export default function TopStocks({ onSelectStock }) {
   const [selectedSector, setSelectedSector] = useState('all');
 
   const [displayPrices, setDisplayPrices] = useState({});
+  const [momentum, setMomentum] = useState({});
 
   const { data: stockPrices = [], refetch, isRefetching } = useQuery({
     queryKey: ['stockPrices'],
@@ -52,6 +53,17 @@ export default function TopStocks({ onSelectStock }) {
         };
         return acc;
       }, {}));
+      
+      // Initialize momentum for new stocks
+      setMomentum(prev => {
+        const updated = { ...prev };
+        stockPrices.forEach(stock => {
+          if (!updated[stock.symbol]) {
+            updated[stock.symbol] = (Math.random() * 0.4 - 0.2); // Random trend between -0.2% and +0.2%
+          }
+        });
+        return updated;
+      });
     }
   }, [stockPrices]);
 
