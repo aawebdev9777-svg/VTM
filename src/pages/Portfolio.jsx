@@ -40,6 +40,22 @@ export default function Portfolio() {
     refetchInterval: 2000,
   });
 
+  const { data: myCopyTrades = [] } = useQuery({
+    queryKey: ['myCopyTrades', currentUser?.email],
+    queryFn: () => base44.entities.CopyTrade.filter({ follower_email: currentUser?.email, is_active: true }),
+    enabled: !!currentUser?.email,
+    refetchInterval: 2000,
+  });
+
+  const { data: leaderboard = [] } = useQuery({
+    queryKey: ['leaderboard'],
+    queryFn: async () => {
+      const response = await base44.functions.invoke('getLeaderboard', {});
+      return response.data.leaderboard || [];
+    },
+    refetchInterval: 5000,
+  });
+
   // Subscribe to real-time updates
   useEffect(() => {
     const unsubscribePortfolio = base44.entities.Portfolio.subscribe(() => {
@@ -127,11 +143,29 @@ export default function Portfolio() {
     };
   });
 
+  // Calculate copy trade values
+  const copyTradesWithMetrics = myCopyTrades.map(ct => {
+    const leaderData = leaderboard.find(l => l.email === ct.leader_email);
+    const currentValue = ct.investment_amount * (1 + ((leaderData?.percentageReturn || 0) / 100));
+    const profitLoss = currentValue - ct.investment_amount;
+    return {
+      ...ct,
+      currentValue,
+      profitLoss,
+      leaderName: ct.leader_email.split('@')[0],
+      leaderReturn: leaderData?.percentageReturn || 0,
+    };
+  });
+
+  const totalCopyTradeValue = copyTradesWithMetrics.reduce((sum, ct) => sum + ct.currentValue, 0);
+  const totalCopyTradeInvested = myCopyTrades.reduce((sum, ct) => sum + ct.investment_amount, 0);
+  const totalCopyTradePL = totalCopyTradeValue - totalCopyTradeInvested;
+
   const totalPortfolioValue = portfolioWithMetrics.reduce((sum, h) => sum + h.currentValue, 0);
   const totalCostBasis = portfolioWithMetrics.reduce((sum, h) => sum + h.costBasis, 0);
   const totalProfitLoss = totalPortfolioValue - totalCostBasis;
   const totalProfitLossPercent = totalCostBasis > 0 ? (totalProfitLoss / totalCostBasis) * 100 : 0;
-  const totalValue = cashBalance + totalPortfolioValue;
+  const totalValue = cashBalance + totalPortfolioValue + totalCopyTradeValue;
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 md:py-8">
@@ -228,10 +262,67 @@ export default function Portfolio() {
         </motion.div>
       </div>
 
+      {/* Copy Trading Holdings */}
+      {myCopyTrades.length > 0 && (
+        <Card className="border-0 shadow-lg mb-6">
+          <CardHeader>
+            <CardTitle>Copy Trading Positions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Trader</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Invested</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Current Value</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">P/L</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {copyTradesWithMetrics.map((ct, index) => (
+                    <motion.tr
+                      key={ct.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="border-b hover:bg-gray-50"
+                    >
+                      <td className="py-4 px-4">
+                        <div>
+                          <p className="font-bold text-gray-900">Copying {ct.leaderName}</p>
+                          <p className="text-xs text-gray-500">Return: {ct.leaderReturn >= 0 ? '+' : ''}{ct.leaderReturn.toFixed(2)}%</p>
+                        </div>
+                      </td>
+                      <td className="text-right py-4 px-4 text-gray-900">
+                        £{ct.investment_amount.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                      <td className="text-right py-4 px-4 font-medium text-gray-900">
+                        £{ct.currentValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                      <td className="text-right py-4 px-4">
+                        <div className="flex flex-col items-end gap-1">
+                          <p className={`font-bold ${ct.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {ct.profitLoss >= 0 ? '+' : ''}£{ct.profitLoss.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </p>
+                          <Badge variant={ct.profitLoss >= 0 ? 'default' : 'destructive'} className="text-xs">
+                            {ct.leaderReturn >= 0 ? '+' : ''}{ct.leaderReturn.toFixed(2)}%
+                          </Badge>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Holdings Table */}
       <Card className="border-0 shadow-lg">
         <CardHeader>
-          <CardTitle>Your Holdings</CardTitle>
+          <CardTitle>Stock Holdings</CardTitle>
         </CardHeader>
         <CardContent>
           {portfolio.length === 0 ? (
