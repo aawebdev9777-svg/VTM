@@ -288,7 +288,7 @@ export default function Leaderboard() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-gray-900">
-                          {trader.email.split('@')[0]}
+                          {trader.name}
                         </p>
                         {isCurrentUser && (
                           <span className="text-xs bg-violet-600 text-white px-2 py-0.5 rounded-full">
@@ -339,7 +339,7 @@ export default function Leaderboard() {
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Copy {trader.email.split('@')[0]}'s Trades</DialogTitle>
+                            <DialogTitle>Copy {trader.name}'s Trades</DialogTitle>
                           </DialogHeader>
                           <div className="space-y-4 py-4">
                             <div>
@@ -348,7 +348,7 @@ export default function Leaderboard() {
                               </p>
                               <div className="bg-violet-50 p-4 rounded-lg mb-4">
                                 <p className="text-sm font-semibold text-violet-900">
-                                  {trader.email.split('@')[0]}
+                                  {trader.name}
                                 </p>
                                 <p className="text-xs text-gray-600">
                                   Performance: {(trader.percentageReturn || 0) >= 0 ? '+' : ''}{(trader.percentageReturn || 0).toFixed(2)}%

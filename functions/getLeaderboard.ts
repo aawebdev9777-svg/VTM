@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
       
       return {
         email: user.email,
-        name: user.full_name || user.email,
+        name: user.username || user.full_name || user.email.split('@')[0],
         balance: base.cash,
         portfolioValue: base.portfolio,
         copyTradeValue: copyTradeValue,
