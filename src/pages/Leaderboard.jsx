@@ -167,8 +167,7 @@ export default function Leaderboard() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="leaderboard">`
-
+        <TabsContent value="leaderboard">
       {myCopyTrades.filter(ct => ct.is_active).length > 0 && (
         <Card className="border-0 shadow-lg mb-6 bg-violet-50">
           <CardContent className="p-4">
