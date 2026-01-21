@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -23,12 +24,15 @@ import {
 export default function Settings() {
   const [currentUser, setCurrentUser] = useState(null);
   const [currency, setCurrency] = useState('GBP');
+  const [username, setUsername] = useState('');
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
     base44.auth.me().then((user) => {
       setCurrentUser(user);
       setCurrency(user?.currency || 'GBP');
+      setUsername(user?.username || '');
     });
   }, []);
 
@@ -84,6 +88,18 @@ export default function Settings() {
     },
   });
 
+  const updateUsernameMutation = useMutation({
+    mutationFn: async (newUsername) => {
+      await base44.auth.updateMe({ username: newUsername });
+    },
+    onSuccess: () => {
+      setIsEditingUsername(false);
+      queryClient.invalidateQueries();
+      const updatedUser = { ...currentUser, username };
+      setCurrentUser(updatedUser);
+    },
+  });
+
   const handleCurrencyToggle = (checked) => {
     const newCurrency = checked ? 'USD' : 'GBP';
     currencyMutation.mutate(newCurrency);
@@ -109,6 +125,57 @@ export default function Settings() {
       </motion.div>
 
       <div className="space-y-6">
+        <Card className="border-0 shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="w-5 h-5 text-violet-600" />
+              Display Name
+            </CardTitle>
+            <CardDescription>How you appear on the leaderboard</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isEditingUsername ? (
+              <div className="space-y-3">
+                <Input
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter display name"
+                  className="text-base"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => updateUsernameMutation.mutate(username)}
+                    disabled={!username.trim() || updateUsernameMutation.isPending}
+                    className="bg-violet-600 hover:bg-violet-700"
+                  >
+                    {updateUsernameMutation.isPending ? 'Saving...' : 'Save'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setUsername(currentUser?.username || '');
+                      setIsEditingUsername(false);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <span className="font-medium">{currentUser?.username || currentUser?.full_name || 'Not set'}</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditingUsername(true)}
+                >
+                  Edit
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         <Card className="border-0 shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
