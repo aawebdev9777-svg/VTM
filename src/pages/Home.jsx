@@ -8,6 +8,7 @@ import HoldingsList from '../components/trading/HoldingsList';
 import TopStocks from '../components/trading/TopStocks';
 import AlertsPanel from '../components/alerts/AlertsPanel';
 import StockNews from '../components/news/StockNews';
+import FreeStockSelector from '../components/trading/FreeStockSelector';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -16,6 +17,7 @@ export default function Home() {
   const [selectedStock, setSelectedStock] = useState(null);
   const [currentPrices, setCurrentPrices] = useState({});
   const [currentUser, setCurrentUser] = useState(null);
+  const [showFreeStockModal, setShowFreeStockModal] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -95,6 +97,13 @@ export default function Home() {
       createAccountMutation.mutate();
     }
   }, [accounts, currentUser?.email]);
+
+  // Check if user has free stocks available
+  useEffect(() => {
+    if (account?.free_stocks_available > 0) {
+      setShowFreeStockModal(true);
+    }
+  }, [account?.free_stocks_available]);
 
   const account = accounts?.[0];
 
@@ -183,8 +192,20 @@ export default function Home() {
     );
   }
 
+  const handleFreeStockClose = async () => {
+    setShowFreeStockModal(false);
+    // Update account to remove free stock flag
+    if (account?.id) {
+      await base44.entities.UserAccount.update(account.id, { free_stocks_available: 0 });
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6 pb-20">
+      <FreeStockSelector 
+        open={showFreeStockModal} 
+        onClose={handleFreeStockClose}
+      />
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}

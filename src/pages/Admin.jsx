@@ -264,6 +264,17 @@ export default function Admin() {
               >
                 🤖 Create Top 3 Bots
               </Button>
+              <Button
+                onClick={async () => {
+                  if (confirm('Give all users 3 free stock selections?')) {
+                    await base44.functions.invoke('giveAllUsersThreeStocks', {});
+                    queryClient.invalidateQueries();
+                  }
+                }}
+                className="gap-2 bg-green-600 hover:bg-green-700"
+              >
+                🎁 Give All Users 3 Free Stocks
+              </Button>
             </div>
           </div>
 
