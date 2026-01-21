@@ -13,7 +13,10 @@ import {
   LogOut,
   User,
   Wallet,
-  Shield
+  Shield,
+  Trophy,
+  MessageSquare,
+  Bot
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -37,6 +40,9 @@ export default function Layout({ children, currentPageName }) {
   const navigation = [
     { name: 'Home', href: createPageUrl('Home'), icon: Home },
     { name: 'Portfolio', href: createPageUrl('Portfolio'), icon: TrendingUp },
+    { name: 'Leaderboard', href: createPageUrl('Leaderboard'), icon: Trophy },
+    { name: 'Social', href: createPageUrl('Social'), icon: MessageSquare },
+    { name: 'AI Assistant', href: createPageUrl('AIAssistant'), icon: Bot },
     { name: 'Wallet', href: createPageUrl('Wallet'), icon: Wallet },
     { name: 'Transactions', href: createPageUrl('Transactions'), icon: History },
     { name: 'Settings', href: createPageUrl('Settings'), icon: User },
