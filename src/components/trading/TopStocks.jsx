@@ -7,6 +7,7 @@ import { TrendingUp, TrendingDown, Star, Activity, RefreshCw } from "lucide-reac
 import { motion } from "framer-motion";
 
 const REAL_STOCKS = [
+  { symbol: 'ABPF', name: 'ABPF Trading Inc.', sector: 'FinTech', riskLevel: 'Low' },
   { symbol: 'AAPL', name: 'Apple Inc.', sector: 'Technology', riskLevel: 'Low' },
   { symbol: 'MSFT', name: 'Microsoft', sector: 'Technology', riskLevel: 'Low' },
   { symbol: 'GOOGL', name: 'Alphabet', sector: 'Technology', riskLevel: 'Medium' },
