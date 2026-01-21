@@ -13,7 +13,6 @@ import MarketStats from '../components/admin/MarketStats';
 export default function Admin() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState(7); // days
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -170,55 +169,19 @@ export default function Admin() {
   const totalPosts = allSocialPosts.filter(p => p.created_by !== adminEmail).length;
   const activeCopyTrades = allCopyTrades.filter(ct => ct.is_active).length;
 
-  // Trading activity over time (dynamic range, excluding admin)
+  // Trading activity over time (last 7 days, excluding admin)
   const activityData = [];
-  let dayCount = timeRange;
-  if (timeRange === 365) dayCount = 52; // Show weekly for year
-  if (timeRange === 999999) dayCount = 30; // Show monthly for all time
-  
-  for (let i = dayCount - 1; i >= 0; i--) {
+  for (let i = 6; i >= 0; i--) {
     const date = new Date();
-    let dateStr, displayDate;
-    
-    if (timeRange === 1) {
-      // Hourly for 1 day
-      date.setHours(date.getHours() - i);
-      dateStr = date.toISOString().split('.')[0];
-      displayDate = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-    } else if (timeRange === 365) {
-      // Weekly for 1 year
-      date.setDate(date.getDate() - (i * 7));
-      dateStr = date.toISOString().split('T')[0];
-      displayDate = date.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
-    } else if (timeRange === 999999) {
-      // Monthly for all time
-      date.setMonth(date.getMonth() - i);
-      dateStr = date.toISOString().split('T')[0];
-      displayDate = date.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
-    } else {
-      // Daily for 30 days
-      date.setDate(date.getDate() - i);
-      dateStr = date.toISOString().split('T')[0];
-      displayDate = date.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
-    }
-    
-    let dayTrades = [];
-    if (timeRange === 1) {
-      dayTrades = nonAdminTransactions.filter(t => t.created_date?.startsWith(dateStr.substring(0, 13)));
-    } else if (timeRange === 365 || timeRange === 999999) {
-      dayTrades = nonAdminTransactions.filter(t => t.created_date?.substring(0, 7) === dateStr.substring(0, 7) || t.created_date?.startsWith(dateStr.substring(0, 10)));
-    } else {
-      dayTrades = nonAdminTransactions.filter(t => t.created_date?.startsWith(dateStr));
-    }
-    
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+    const dayTrades = nonAdminTransactions.filter(t => t.created_date?.startsWith(dateStr));
     activityData.push({
-      date: displayDate,
+      date: date.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }),
       trades: dayTrades.length,
       volume: dayTrades.reduce((sum, t) => sum + t.total_amount, 0),
     });
   }
-  
-  activityData.reverse();
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
@@ -439,38 +402,6 @@ export default function Admin() {
             </CardContent>
           </Card>
         </motion.div>
-      </div>
-
-      {/* Time Range Filter */}
-      <div className="mb-6 flex gap-2">
-        <Button
-          onClick={() => setTimeRange(1)}
-          variant={timeRange === 1 ? 'default' : 'outline'}
-          className="text-sm"
-        >
-          1 Day
-        </Button>
-        <Button
-          onClick={() => setTimeRange(30)}
-          variant={timeRange === 30 ? 'default' : 'outline'}
-          className="text-sm"
-        >
-          30 Days
-        </Button>
-        <Button
-          onClick={() => setTimeRange(365)}
-          variant={timeRange === 365 ? 'default' : 'outline'}
-          className="text-sm"
-        >
-          1 Year
-        </Button>
-        <Button
-          onClick={() => setTimeRange(999999)}
-          variant={timeRange === 999999 ? 'default' : 'outline'}
-          className="text-sm"
-        >
-          All Time
-        </Button>
       </div>
 
       {/* Charts and Stock Economics */}
