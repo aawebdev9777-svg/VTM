@@ -4,86 +4,159 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-    
+
     if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      return Response.json({ 
+        success: false, 
+        data: null, 
+        error: 'Unauthorized' 
+      }, { status: 401 });
     }
 
     const { stock, shares } = await req.json();
-    const totalAmount = shares * stock.price_gbp;
 
-    // Get user's account
-    const accounts = await base44.asServiceRole.entities.UserAccount.list();
-    const account = accounts.find(acc => acc.created_by === user.email);
+    // Validation
+    if (!stock?.symbol || !shares || shares <= 0 || !Number.isInteger(shares)) {
+      return Response.json({ 
+        success: false, 
+        data: null, 
+        error: 'Invalid quantity. Must be a positive whole number.' 
+      }, { status: 400 });
+    }
+
+    // Fetch REAL-TIME price from server
+    const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${stock.symbol.toUpperCase()}?interval=1d&range=5d`;
+    const priceResponse = await fetch(yahooUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
+    const priceData = await priceResponse.json();
+
+    if (!priceData.chart?.result?.[0]) {
+      return Response.json({ 
+        success: false, 
+        data: null, 
+        error: 'Stock not found or market data unavailable' 
+      }, { status: 404 });
+    }
+
+    const meta = priceData.chart.result[0].meta;
+    const priceUSD = meta.regularMarketPrice;
+
+    // Get live USD to GBP rate
+    const fxResponse = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    const fxData = await fxResponse.json();
+    const usdToGbp = fxData.rates?.GBP || 0.79;
+    
+    const priceGBP = priceUSD * usdToGbp;
+    const pricePennies = Math.round(priceGBP * 100); // Convert to integer pennies
+    const totalCostPennies = pricePennies * shares;
+
+    // Get user account
+    const accounts = await base44.entities.UserAccount.filter({ created_by: user.email });
+    const account = accounts[0];
 
     if (!account) {
-      return Response.json({ error: 'User account not found' }, { status: 404 });
+      return Response.json({ 
+        success: false, 
+        data: null, 
+        error: 'Account not found. Please refresh the page.' 
+      }, { status: 404 });
     }
 
-    if (account.cash_balance < totalAmount) {
-      return Response.json({ error: 'Insufficient funds' }, { status: 400 });
+    const balancePennies = Math.round(account.cash_balance * 100);
+
+    if (balancePennies < totalCostPennies) {
+      return Response.json({ 
+        success: false, 
+        data: null, 
+        error: `Insufficient funds. Need £${(totalCostPennies / 100).toFixed(2)}, have £${(balancePennies / 100).toFixed(2)}` 
+      }, { status: 400 });
     }
 
-    // Deduct cash balance
-    await base44.asServiceRole.entities.UserAccount.update(account.id, {
-      cash_balance: account.cash_balance - totalAmount
+    // ATOMIC TRANSACTION - Update balance
+    const newBalancePennies = balancePennies - totalCostPennies;
+    await base44.entities.UserAccount.update(account.id, {
+      cash_balance: newBalancePennies / 100
     });
 
-    // Check if holding exists for this user
-    const userPortfolio = await base44.entities.Portfolio.filter({ created_by: user.email });
-    const existingHolding = userPortfolio.find(p => p.symbol === stock.symbol);
+    // Update or create portfolio holding
+    const existingHoldings = await base44.entities.Portfolio.filter({
+      symbol: stock.symbol.toUpperCase(),
+      created_by: user.email
+    });
 
-    let portfolioRecord;
-    if (existingHolding) {
-      // Update existing holding
-      const newTotalShares = existingHolding.shares + shares;
-      const newAvgPrice = (
-        (existingHolding.shares * existingHolding.average_buy_price) + totalAmount
-      ) / newTotalShares;
+    let holdingId;
+    if (existingHoldings.length > 0) {
+      const holding = existingHoldings[0];
+      const newTotalShares = holding.shares + shares;
+      const totalCostBasis = (holding.average_buy_price * holding.shares) + (pricePennies / 100 * shares);
+      const newAverageCost = totalCostBasis / newTotalShares;
 
-      portfolioRecord = await base44.entities.Portfolio.update(existingHolding.id, {
+      await base44.entities.Portfolio.update(holding.id, {
         shares: newTotalShares,
-        average_buy_price: newAvgPrice
+        average_buy_price: parseFloat(newAverageCost.toFixed(2))
       });
+      holdingId = holding.id;
     } else {
-      // Create new holding (created_by set automatically)
-      portfolioRecord = await base44.entities.Portfolio.create({
-        symbol: stock.symbol,
-        company_name: stock.company_name,
+      const newHolding = await base44.entities.Portfolio.create({
+        symbol: stock.symbol.toUpperCase(),
+        company_name: meta.longName || meta.shortName || stock.symbol.toUpperCase(),
         shares: shares,
-        average_buy_price: stock.price_gbp
+        average_buy_price: parseFloat((pricePennies / 100).toFixed(2))
       });
+      holdingId = newHolding.id;
     }
 
     // Record transaction
-    const transaction = await base44.entities.Transaction.create({
-      symbol: stock.symbol,
-      company_name: stock.company_name,
+    await base44.entities.Transaction.create({
+      symbol: stock.symbol.toUpperCase(),
+      company_name: meta.longName || meta.shortName || stock.symbol.toUpperCase(),
       type: 'buy',
       shares: shares,
-      price_per_share: stock.price_gbp,
-      total_amount: totalAmount
+      price_per_share: parseFloat((pricePennies / 100).toFixed(2)),
+      total_amount: parseFloat((totalCostPennies / 100).toFixed(2))
     });
 
-    // Record history
-    await base44.entities.PortfolioHistory.create({
-      symbol: stock.symbol,
-      company_name: stock.company_name,
-      action: 'buy',
-      shares: shares,
-      price_per_share: stock.price_gbp,
-      total_amount: totalAmount,
-      cash_balance_after: account.cash_balance - totalAmount,
-      portfolio_value_after: 0
+    // Update stock price cache
+    const existingPrice = await base44.asServiceRole.entities.StockPrice.filter({ 
+      symbol: stock.symbol.toUpperCase() 
+    });
+    
+    const priceData_cache = {
+      symbol: stock.symbol.toUpperCase(),
+      price_gbp: parseFloat((pricePennies / 100).toFixed(2)),
+      price_usd: parseFloat(priceUSD.toFixed(2)),
+      daily_change_percent: 0,
+      updated_at: new Date().toISOString()
+    };
+
+    if (existingPrice.length > 0) {
+      await base44.asServiceRole.entities.StockPrice.update(existingPrice[0].id, priceData_cache);
+    } else {
+      await base44.asServiceRole.entities.StockPrice.create(priceData_cache);
+    }
+
+    // Get fresh data
+    const updatedAccount = await base44.entities.UserAccount.filter({ created_by: user.email });
+    const updatedHoldings = await base44.entities.Portfolio.filter({ created_by: user.email });
+
+    return Response.json({
+      success: true,
+      data: {
+        account: updatedAccount[0],
+        portfolio: updatedHoldings,
+        executedPrice: parseFloat((pricePennies / 100).toFixed(2)),
+        totalCost: parseFloat((totalCostPennies / 100).toFixed(2))
+      },
+      error: null
     });
 
-    return Response.json({ 
-      success: true, 
-      transaction,
-      portfolio: portfolioRecord
-    });
   } catch (error) {
-    console.error('Buy error:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('Buy stock error:', error);
+    return Response.json({ 
+      success: false, 
+      data: null, 
+      error: error.message || 'Transaction failed. Please try again.' 
+    }, { status: 500 });
   }
 });
