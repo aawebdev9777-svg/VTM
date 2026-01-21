@@ -60,7 +60,7 @@ export default function Portfolio() {
         const updated = { ...prev };
         stockPrices.forEach(stock => {
           if (!updated[stock.symbol]) {
-            updated[stock.symbol] = (Math.random() * 0.4 - 0.2);
+            updated[stock.symbol] = (Math.random() * 1.2 - 0.6);
           }
         });
         return updated;
@@ -74,8 +74,10 @@ export default function Portfolio() {
       setMomentum(m => {
         const updated = { ...m };
         for (const symbol in updated) {
-          const trendAdjustment = (Math.random() * 0.1 - 0.05);
-          updated[symbol] = Math.max(-0.5, Math.min(0.5, updated[symbol] + trendAdjustment));
+          // Occasional large swings for profit opportunities
+          const largeSwing = Math.random() < 0.1 ? (Math.random() * 2 - 1) * 0.5 : 0;
+          const trendAdjustment = (Math.random() * 0.2 - 0.1) + largeSwing;
+          updated[symbol] = Math.max(-2, Math.min(2, updated[symbol] + trendAdjustment));
         }
         return updated;
       });
