@@ -65,15 +65,7 @@ export default function StockChart({ symbol, priceGbp, dailyChangePercent }) {
         </span>
       </div>
 
-      <div className="flex gap-2">
-        <Button
-          onClick={() => setTimeRange(1)}
-          variant={timeRange === 1 ? 'default' : 'outline'}
-          size="sm"
-          className="text-xs"
-        >
-          1D
-        </Button>
+      <div className="flex gap-2 flex-wrap">
         <Button
           onClick={() => setTimeRange(30)}
           variant={timeRange === 30 ? 'default' : 'outline'}
@@ -89,6 +81,22 @@ export default function StockChart({ symbol, priceGbp, dailyChangePercent }) {
           className="text-xs"
         >
           1Y
+        </Button>
+        <Button
+          onClick={() => setTimeRange(3650)}
+          variant={timeRange === 3650 ? 'default' : 'outline'}
+          size="sm"
+          className="text-xs"
+        >
+          10Y
+        </Button>
+        <Button
+          onClick={() => setTimeRange(999999)}
+          variant={timeRange === 999999 ? 'default' : 'outline'}
+          size="sm"
+          className="text-xs"
+        >
+          All
         </Button>
       </div>
       
