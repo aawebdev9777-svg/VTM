@@ -35,7 +35,7 @@ export default function TopStocks({ onSelectStock }) {
   const { data: stockPrices = [], refetch, isRefetching } = useQuery({
     queryKey: ['stockPrices'],
     queryFn: () => base44.entities.StockPrice.list(),
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 5000,
   });
 
   // Trigger initial price update

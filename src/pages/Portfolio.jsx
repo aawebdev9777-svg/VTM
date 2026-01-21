@@ -30,7 +30,7 @@ export default function Portfolio() {
   const { data: stockPrices = [] } = useQuery({
     queryKey: ['stockPrices'],
     queryFn: () => base44.entities.StockPrice.list(),
-    refetchInterval: 2000,
+    refetchInterval: 5000,
   });
 
   const { data: accounts } = useQuery({
