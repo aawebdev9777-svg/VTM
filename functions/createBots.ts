@@ -10,9 +10,9 @@ Deno.serve(async (req) => {
         }
 
         const bots = [
-            { email: 'julian.bot@vtm.com', name: 'Julian', balance: 14500 },
-            { email: 'chris.bot@vtm.com', name: 'Chris', balance: 13800 },
-            { email: 'thomas.neve.bot@vtm.com', name: 'Thomas Neve', balance: 13200 }
+            { email: 'julian.bot@vtm.com', name: 'Julian', balance: 11500 },
+            { email: 'chris.bot@vtm.com', name: 'Chris', balance: 9800 },
+            { email: 'thomas.neve.bot@vtm.com', name: 'Thomas Neve', balance: 9500 }
         ];
 
         const createdBots = [];
