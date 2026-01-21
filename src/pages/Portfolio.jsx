@@ -68,18 +68,65 @@ export default function Portfolio() {
     }
   }, [stockPrices]);
 
-  // Smooth display updates when prices change from backend updates
+  // Initialize display prices from backend data
   useEffect(() => {
     if (stockPrices.length > 0) {
       setDisplayPrices(stockPrices.reduce((acc, stock) => {
         acc[stock.symbol] = {
           price: stock.price_gbp,
           change: stock.daily_change_percent,
+          basePrice: stock.price_gbp,
+          baseChange: stock.daily_change_percent
         };
         return acc;
       }, {}));
+      
+      // Initialize momentum for smooth animations
+      setMomentum(prev => {
+        const updated = { ...prev };
+        stockPrices.forEach(stock => {
+          if (!updated[stock.symbol]) {
+            updated[stock.symbol] = 0;
+          }
+        });
+        return updated;
+      });
     }
   }, [stockPrices]);
+
+  // Animate prices smoothly between backend updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMomentum(m => {
+        const updated = { ...m };
+        for (const symbol in updated) {
+          const trendAdjustment = (Math.random() * 0.1 - 0.05);
+          updated[symbol] = Math.max(-0.5, Math.min(0.5, updated[symbol] + trendAdjustment));
+        }
+        return updated;
+      });
+
+      setDisplayPrices(prev => {
+        const updated = {};
+        for (const symbol in prev) {
+          const current = prev[symbol];
+          const movementPercent = momentum[symbol] || 0;
+          const newPrice = current.basePrice * (1 + movementPercent / 100);
+          const newChange = current.baseChange + movementPercent;
+
+          updated[symbol] = {
+            price: parseFloat(newPrice.toFixed(2)),
+            change: parseFloat(newChange.toFixed(2)),
+            basePrice: current.basePrice,
+            baseChange: current.baseChange
+          };
+        }
+        return updated;
+      });
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [momentum]);
 
   const { data: accounts } = useQuery({
     queryKey: ['userAccount', currentUser?.email],
