@@ -253,12 +253,12 @@ export default function Wallet() {
                 </div>
 
                 <div className="mb-6">
-                  <p className="text-xs opacity-75 mb-1">Total Value</p>
+                  <p className="text-xs opacity-75 mb-1">Available Cash</p>
                   <p className="text-4xl md:text-5xl font-bold tracking-wide">
-                    £{totalValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    £{cashBalance.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                   <p className="text-xs opacity-75 mt-2">
-                    Cash: £{cashBalance.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} • 
+                    Total Value: £{totalValue.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} • 
                     Stocks: £{portfolioValue.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} • 
                     Copy: £{copyTradeValue.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                   </p>
