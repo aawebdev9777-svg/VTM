@@ -515,79 +515,17 @@ export default function Portfolio() {
                         </div>
                       </td>
                       <td className="text-right py-4 px-4">
-                        <Dialog open={sellDialogOpen && selectedHolding?.id === holding.id} onOpenChange={(open) => {
-                          setSellDialogOpen(open);
-                          if (!open) {
-                            setSelectedHolding(null);
-                            setSellShares('');
-                          }
-                        }}>
-                          <DialogTrigger asChild>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => setSelectedHolding(holding)}
-                              className="text-red-600 border-red-200 hover:bg-red-50"
-                            >
-                              Sell
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Sell {holding.symbol}</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4 py-4">
-                              <div>
-                                <p className="text-sm text-gray-600 mb-2">Shares owned: {holding.shares}</p>
-                                <p className="text-sm text-gray-600 mb-2">Current price: £{holding.currentPrice?.toFixed(2)}</p>
-                                <label className="text-sm text-gray-600 block mb-2">Shares to sell</label>
-                                <Input
-                                  type="number"
-                                  placeholder="Enter shares"
-                                  value={sellShares}
-                                  onChange={(e) => setSellShares(e.target.value)}
-                                  min="0"
-                                  max={holding.shares}
-                                  step="1"
-                                  className="h-10"
-                                />
-                                {sellShares && (
-                                  <p className="text-sm text-gray-600 mt-2">Total: £{(parseFloat(sellShares) * holding.currentPrice).toFixed(2)}</p>
-                                )}
-                              </div>
-                              <div className="flex gap-2">
-                                <Button
-                                  onClick={handleSell}
-                                  disabled={!sellShares || parseFloat(sellShares) <= 0 || parseFloat(sellShares) > holding.shares || sellMutation.isPending}
-                                  className="flex-1 bg-red-600 hover:bg-red-700"
-                                >
-                                  {sellMutation.isPending ? (
-                                    <>
-                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                      Selling...
-                                    </>
-                                  ) : (
-                                    'Sell'
-                                  )}
-                                </Button>
-                                <Button
-                                  onClick={handleSellOut}
-                                  disabled={sellMutation.isPending}
-                                  className="flex-1 bg-red-700 hover:bg-red-800"
-                                >
-                                  {sellMutation.isPending ? (
-                                    <>
-                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                      Out...
-                                    </>
-                                  ) : (
-                                    'Sell Out'
-                                  )}
-                                </Button>
-                              </div>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedHolding(holding);
+                            setSellDialogOpen(true);
+                          }}
+                          className="text-red-600 border-red-200 hover:bg-red-50"
+                        >
+                          Sell
+                        </Button>
                       </td>
                       </motion.tr>
                   ))}
