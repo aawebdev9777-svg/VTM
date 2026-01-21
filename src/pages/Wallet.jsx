@@ -52,8 +52,10 @@ export default function Wallet() {
   }, []);
 
   const { data: accounts } = useQuery({
-    queryKey: ['userAccount'],
-    queryFn: () => base44.entities.UserAccount.list(),
+    queryKey: ['userAccount', currentUser?.email],
+    queryFn: () => base44.entities.UserAccount.filter({ created_by: currentUser?.email }),
+    enabled: !!currentUser?.email,
+    refetchInterval: 2000,
   });
 
   const createAccountMutation = useMutation({
@@ -63,7 +65,7 @@ export default function Wallet() {
           initial_balance: 10000 
         });
       },
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userAccount'] }),
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] }),
     });
 
   useEffect(() => {
@@ -141,7 +143,7 @@ export default function Wallet() {
          spread: 70,
          origin: { y: 0.6 }
        });
-       queryClient.invalidateQueries({ queryKey: ['userAccount'] });
+       queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] });
        queryClient.invalidateQueries({ queryKey: ['allUsers'] });
        queryClient.invalidateQueries({ queryKey: ['recentTransactions'] });
        setTransferAmount('');
