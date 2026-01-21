@@ -6,9 +6,11 @@ import { motion } from 'framer-motion';
 
 export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cashBalance = 0, totalPortfolioValue = 0 }) {
   const totalValue = cashBalance + totalPortfolioValue;
+  const realStocks = new Set(['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'AMD', 'INTC', 'JPM', 'V', 'WMT', 'DIS', 'PYPL', 'CSCO', 'ADBE', 'CRM', 'ORCL', 'IBM']);
   
   const recommendations = useMemo(() => {
     return stockPrices
+      .filter(stock => realStocks.has(stock.symbol))
       .map(stock => {
         const display = displayPrices[stock.symbol];
         if (!display) return null;
