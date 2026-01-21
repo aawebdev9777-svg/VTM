@@ -13,6 +13,7 @@ import MarketStats from '../components/admin/MarketStats';
 export default function Admin() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [leaderboardPage, setLeaderboardPage] = useState(0);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -69,35 +70,35 @@ export default function Admin() {
     queryKey: ['allAccounts'],
     queryFn: () => base44.asServiceRole.entities.UserAccount.list(),
     enabled: isAdmin,
-    refetchInterval: 5000,
+    refetchInterval: 30000,
   });
 
   const { data: allPortfolios = [] } = useQuery({
     queryKey: ['allPortfolios'],
     queryFn: () => base44.asServiceRole.entities.Portfolio.list(),
     enabled: isAdmin,
-    refetchInterval: 5000,
+    refetchInterval: 30000,
   });
 
   const { data: allTransactions = [] } = useQuery({
     queryKey: ['allTransactions'],
-    queryFn: () => base44.asServiceRole.entities.Transaction.list('-created_date', 1000),
+    queryFn: () => base44.asServiceRole.entities.Transaction.list('-created_date', 500),
     enabled: isAdmin,
-    refetchInterval: 5000,
+    refetchInterval: 30000,
   });
 
   const { data: allSocialPosts = [] } = useQuery({
     queryKey: ['allSocialPosts'],
-    queryFn: () => base44.asServiceRole.entities.SocialPost.list('-created_date', 100),
+    queryFn: () => base44.asServiceRole.entities.SocialPost.list('-created_date', 50),
     enabled: isAdmin,
-    refetchInterval: 5000,
+    refetchInterval: 60000,
   });
 
   const { data: allCopyTrades = [] } = useQuery({
     queryKey: ['allCopyTrades'],
     queryFn: () => base44.asServiceRole.entities.CopyTrade.list(),
     enabled: isAdmin,
-    refetchInterval: 5000,
+    refetchInterval: 30000,
   });
 
   const { data: allUsers = [] } = useQuery({
@@ -115,6 +116,7 @@ export default function Admin() {
       }
     },
     enabled: isAdmin,
+    refetchInterval: 60000,
   });
 
   if (loading) {
@@ -478,22 +480,22 @@ export default function Admin() {
             <p className="text-center py-8 text-gray-500">No users yet</p>
           ) : (
             <div className="space-y-3">
-              {userStats.map((user, index) => (
+              {userStats.slice(leaderboardPage * 10, (leaderboardPage + 1) * 10).map((user, index) => (
                 <motion.div
                   key={user.email}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
                   className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-gray-50 to-white border border-gray-100"
-                >
+                  >
                   <div className="flex items-center gap-4">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
-                      index === 0 ? 'bg-amber-400 text-white' :
-                      index === 1 ? 'bg-gray-300 text-gray-700' :
-                      index === 2 ? 'bg-amber-600 text-white' :
+                      leaderboardPage * 10 + index === 0 ? 'bg-amber-400 text-white' :
+                      leaderboardPage * 10 + index === 1 ? 'bg-gray-300 text-gray-700' :
+                      leaderboardPage * 10 + index === 2 ? 'bg-amber-600 text-white' :
                       'bg-gray-100 text-gray-600'
                     }`}>
-                      {index + 1}
+                      {leaderboardPage * 10 + index + 1}
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900">{user.name}</p>
@@ -510,6 +512,27 @@ export default function Admin() {
                   </div>
                 </motion.div>
               ))}
+            </div>
+          )}
+          {userStats.length > 10 && (
+            <div className="flex justify-between items-center mt-4 pt-4 border-t">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLeaderboardPage(p => Math.max(0, p - 1))}
+                disabled={leaderboardPage === 0}
+              >
+                Previous
+              </Button>
+              <span className="text-xs text-gray-500">Page {leaderboardPage + 1} of {Math.ceil(userStats.length / 10)}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLeaderboardPage(p => Math.min(Math.ceil(userStats.length / 10) - 1, p + 1))}
+                disabled={leaderboardPage >= Math.ceil(userStats.length / 10) - 1}
+              >
+                Next
+              </Button>
             </div>
           )}
         </CardContent>
