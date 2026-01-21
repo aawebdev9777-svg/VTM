@@ -414,6 +414,37 @@ export default function Admin() {
         </motion.div>
       </div>
 
+      {/* ABPF Analytics Card */}
+      <Card className="border-0 shadow-lg mb-6 bg-gradient-to-br from-green-50 to-emerald-50 border-l-4 border-green-500">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+           <TrendingUp className="w-5 h-5 text-green-600" />
+           🚀 ABPF Performance
+         </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="bg-white p-3 rounded-lg border border-green-200">
+              <p className="text-xs text-gray-500">Investors</p>
+              <p className="text-2xl font-bold text-green-600">{abpfHolders}</p>
+            </div>
+            <div className="bg-white p-3 rounded-lg border border-green-200">
+              <p className="text-xs text-gray-500">Total Shares</p>
+              <p className="text-2xl font-bold text-green-600">{abpfShares.toLocaleString()}</p>
+            </div>
+            <div className="bg-white p-3 rounded-lg border border-green-200">
+              <p className="text-xs text-gray-500">Volume</p>
+              <p className="text-2xl font-bold text-green-600">£{(abpfVolume / 1000).toFixed(0)}k</p>
+            </div>
+            <div className="bg-white p-3 rounded-lg border border-green-200">
+              <p className="text-xs text-gray-500">% of Total</p>
+              <p className="text-2xl font-bold text-green-600">{abpfPercentOfVolume}%</p>
+            </div>
+          </div>
+          <p className="text-sm text-green-700">💰 Most invested stock - super profitable!</p>
+        </CardContent>
+      </Card>
+
       {/* Charts and Stock Economics */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <Card className="border-0 shadow-lg">
