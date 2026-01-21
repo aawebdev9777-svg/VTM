@@ -31,16 +31,32 @@ Deno.serve(async (req) => {
         const selectedStocks = [];
 
         // Get or create user account
-        const accounts = await base44.asServiceRole.entities.UserAccount.filter({ created_by: targetUserEmail });
+        const allAccounts = await base44.asServiceRole.entities.UserAccount.list();
+        const accounts = allAccounts.filter(a => a.created_by === targetUserEmail);
         let account;
         if (accounts.length === 0) {
             account = await base44.asServiceRole.entities.UserAccount.create({
-                created_by: targetUserEmail,
                 cash_balance: 10000
             });
         } else {
             account = accounts[0];
         }
+
+        // Get company names mapping
+        const companyMap = {
+            'AAPL': 'Apple',
+            'MSFT': 'Microsoft',
+            'GOOGL': 'Google',
+            'AMZN': 'Amazon',
+            'TSLA': 'Tesla',
+            'NVDA': 'NVIDIA',
+            'META': 'Meta',
+            'JPM': 'JPMorgan',
+            'V': 'Visa',
+            'WMT': 'Walmart',
+            'DIS': 'Disney',
+            'NFLX': 'Netflix'
+        };
 
         // Give 1 share of each stock
         for (const symbol of stockSymbols) {
@@ -48,10 +64,8 @@ Deno.serve(async (req) => {
             if (!stockPrice) continue;
 
             // Check if user already has this stock
-            const existingPortfolio = await base44.asServiceRole.entities.Portfolio.filter({ 
-                created_by: targetUserEmail, 
-                symbol: symbol 
-            });
+            const allPortfolios = await base44.asServiceRole.entities.Portfolio.list();
+            const existingPortfolio = allPortfolios.filter(p => p.created_by === targetUserEmail && p.symbol === symbol);
 
             if (existingPortfolio.length > 0) {
                 // Update existing
@@ -62,9 +76,8 @@ Deno.serve(async (req) => {
             } else {
                 // Create new
                 await base44.asServiceRole.entities.Portfolio.create({
-                    created_by: targetUserEmail,
                     symbol: symbol,
-                    company_name: symbol,
+                    company_name: companyMap[symbol] || symbol,
                     shares: 1,
                     average_buy_price: stockPrice.price_gbp
                 });
