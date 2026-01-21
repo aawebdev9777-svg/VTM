@@ -18,11 +18,24 @@ export default function Leaderboard() {
   const [selectedLeader, setSelectedLeader] = useState(null);
   const [newPost, setNewPost] = useState('');
   const [selectedType, setSelectedType] = useState('insight');
+  const [userBalance, setUserBalance] = useState(0);
   const queryClient = useQueryClient();
 
   useEffect(() => {
     base44.auth.me().then(setCurrentUser);
   }, []);
+
+  const { data: userAccount } = useQuery({
+    queryKey: ['userAccount', currentUser?.email],
+    queryFn: () => base44.entities.UserAccount.filter({ created_by: currentUser?.email }),
+    enabled: !!currentUser?.email,
+  });
+
+  useEffect(() => {
+    if (userAccount && userAccount[0]) {
+      setUserBalance(userAccount[0].cash_balance || 0);
+    }
+  }, [userAccount]);
 
   const { data: leaderboard = [] } = useQuery({
     queryKey: ['leaderboard'],
@@ -176,7 +189,7 @@ export default function Leaderboard() {
               {myCopyTrades.filter(ct => ct.is_active).map(ct => (
                 <div key={ct.id} className="flex items-center justify-between text-sm">
                   <span className="text-gray-700">Copying {ct.leader_email.split('@')[0]}</span>
-                  <span className="font-bold text-violet-600">£{ct.investment_amount.toFixed(2)}</span>
+                  <span className="font-bold text-violet-600">£{ct.investment_amount.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               ))}
             </div>
@@ -224,13 +237,13 @@ export default function Leaderboard() {
                         )}
                       </div>
                       <p className="text-xs text-gray-500">
-                        Balance: £{(trader.balance || 0).toFixed(2)}
+                        Balance: £{(trader.balance || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                     </div>
 
                     <div className="text-right">
                       <p className="text-lg font-bold text-gray-900">
-                        £{(trader.totalValue || 0).toFixed(2)}
+                        £{(trader.totalValue || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                       <p className={`text-xs font-semibold ${
                         (trader.percentageReturn || 0) >= 0 ? 'text-green-600' : 'text-red-600'
@@ -272,7 +285,9 @@ export default function Leaderboard() {
                               </div>
                             </div>
                             <div>
-                              <label className="text-sm font-medium mb-2 block">Investment Amount (£)</label>
+                              <label className="text-sm font-medium mb-2 block">
+                                Investment Amount (£) - Available: £{userBalance.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              </label>
                               <Input
                                 type="number"
                                 placeholder="Enter amount"
@@ -280,6 +295,44 @@ export default function Leaderboard() {
                                 onChange={(e) => setCopyAmount(e.target.value)}
                                 min="1"
                               />
+                              <div className="flex gap-2 mt-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setCopyAmount((userBalance * 0.25).toFixed(2))}
+                                  className="flex-1 text-xs"
+                                >
+                                  25%
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setCopyAmount((userBalance * 0.5).toFixed(2))}
+                                  className="flex-1 text-xs"
+                                >
+                                  50%
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setCopyAmount((userBalance * 0.75).toFixed(2))}
+                                  className="flex-1 text-xs"
+                                >
+                                  75%
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setCopyAmount(userBalance.toFixed(2))}
+                                  className="flex-1 text-xs font-semibold"
+                                >
+                                  MAX
+                                </Button>
+                              </div>
                             </div>
                             <Button
                               onClick={() => startCopyTradeMutation.mutate({ 
