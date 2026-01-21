@@ -40,10 +40,12 @@ Deno.serve(async (req) => {
         }
       }
       
-      // If we have a target, gradually move toward it
+      // If we have a target, gradually move toward it with realistic volatility
       if (predictedTarget > 0 && dailyChange < predictedTarget) {
         const step = (predictedTarget - dailyChange) * 0.15;
-        const newChange = Math.min(dailyChange + step, predictedTarget);
+        // Add random volatility (-0.3% to +0.5%) for realism
+        const volatility = (Math.random() * 0.8 - 0.3);
+        const newChange = Math.min(dailyChange + step + volatility, predictedTarget);
         
         const newPrice = stock.price_gbp * (1 + (newChange - dailyChange) / 100);
         
