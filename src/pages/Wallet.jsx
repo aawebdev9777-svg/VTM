@@ -265,8 +265,8 @@ export default function Wallet() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-600">Available</span>
-                  <span className="font-bold text-violet-600">£{cashBalance.toFixed(2)}</span>
+                  <span className="text-sm text-gray-600">Available Cash</span>
+                  <span className="font-bold text-violet-600">£{cashBalance.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               </div>
             </CardContent>

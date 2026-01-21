@@ -69,6 +69,16 @@ export default function Leaderboard() {
         });
       }
 
+      // Create transaction record for copy trade
+      await base44.entities.Transaction.create({
+        symbol: 'COPY',
+        company_name: `Copy Trading - ${leaderEmail.split('@')[0]}`,
+        type: 'buy',
+        shares: 0,
+        price_per_share: 0,
+        total_amount: amount
+      });
+
       return base44.entities.CopyTrade.create({
         follower_email: currentUser.email,
         leader_email: leaderEmail,
@@ -79,6 +89,7 @@ export default function Leaderboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myCopyTrades'] });
       queryClient.invalidateQueries({ queryKey: ['userAccount'] });
+      queryClient.invalidateQueries({ queryKey: ['recentTransactions'] });
       setCopyAmount('');
       setSelectedLeader(null);
     },
