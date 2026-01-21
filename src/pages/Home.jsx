@@ -85,18 +85,26 @@ export default function Home() {
   const buyMutation = useMutation({
     mutationFn: async ({ stock, shares }) => {
       const response = await base44.functions.invoke('buyStock', { stock, shares });
+      
+      if (!response.data.success) {
+        throw new Error(response.data.error || 'Transaction failed');
+      }
+      
       return response.data;
     },
-    onSuccess: async () => {
-      // Force immediate refetch
+    onSuccess: async (data) => {
+      // Update queries with fresh data from server
+      queryClient.setQueryData(['userAccount', currentUser?.email], [data.data.account]);
+      queryClient.setQueryData(['portfolio', currentUser?.email], data.data.portfolio);
+      
+      // Invalidate to ensure consistency
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] }),
-        queryClient.invalidateQueries({ queryKey: ['portfolio', currentUser?.email] }),
-        queryClient.refetchQueries({ queryKey: ['portfolio', currentUser?.email] })
+        queryClient.invalidateQueries({ queryKey: ['stockPrices'] }),
+        queryClient.invalidateQueries({ queryKey: ['transactions'] })
       ]);
     },
     onError: (error) => {
-      console.error('Buy failed:', error);
+      alert(error.message || 'Transaction failed. Please try again.');
     }
   });
 

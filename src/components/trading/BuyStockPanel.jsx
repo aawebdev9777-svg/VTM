@@ -116,7 +116,13 @@ export default function BuyStockPanel({ selectedStock, cashBalance, onBuy, isLoa
         </Button>
 
         {totalCost > cashBalance && shares && (
-          <p className="text-xs text-red-500 text-center">Insufficient funds</p>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-xs text-red-500 text-center font-semibold"
+          >
+            ⚠️ Insufficient funds - need £{(totalCost - cashBalance).toFixed(2)} more
+          </motion.p>
         )}
       </CardContent>
     </Card>
