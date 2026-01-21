@@ -185,6 +185,14 @@ export default function Admin() {
     });
   }
 
+  // ABPF Analytics
+  const abpfPortfolios = allPortfolios.filter(p => p.symbol === 'ABPF');
+  const abpfHolders = new Set(abpfPortfolios.map(p => p.created_by)).size;
+  const abpfShares = abpfPortfolios.reduce((sum, p) => sum + p.shares, 0);
+  const abpfTransactions = nonAdminTransactions.filter(t => t.symbol === 'ABPF');
+  const abpfVolume = abpfTransactions.reduce((sum, t) => sum + t.total_amount, 0);
+  const abpfPercentOfVolume = totalVolume > 0 ? ((abpfVolume / totalVolume) * 100).toFixed(1) : 0;
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
       <motion.div
