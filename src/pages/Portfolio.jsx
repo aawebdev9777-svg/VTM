@@ -24,7 +24,7 @@ export default function Portfolio() {
     queryKey: ['portfolio', currentUser?.email],
     queryFn: () => base44.entities.Portfolio.filter({ created_by: currentUser?.email }),
     enabled: !!currentUser?.email,
-    refetchInterval: 2000,
+    refetchInterval: 10000,
   });
 
   const { data: stockPrices = [] } = useQuery({
@@ -44,14 +44,14 @@ export default function Portfolio() {
     queryKey: ['userAccount', currentUser?.email],
     queryFn: () => base44.entities.UserAccount.filter({ created_by: currentUser?.email }),
     enabled: !!currentUser?.email,
-    refetchInterval: 2000,
+    refetchInterval: 10000,
   });
 
   const { data: myCopyTrades = [] } = useQuery({
     queryKey: ['myCopyTrades', currentUser?.email],
     queryFn: () => base44.entities.CopyTrade.filter({ follower_email: currentUser?.email, is_active: true }),
     enabled: !!currentUser?.email,
-    refetchInterval: 2000,
+    refetchInterval: 15000,
   });
 
   const { data: leaderboard = [] } = useQuery({
@@ -63,26 +63,27 @@ export default function Portfolio() {
     refetchInterval: 5000,
   });
 
-  // Subscribe to real-time updates
+  // Subscribe to real-time updates for user-specific data only
   useEffect(() => {
-    const unsubscribePortfolio = base44.entities.Portfolio.subscribe(() => {
-      queryClient.invalidateQueries({ queryKey: ['portfolio'] });
+    if (!currentUser?.email) return;
+
+    const unsubscribePortfolio = base44.entities.Portfolio.subscribe((event) => {
+      if (event.data?.created_by === currentUser?.email) {
+        queryClient.invalidateQueries({ queryKey: ['portfolio', currentUser?.email] });
+      }
     });
 
-    const unsubscribePrices = base44.entities.StockPrice.subscribe(() => {
-      queryClient.invalidateQueries({ queryKey: ['stockPrices'] });
-    });
-
-    const unsubscribeAccount = base44.entities.UserAccount.subscribe(() => {
-      queryClient.invalidateQueries({ queryKey: ['userAccount'] });
+    const unsubscribeAccount = base44.entities.UserAccount.subscribe((event) => {
+      if (event.data?.created_by === currentUser?.email) {
+        queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] });
+      }
     });
 
     return () => {
       unsubscribePortfolio();
-      unsubscribePrices();
       unsubscribeAccount();
     };
-  }, [queryClient]);
+  }, [queryClient, currentUser?.email]);
 
   const account = accounts?.[0];
   const cashBalance = account?.cash_balance || 10000;

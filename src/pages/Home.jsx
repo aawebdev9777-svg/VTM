@@ -41,21 +41,21 @@ export default function Home() {
     queryKey: ['userAccount', currentUser?.email],
     queryFn: () => base44.entities.UserAccount.filter({ created_by: currentUser?.email }),
     enabled: !!currentUser?.email,
-    refetchInterval: 2000,
+    refetchInterval: 10000,
   });
 
   const { data: portfolio = [], isLoading: portfolioLoading } = useQuery({
     queryKey: ['portfolio', currentUser?.email],
     queryFn: () => base44.entities.Portfolio.filter({ created_by: currentUser?.email }),
     enabled: !!currentUser?.email,
-    refetchInterval: 2000,
+    refetchInterval: 10000,
   });
 
   const { data: myCopyTrades = [] } = useQuery({
     queryKey: ['myCopyTrades', currentUser?.email],
     queryFn: () => base44.entities.CopyTrade.filter({ follower_email: currentUser?.email, is_active: true }),
     enabled: !!currentUser?.email,
-    refetchInterval: 2000,
+    refetchInterval: 15000,
   });
 
   const { data: leaderboard = [] } = useQuery({
