@@ -15,6 +15,7 @@ export default function Portfolio() {
   const [sellDialogOpen, setSellDialogOpen] = useState(false);
   const [selectedHolding, setSelectedHolding] = useState(null);
   const [sellShares, setSellShares] = useState('');
+  const [displayPrices, setDisplayPrices] = useState({});
 
   useEffect(() => {
     base44.auth.me().then(setCurrentUser);
@@ -39,6 +40,46 @@ export default function Portfolio() {
     },
     refetchInterval: 5000,
   });
+
+  // When real data arrives, update display prices and base values
+  useEffect(() => {
+    if (stockPrices.length > 0) {
+      setDisplayPrices(stockPrices.reduce((acc, stock) => {
+        acc[stock.symbol] = {
+          price: stock.price_gbp,
+          change: stock.daily_change_percent,
+          basePrice: stock.price_gbp,
+          baseChange: stock.daily_change_percent
+        };
+        return acc;
+      }, {}));
+    }
+  }, [stockPrices]);
+
+  // Animate prices between real data updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDisplayPrices(prev => {
+        const updated = {};
+        for (const symbol in prev) {
+          const current = prev[symbol];
+          const movementPercent = (Math.random() * 1 - 0.5);
+          const newPrice = current.basePrice * (1 + movementPercent / 100);
+          const newChange = current.baseChange + (Math.random() * 0.2 - 0.1);
+          
+          updated[symbol] = {
+            price: parseFloat(newPrice.toFixed(2)),
+            change: parseFloat(newChange.toFixed(2)),
+            basePrice: current.basePrice,
+            baseChange: current.baseChange
+          };
+        }
+        return updated;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const { data: accounts } = useQuery({
     queryKey: ['userAccount', currentUser?.email],
@@ -169,21 +210,21 @@ export default function Portfolio() {
   // Calculate portfolio metrics (memoized)
   const portfolioWithMetrics = React.useMemo(() => 
     portfolio.map(holding => {
-      const latestPrice = stockPrices.find(sp => sp.symbol === holding.symbol)?.price_gbp || holding.average_buy_price;
-      const currentValue = holding.shares * latestPrice;
+      const displayPrice = displayPrices[holding.symbol]?.price || holding.average_buy_price;
+      const currentValue = holding.shares * displayPrice;
       const costBasis = holding.shares * holding.average_buy_price;
       const profitLoss = currentValue - costBasis;
-      const profitLossPercent = ((latestPrice - holding.average_buy_price) / holding.average_buy_price) * 100;
+      const profitLossPercent = ((displayPrice - holding.average_buy_price) / holding.average_buy_price) * 100;
 
       return {
         ...holding,
-        currentPrice: latestPrice,
+        currentPrice: displayPrice,
         currentValue,
         costBasis,
         profitLoss,
         profitLossPercent
       };
-    }), [portfolio, stockPrices]
+    }), [portfolio, displayPrices]
   );
 
   // Calculate copy trade values (memoized)
