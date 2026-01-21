@@ -82,19 +82,22 @@ export default function Home() {
   }, [currentUser?.email, queryClient]);
 
   const createAccountMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (userEmail) => {
       const initialAmount = 10000;
       return base44.entities.UserAccount.create({ 
         cash_balance: initialAmount, 
-        initial_balance: initialAmount 
+        initial_balance: initialAmount,
+        free_stocks_available: 3
       });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] }),
+    onSuccess: (data, userEmail) => {
+      queryClient.invalidateQueries({ queryKey: ['userAccount', userEmail] });
+    },
   });
 
   useEffect(() => {
     if (currentUser?.email && accounts?.length === 0) {
-      createAccountMutation.mutate();
+      createAccountMutation.mutate(currentUser.email);
     }
   }, [accounts, currentUser?.email]);
 
@@ -106,14 +109,6 @@ export default function Home() {
   }, [account?.free_stocks_available]);
 
   const account = accounts?.[0];
-
-  const handleFreeStockClose = async () => {
-    setShowFreeStockModal(false);
-    // Update account to remove free stock flag
-    if (account?.id) {
-      await base44.entities.UserAccount.update(account.id, { free_stocks_available: 0 });
-    }
-  };
 
   const buyMutation = useMutation({
     mutationFn: async ({ stock, shares }) => {
@@ -199,6 +194,14 @@ export default function Home() {
       </div>
     );
   }
+
+  const handleFreeStockClose = async () => {
+    setShowFreeStockModal(false);
+    // Update account to remove free stock flag
+    if (account?.id) {
+      await base44.entities.UserAccount.update(account.id, { free_stocks_available: 0 });
+    }
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6 pb-20">
