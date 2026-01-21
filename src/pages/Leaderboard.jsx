@@ -62,6 +62,13 @@ export default function Leaderboard() {
 
   const startCopyTradeMutation = useMutation({
     mutationFn: async ({ leaderEmail, amount }) => {
+      // Deduct investment from user's cash balance
+      if (userAccount && userAccount[0]) {
+        await base44.entities.UserAccount.update(userAccount[0].id, {
+          cash_balance: userAccount[0].cash_balance - amount
+        });
+      }
+
       return base44.entities.CopyTrade.create({
         follower_email: currentUser.email,
         leader_email: leaderEmail,
@@ -71,6 +78,7 @@ export default function Leaderboard() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myCopyTrades'] });
+      queryClient.invalidateQueries({ queryKey: ['userAccount'] });
       setCopyAmount('');
       setSelectedLeader(null);
     },
