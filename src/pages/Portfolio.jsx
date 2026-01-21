@@ -118,6 +118,39 @@ export default function Portfolio() {
     },
   });
 
+  const stopCopyTradeMutation = useMutation({
+    mutationFn: async (copyTrade) => {
+      // Calculate current value
+      const leaderData = leaderboard.find(l => l.email === copyTrade.leader_email);
+      const currentValue = copyTrade.investment_amount * (1 + ((leaderData?.percentageReturn || 0) / 100));
+
+      // Stop copy trade
+      await base44.entities.CopyTrade.update(copyTrade.id, {
+        is_active: false
+      });
+
+      // Add value back to cash balance
+      await base44.entities.UserAccount.update(account.id, {
+        cash_balance: account.cash_balance + currentValue
+      });
+
+      // Record transaction
+      await base44.entities.Transaction.create({
+        symbol: 'COPY',
+        company_name: `Stop Copy Trading - ${copyTrade.leader_email.split('@')[0]}`,
+        type: 'sell',
+        shares: 0,
+        price_per_share: 0,
+        total_amount: currentValue
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myCopyTrades', currentUser?.email] });
+      queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] });
+      queryClient.invalidateQueries({ queryKey: ['recentTransactions'] });
+    },
+  });
+
   const handleSell = () => {
     const shares = parseFloat(sellShares);
     if (shares > 0 && shares <= selectedHolding.shares) {
@@ -277,6 +310,7 @@ export default function Portfolio() {
                     <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Invested</th>
                     <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Current Value</th>
                     <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">P/L</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -309,6 +343,24 @@ export default function Portfolio() {
                             {ct.leaderReturn >= 0 ? '+' : ''}{ct.leaderReturn.toFixed(2)}%
                           </Badge>
                         </div>
+                      </td>
+                      <td className="text-right py-4 px-4">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => stopCopyTradeMutation.mutate(ct)}
+                          disabled={stopCopyTradeMutation.isPending}
+                          className="text-red-600 border-red-200 hover:bg-red-50"
+                        >
+                          {stopCopyTradeMutation.isPending ? (
+                            <>
+                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                              Stopping...
+                            </>
+                          ) : (
+                            'Stop'
+                          )}
+                        </Button>
                       </td>
                     </motion.tr>
                   ))}
