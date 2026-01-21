@@ -98,6 +98,7 @@ export default function Portfolio() {
           const trendAdjustment = (Math.random() * 0.1 - 0.05);
           updated[symbol] = Math.max(-0.5, Math.min(0.5, updated[symbol] + trendAdjustment));
         }
+        localStorage.setItem('portfolioMomentum', JSON.stringify(updated));
         return updated;
       });
 
@@ -116,6 +117,7 @@ export default function Portfolio() {
             baseChange: current.baseChange
           };
         }
+        localStorage.setItem('portfolioDisplayPrices', JSON.stringify(updated));
         return updated;
       });
     }, 2000);
