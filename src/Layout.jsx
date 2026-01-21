@@ -15,8 +15,7 @@ import {
   User,
   Wallet,
   Shield,
-  Trophy,
-  MessageSquare
+  Trophy
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -42,7 +41,6 @@ export default function Layout({ children, currentPageName }) {
     { name: 'Portfolio', href: createPageUrl('Portfolio'), icon: TrendingUp },
     { name: 'Transactions', href: createPageUrl('Transactions'), icon: History },
     { name: 'Leaderboard', href: createPageUrl('Leaderboard'), icon: Trophy },
-    { name: 'Social', href: createPageUrl('Social'), icon: MessageSquare },
     { name: 'Wallet', href: createPageUrl('Wallet'), icon: Wallet },
     { name: 'Settings', href: createPageUrl('Settings'), icon: User },
     ...(isAdmin ? [{ name: 'Admin', href: createPageUrl('Admin'), icon: Shield }] : []),
