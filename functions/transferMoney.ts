@@ -42,6 +42,27 @@ Deno.serve(async (req) => {
       cash_balance: recipientAccount.cash_balance + amount
     });
 
+    // Create transaction records for both sender and recipient
+    await base44.asServiceRole.entities.Transaction.create({
+      created_by: user.email,
+      symbol: 'TRANSFER',
+      company_name: `Sent to ${recipientEmail.split('@')[0]}`,
+      type: 'sell',
+      shares: 0,
+      price_per_share: 0,
+      total_amount: amount
+    });
+
+    await base44.asServiceRole.entities.Transaction.create({
+      created_by: recipientEmail,
+      symbol: 'TRANSFER',
+      company_name: `Received from ${user.email.split('@')[0]}`,
+      type: 'buy',
+      shares: 0,
+      price_per_share: 0,
+      total_amount: amount
+    });
+
     return Response.json({ success: true });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
