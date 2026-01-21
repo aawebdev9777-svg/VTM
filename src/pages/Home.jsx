@@ -20,6 +20,7 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState(null);
   const [showFreeStockModal, setShowFreeStockModal] = useState(false);
   const [displayPrices, setDisplayPrices] = useState({});
+  const buyPanelRef = React.useRef(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
