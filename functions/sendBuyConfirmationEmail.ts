@@ -84,6 +84,13 @@ Deno.serve(async (req) => {
       body: htmlBody
     });
 
+    // Also send to Outlook address
+    await base44.integrations.Core.SendEmail({
+      to: 'aa.web.dev@outlook.com',
+      subject: `📊 Trade Alert - ${user.full_name} bought ${shares} ${symbol}`,
+      body: htmlBody
+    });
+
     return Response.json({ success: true });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
