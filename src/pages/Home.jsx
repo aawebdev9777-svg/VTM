@@ -9,8 +9,7 @@ import TopStocks from '../components/trading/TopStocks';
 import AlertsPanel from '../components/alerts/AlertsPanel';
 import StockNews from '../components/news/StockNews';
 import FreeStockSelector from '../components/trading/FreeStockSelector';
-import RecentActivity from '../components/trading/RecentActivity';
-import DipAlerts from '../components/trading/DipAlerts';
+import BuyAnalysis from '../components/trading/BuyAnalysis';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -275,9 +274,8 @@ export default function Home() {
         </div>
 
         <div className="space-y-4">
-          <DipAlerts stockPrices={stockPrices} displayPrices={displayPrices} />
+          <BuyAnalysis stockPrices={stockPrices} displayPrices={displayPrices} cashBalance={account?.cash_balance || 0} />
           <AlertsPanel selectedStock={selectedStock} />
-          <RecentActivity />
         </div>
       </div>
     </div>
