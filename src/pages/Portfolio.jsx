@@ -176,6 +176,8 @@ export default function Portfolio() {
   const sellMutation = useMutation({
     mutationFn: async ({ holding, shares }) => {
       const totalAmount = shares * holding.currentPrice;
+      const costBasis = shares * holding.average_buy_price;
+      const profitLoss = totalAmount - costBasis;
       const newShares = holding.shares - shares;
 
       // Update cash balance
@@ -201,6 +203,20 @@ export default function Portfolio() {
         price_per_share: holding.currentPrice,
         total_amount: totalAmount
       });
+
+      // Send sell confirmation email
+      try {
+        await base44.asServiceRole.functions.invoke('sendSellConfirmationEmail', {
+          symbol: holding.symbol,
+          company_name: holding.company_name,
+          shares: shares,
+          price_per_share: holding.currentPrice,
+          total_amount: totalAmount,
+          profit_loss: profitLoss
+        });
+      } catch (emailError) {
+        console.error('Failed to send sell confirmation email:', emailError.message);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['portfolio', currentUser?.email] });
