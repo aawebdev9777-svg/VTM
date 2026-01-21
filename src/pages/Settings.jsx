@@ -4,7 +4,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Trash2, AlertTriangle, User, RotateCcw } from 'lucide-react';
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Trash2, AlertTriangle, User, RotateCcw, DollarSign } from 'lucide-react';
 import { motion } from 'framer-motion';
 import {
   AlertDialog,
@@ -20,10 +22,14 @@ import {
 
 export default function Settings() {
   const [currentUser, setCurrentUser] = useState(null);
+  const [currency, setCurrency] = useState('GBP');
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setCurrentUser);
+    base44.auth.me().then((user) => {
+      setCurrentUser(user);
+      setCurrency(user?.currency || 'GBP');
+    });
   }, []);
 
   const { data: accounts = [] } = useQuery({
@@ -70,7 +76,21 @@ export default function Settings() {
     },
   });
 
+  const currencyMutation = useMutation({
+    mutationFn: (newCurrency) => base44.auth.updateMe({ currency: newCurrency }),
+    onSuccess: (data) => {
+      setCurrency(data.currency);
+      queryClient.invalidateQueries();
+    },
+  });
+
+  const handleCurrencyToggle = (checked) => {
+    const newCurrency = checked ? 'USD' : 'GBP';
+    currencyMutation.mutate(newCurrency);
+  };
+
   const account = accounts?.[0];
+  const currencySymbol = currency === 'USD' ? '$' : '£';
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 md:py-8">
@@ -91,13 +111,41 @@ export default function Settings() {
       <div className="space-y-6">
         <Card className="border-0 shadow-lg">
           <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="w-5 h-5 text-violet-600" />
+              Currency Preference
+            </CardTitle>
+            <CardDescription>Choose your preferred currency display</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
+              <div className="flex items-center gap-3">
+                <Label htmlFor="currency-switch" className="text-base font-medium cursor-pointer">
+                  {currency === 'GBP' ? '£ British Pound (GBP)' : '$ US Dollar (USD)'}
+                </Label>
+              </div>
+              <Switch
+                id="currency-switch"
+                checked={currency === 'USD'}
+                onCheckedChange={handleCurrencyToggle}
+                disabled={currencyMutation.isPending}
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-2 text-center">
+              All prices will be converted and displayed in {currency}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-lg">
+          <CardHeader>
             <CardTitle>Account Information</CardTitle>
             <CardDescription>Your trading account details</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between py-2 border-b">
               <span className="text-gray-600">Cash Balance</span>
-              <span className="font-semibold">£{account?.cash_balance?.toFixed(2) || '0.00'}</span>
+              <span className="font-semibold">{currencySymbol}{account?.cash_balance?.toFixed(2) || '0.00'}</span>
             </div>
             <div className="flex justify-between py-2 border-b">
               <span className="text-gray-600">Holdings</span>
