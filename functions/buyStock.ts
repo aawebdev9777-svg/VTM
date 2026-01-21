@@ -30,11 +30,13 @@ Deno.serve(async (req) => {
     });
 
     let priceGBP;
+    let priceUSD;
     let meta;
 
     if (existingPrices.length > 0 && existingPrices[0].price_gbp) {
       // Use cached price
       priceGBP = existingPrices[0].price_gbp;
+      priceUSD = existingPrices[0].price_usd || priceGBP / 0.79;
       meta = { longName: stock.company_name || stock.symbol };
     } else {
       // Fallback to Yahoo Finance
@@ -54,7 +56,7 @@ Deno.serve(async (req) => {
         }
 
         meta = priceData.chart.result[0].meta;
-        const priceUSD = meta.regularMarketPrice;
+        priceUSD = meta.regularMarketPrice;
 
         // Get live USD to GBP rate
         const fxResponse = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
