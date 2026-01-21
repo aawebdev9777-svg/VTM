@@ -43,45 +43,39 @@ export default function Portfolio() {
   });
 
   // When real data arrives, update display prices and base values
+  // Load from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('portfolioDisplayPrices');
+    const savedMomentum = localStorage.getItem('portfolioMomentum');
+    if (saved) {
+      setDisplayPrices(JSON.parse(saved));
+    }
+    if (savedMomentum) {
+      setMomentum(JSON.parse(savedMomentum));
+    }
+  }, []);
+
+  // Update from backend, preserving existing momentum
   useEffect(() => {
     if (stockPrices.length > 0) {
-      setDisplayPrices(stockPrices.reduce((acc, stock) => {
-        acc[stock.symbol] = {
-          price: stock.price_gbp,
-          change: stock.daily_change_percent,
-          basePrice: stock.price_gbp,
-          baseChange: stock.daily_change_percent
-        };
-        return acc;
-      }, {}));
-      
-      // Initialize momentum for new stocks
-      setMomentum(prev => {
-        const updated = { ...prev };
+      setDisplayPrices(prev => {
+        const updated = {};
         stockPrices.forEach(stock => {
-          if (!updated[stock.symbol]) {
-            updated[stock.symbol] = (Math.random() * 0.6 - 0.3);
-          }
+          updated[stock.symbol] = prev[stock.symbol] || {
+            price: stock.price_gbp,
+            change: stock.daily_change_percent,
+            basePrice: stock.price_gbp,
+            baseChange: stock.daily_change_percent
+          };
+          // Update basePrice and baseChange from backend
+          updated[stock.symbol].basePrice = stock.price_gbp;
+          updated[stock.symbol].baseChange = stock.daily_change_percent;
         });
+        localStorage.setItem('portfolioDisplayPrices', JSON.stringify(updated));
         return updated;
       });
-    }
-  }, [stockPrices]);
-
-  // Initialize display prices from backend data
-  useEffect(() => {
-    if (stockPrices.length > 0) {
-      setDisplayPrices(stockPrices.reduce((acc, stock) => {
-        acc[stock.symbol] = {
-          price: stock.price_gbp,
-          change: stock.daily_change_percent,
-          basePrice: stock.price_gbp,
-          baseChange: stock.daily_change_percent
-        };
-        return acc;
-      }, {}));
       
-      // Initialize momentum for smooth animations
+      // Initialize momentum for new stocks only
       setMomentum(prev => {
         const updated = { ...prev };
         stockPrices.forEach(stock => {
@@ -89,6 +83,7 @@ export default function Portfolio() {
             updated[stock.symbol] = 0;
           }
         });
+        localStorage.setItem('portfolioMomentum', JSON.stringify(updated));
         return updated;
       });
     }
