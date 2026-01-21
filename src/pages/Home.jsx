@@ -101,14 +101,14 @@ export default function Home() {
     }
   }, [accounts, currentUser?.email]);
 
+  const account = accounts?.[0];
+
   // Check if user has free stocks available
   useEffect(() => {
     if (account?.free_stocks_available > 0) {
       setShowFreeStockModal(true);
     }
   }, [account?.free_stocks_available]);
-
-  const account = accounts?.[0];
 
   const buyMutation = useMutation({
     mutationFn: async ({ stock, shares }) => {
@@ -194,14 +194,6 @@ export default function Home() {
       </div>
     );
   }
-
-  const handleFreeStockClose = async () => {
-    setShowFreeStockModal(false);
-    // Update account to remove free stock flag
-    if (account?.id) {
-      await base44.entities.UserAccount.update(account.id, { free_stocks_available: 0 });
-    }
-  };
 
   const handleFreeStockClose = async () => {
     setShowFreeStockModal(false);
