@@ -63,9 +63,9 @@ export default function Portfolio() {
         const updated = {};
         for (const symbol in prev) {
           const current = prev[symbol];
-          const movementPercent = (Math.random() * 1 - 0.5);
+          const movementPercent = (Math.random() * 0.3 - 0.15);
           const newPrice = current.basePrice * (1 + movementPercent / 100);
-          const newChange = current.baseChange + (Math.random() * 0.2 - 0.1);
+          const newChange = current.baseChange + (Math.random() * 0.1 - 0.05);
           
           updated[symbol] = {
             price: parseFloat(newPrice.toFixed(2)),
@@ -76,7 +76,7 @@ export default function Portfolio() {
         }
         return updated;
       });
-    }, 1000);
+    }, 2000);
 
     return () => clearInterval(interval);
   }, []);
