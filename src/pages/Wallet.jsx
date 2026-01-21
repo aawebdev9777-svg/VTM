@@ -58,6 +58,35 @@ export default function Wallet() {
     refetchInterval: 2000,
   });
 
+  const { data: portfolio = [] } = useQuery({
+    queryKey: ['portfolio', currentUser?.email],
+    queryFn: () => base44.entities.Portfolio.filter({ created_by: currentUser?.email }),
+    enabled: !!currentUser?.email,
+    refetchInterval: 2000,
+  });
+
+  const { data: stockPrices = [] } = useQuery({
+    queryKey: ['stockPrices'],
+    queryFn: () => base44.entities.StockPrice.list(),
+    refetchInterval: 2000,
+  });
+
+  const { data: myCopyTrades = [] } = useQuery({
+    queryKey: ['myCopyTrades', currentUser?.email],
+    queryFn: () => base44.entities.CopyTrade.filter({ follower_email: currentUser?.email, is_active: true }),
+    enabled: !!currentUser?.email,
+    refetchInterval: 2000,
+  });
+
+  const { data: leaderboard = [] } = useQuery({
+    queryKey: ['leaderboard'],
+    queryFn: async () => {
+      const response = await base44.functions.invoke('getLeaderboard', {});
+      return response.data.leaderboard || [];
+    },
+    refetchInterval: 5000,
+  });
+
   const createAccountMutation = useMutation({
       mutationFn: async () => {
         return base44.entities.UserAccount.create({ 
@@ -116,7 +145,26 @@ export default function Wallet() {
     setIsSuperAdmin(isAdmin && savedMode === 'true');
   }, [isAdmin]);
 
+  // Calculate portfolio value with current prices
+  const priceMap = {};
+  stockPrices.forEach(sp => {
+    priceMap[sp.symbol] = sp.price_gbp;
+  });
+
+  const portfolioValue = portfolio.reduce((sum, holding) => {
+    const currentPrice = priceMap[holding.symbol] || holding.average_buy_price;
+    return sum + (holding.shares * currentPrice);
+  }, 0);
+
+  // Calculate copy trade value
+  const copyTradeValue = myCopyTrades.reduce((sum, ct) => {
+    const leaderData = leaderboard.find(l => l.email === ct.leader_email);
+    const currentValue = ct.investment_amount * (1 + ((leaderData?.percentageReturn || 0) / 100));
+    return sum + currentValue;
+  }, 0);
+
   const cashBalance = isSuperAdmin ? 999999999 : (account?.cash_balance || 0);
+  const totalValue = isSuperAdmin ? 999999999 : (cashBalance + portfolioValue + copyTradeValue);
   const initialBalance = isSuperAdmin ? 999999999 : (account?.initial_balance || 10000);
 
   const totalSpent = transactions.filter(t => t.type === 'buy').reduce((sum, t) => sum + t.total_amount, 0);
@@ -205,8 +253,14 @@ export default function Wallet() {
                 </div>
 
                 <div className="mb-6">
+                  <p className="text-xs opacity-75 mb-1">Total Value</p>
                   <p className="text-4xl md:text-5xl font-bold tracking-wide">
-                    £{cashBalance.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    £{totalValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-xs opacity-75 mt-2">
+                    Cash: £{cashBalance.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} • 
+                    Stocks: £{portfolioValue.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} • 
+                    Copy: £{copyTradeValue.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                   </p>
                 </div>
 
