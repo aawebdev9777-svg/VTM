@@ -53,21 +53,7 @@ Deno.serve(async (req) => {
     const existing = await base44.asServiceRole.entities.StockPrice.list();
     const existingMap = Object.fromEntries(existing.map(e => [e.symbol, e.id]));
 
-    // First apply small intraday movements to existing prices (±0.5%)
-    if (existing.length > 0) {
-      for (const stock of existing) {
-        const movementPercent = (Math.random() * 1 - 0.5);
-        const simulatedPrice = stock.price_gbp * (1 + movementPercent / 100);
-        const simulatedChange = stock.daily_change_percent + (Math.random() * 0.2 - 0.1);
-
-        await base44.asServiceRole.entities.StockPrice.update(stock.id, {
-          price_gbp: parseFloat(simulatedPrice.toFixed(2)),
-          daily_change_percent: parseFloat(simulatedChange.toFixed(2))
-        });
-      }
-    }
-
-    // Then sync to real data from Yahoo
+    // Sync to real data from Yahoo
     for (const priceData of fetchedPrices) {
       if (existingMap[priceData.symbol]) {
         await base44.asServiceRole.entities.StockPrice.update(existingMap[priceData.symbol], priceData);

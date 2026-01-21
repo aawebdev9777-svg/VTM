@@ -32,11 +32,53 @@ const REAL_STOCKS = [
 export default function TopStocks({ onSelectStock }) {
   const [selectedSector, setSelectedSector] = useState('all');
 
+  const [displayPrices, setDisplayPrices] = useState({});
+
   const { data: stockPrices = [], refetch, isRefetching } = useQuery({
     queryKey: ['stockPrices'],
     queryFn: () => base44.entities.StockPrice.list(),
-    refetchInterval: 3000,
+    refetchInterval: 5000, // Real data every 5 seconds
   });
+
+  // When real data arrives, update display prices and start animation
+  useEffect(() => {
+    if (stockPrices.length > 0) {
+      setDisplayPrices(stockPrices.reduce((acc, stock) => {
+        acc[stock.symbol] = {
+          price: stock.price_gbp,
+          change: stock.daily_change_percent,
+          basePrice: stock.price_gbp,
+          baseChange: stock.daily_change_percent
+        };
+        return acc;
+      }, {}));
+    }
+  }, [stockPrices]);
+
+  // Animate prices between real data updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDisplayPrices(prev => {
+        const updated = {};
+        for (const symbol in prev) {
+          const current = prev[symbol];
+          const movementPercent = (Math.random() * 1 - 0.5);
+          const newPrice = current.basePrice * (1 + movementPercent / 100);
+          const newChange = current.baseChange + (Math.random() * 0.2 - 0.1);
+          
+          updated[symbol] = {
+            price: parseFloat(newPrice.toFixed(2)),
+            change: parseFloat(newChange.toFixed(2)),
+            basePrice: current.basePrice,
+            baseChange: current.baseChange
+          };
+        }
+        return updated;
+      });
+    }, 1000); // Animate every 1 second
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Trigger initial price update and subscribe to real-time changes
   useEffect(() => {
@@ -49,14 +91,8 @@ export default function TopStocks({ onSelectStock }) {
     return () => unsubscribe();
   }, [refetch]);
 
-  // Create price map
-  const priceMap = stockPrices.reduce((acc, stock) => {
-    acc[stock.symbol] = {
-      price: stock.price_gbp,
-      change: stock.daily_change_percent
-    };
-    return acc;
-  }, {});
+  // Use animated display prices
+  const priceMap = displayPrices;
   
   const sectors = ['all', ...new Set(REAL_STOCKS.map(s => s.sector))];
   
