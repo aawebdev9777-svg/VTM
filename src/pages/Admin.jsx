@@ -242,6 +242,17 @@ export default function Admin() {
                 <AlertTriangle className="w-4 h-4" />
                 Simulate Dip (-7%)
               </Button>
+              <Button
+                onClick={async () => {
+                  if (confirm('Give everyone 1 random starter stock?')) {
+                    await base44.functions.invoke('giveStarterStock', {});
+                    queryClient.invalidateQueries();
+                  }
+                }}
+                className="gap-2 bg-violet-600 hover:bg-violet-700"
+              >
+                🎁 Give Starter Stock
+              </Button>
             </div>
           </div>
 
