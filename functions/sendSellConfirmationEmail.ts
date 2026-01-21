@@ -95,25 +95,18 @@ Deno.serve(async (req) => {
 </html>
     `;
 
-    await base44.integrations.Core.SendEmail({
-      to: user.email,
-      subject: `✅ Sale Confirmed - ${symbol}`,
-      body: htmlBody
-    });
-
-    // Also send to admin
-    await base44.integrations.Core.SendEmail({
-      to: 'aa.web.dev9777@gmail.com',
-      subject: `📊 Sale Alert - ${user.full_name} sold ${shares} ${symbol}`,
-      body: htmlBody
-    });
-
-    // Also send to Outlook address
-    await base44.integrations.Core.SendEmail({
-      to: 'aa.web.dev@outlook.com',
-      subject: `📊 Sale Alert - ${user.full_name} sold ${shares} ${symbol}`,
-      body: htmlBody
-    });
+    // Send to all users
+    for (const recipient of allUsers) {
+      try {
+        await base44.integrations.Core.SendEmail({
+          to: recipient.email,
+          subject: `📊 ${user.full_name} sold ${shares} ${symbol}! ${profit_loss >= 0 ? '🎉 +£' + profit_loss.toFixed(2) : '📉 -£' + Math.abs(profit_loss).toFixed(2)}`,
+          body: htmlBody
+        });
+      } catch (error) {
+        console.error(`Failed to send email to ${recipient.email}:`, error.message);
+      }
+    }
 
     return Response.json({ success: true });
   } catch (error) {
