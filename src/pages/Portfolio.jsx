@@ -535,6 +535,70 @@ export default function Portfolio() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={sellDialogOpen} onOpenChange={(open) => {
+        setSellDialogOpen(open);
+        if (!open) {
+          setSelectedHolding(null);
+          setSellShares('');
+        }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sell {selectedHolding?.symbol}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <p className="text-sm text-gray-600 mb-2">Shares owned: {selectedHolding?.shares}</p>
+              <p className="text-sm text-gray-600 mb-2">Current price: £{selectedHolding?.currentPrice?.toFixed(2)}</p>
+              <label className="text-sm text-gray-600 block mb-2">Shares to sell</label>
+              <Input
+                type="number"
+                placeholder="Enter shares"
+                value={sellShares}
+                onChange={(e) => setSellShares(e.target.value)}
+                min="0"
+                max={selectedHolding?.shares}
+                step="1"
+                className="h-10"
+              />
+              {sellShares && (
+                <p className="text-sm text-gray-600 mt-2">Total: £{(parseFloat(sellShares) * selectedHolding?.currentPrice).toFixed(2)}</p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleSell}
+                disabled={!sellShares || parseFloat(sellShares) <= 0 || parseFloat(sellShares) > (selectedHolding?.shares || 0) || sellMutation.isPending}
+                className="flex-1 bg-red-600 hover:bg-red-700"
+              >
+                {sellMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Selling...
+                  </>
+                ) : (
+                  'Sell'
+                )}
+              </Button>
+              <Button
+                onClick={handleSellOut}
+                disabled={sellMutation.isPending}
+                className="flex-1 bg-red-700 hover:bg-red-800"
+              >
+                {sellMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Out...
+                  </>
+                ) : (
+                  'Sell Out'
+                )}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
