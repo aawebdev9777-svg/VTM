@@ -42,12 +42,16 @@ Deno.serve(async (req) => {
 <body>
   <div class="container">
     <div class="header">
-      <h1>✅ Sale Executed!</h1>
-      <p>Your stock sale has been completed successfully</p>
+      <h1>📊 Trade Update!</h1>
+      <p>Someone just cashed out a position</p>
+      <div style="background: rgba(255,255,255,0.1); padding: 15px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #fff; text-align: center;">
+        <div style="font-size: 16px; font-weight: bold; word-break: break-all;">${user.full_name}</div>
+        <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">${user.email}</div>
+      </div>
     </div>
     <div class="content">
-      <p>Hey <strong>${user.full_name}</strong>,</p>
-      <p>Great! Your sale of <strong>${symbol}</strong> has been processed. Here are the details:</p>
+      <p>Hey traders,</p>
+      <p><strong>${user.full_name}</strong> just sold <strong>${shares}</strong> shares of <strong>${symbol}</strong>. ${profit_loss >= 0 ? '🎉 They made a profit!' : '📉 They took a loss.'} Here are the details:</p>
       
       <div class="details-grid">
         <div class="detail-box">
