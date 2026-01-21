@@ -6,7 +6,6 @@ import Transactions from './pages/Transactions';
 import Wallet from './pages/Wallet';
 import Leaderboard from './pages/Leaderboard';
 import Social from './pages/Social';
-import AIAssistant from './pages/AIAssistant';
 import __Layout from './Layout.jsx';
 
 
@@ -19,7 +18,6 @@ export const PAGES = {
     "Wallet": Wallet,
     "Leaderboard": Leaderboard,
     "Social": Social,
-    "AIAssistant": AIAssistant,
 }
 
 export const pagesConfig = {

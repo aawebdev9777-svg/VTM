@@ -33,34 +33,13 @@ Deno.serve(async (req) => {
     }
     const recipientAccount = recipientAccounts[0];
 
-    // Perform transfer
-    await base44.entities.UserAccount.update(senderAccount.id, {
+    // Perform FULL transfer (100% of amount)
+    await base44.asServiceRole.entities.UserAccount.update(senderAccount.id, {
       cash_balance: senderAccount.cash_balance - amount
     });
 
     await base44.asServiceRole.entities.UserAccount.update(recipientAccount.id, {
       cash_balance: recipientAccount.cash_balance + amount
-    });
-
-    // Log transfer as transaction for sender
-    await base44.entities.Transaction.create({
-      symbol: 'TRANSFER',
-      company_name: `Transfer to ${recipientEmail}`,
-      type: 'sell',
-      shares: 0,
-      price_per_share: 0,
-      total_amount: amount
-    });
-
-    // Log transfer as transaction for recipient (service role)
-    await base44.asServiceRole.entities.Transaction.create({
-      symbol: 'TRANSFER',
-      company_name: `Received from ${user.email}`,
-      type: 'buy',
-      shares: 0,
-      price_per_share: 0,
-      total_amount: amount,
-      created_by: recipientEmail
     });
 
     return Response.json({ success: true });

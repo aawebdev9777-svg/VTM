@@ -81,7 +81,21 @@ export default function Admin() {
 
   const { data: allTransactions = [] } = useQuery({
     queryKey: ['allTransactions'],
-    queryFn: () => base44.asServiceRole.entities.Transaction.list(),
+    queryFn: () => base44.asServiceRole.entities.Transaction.list('-created_date', 1000),
+    enabled: isAdmin,
+    refetchInterval: 5000,
+  });
+
+  const { data: allSocialPosts = [] } = useQuery({
+    queryKey: ['allSocialPosts'],
+    queryFn: () => base44.asServiceRole.entities.SocialPost.list('-created_date', 100),
+    enabled: isAdmin,
+    refetchInterval: 5000,
+  });
+
+  const { data: allCopyTrades = [] } = useQuery({
+    queryKey: ['allCopyTrades'],
+    queryFn: () => base44.asServiceRole.entities.CopyTrade.list(),
     enabled: isAdmin,
     refetchInterval: 5000,
   });
@@ -152,6 +166,8 @@ export default function Admin() {
   const totalVolume = nonAdminTransactions.reduce((sum, t) => sum + t.total_amount, 0);
   const avgTradeSize = totalVolume / totalTrades || 0;
   const activeUsers = [...new Set(nonAdminTransactions.map(t => t.created_by))].length;
+  const totalPosts = allSocialPosts.filter(p => p.created_by !== adminEmail).length;
+  const activeCopyTrades = allCopyTrades.filter(ct => ct.is_active).length;
 
   // Trading activity over time (last 7 days, excluding admin)
   const activityData = [];
@@ -281,18 +297,14 @@ export default function Admin() {
       </Card>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <Card className="border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <Users className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Total Users</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalUsers}</p>
-                </div>
+            <CardContent className="p-4">
+              <div className="text-center">
+                <Users className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+                <p className="text-xs text-gray-500">Total Users</p>
+                <p className="text-xl font-bold text-gray-900">{totalUsers}</p>
               </div>
             </CardContent>
           </Card>
@@ -300,15 +312,11 @@ export default function Admin() {
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <Card className="border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                  <Activity className="w-6 h-6 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Active Users</p>
-                  <p className="text-2xl font-bold text-gray-900">{activeUsers}</p>
-                </div>
+            <CardContent className="p-4">
+              <div className="text-center">
+                <Activity className="w-6 h-6 text-green-600 mx-auto mb-2" />
+                <p className="text-xs text-gray-500">Active</p>
+                <p className="text-xl font-bold text-gray-900">{activeUsers}</p>
               </div>
             </CardContent>
           </Card>
@@ -316,15 +324,11 @@ export default function Admin() {
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <Card className="border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-violet-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Total Trades</p>
-                  <p className="text-2xl font-bold text-gray-900">{totalTrades}</p>
-                </div>
+            <CardContent className="p-4">
+              <div className="text-center">
+                <TrendingUp className="w-6 h-6 text-violet-600 mx-auto mb-2" />
+                <p className="text-xs text-gray-500">Trades</p>
+                <p className="text-xl font-bold text-gray-900">{totalTrades}</p>
               </div>
             </CardContent>
           </Card>
@@ -332,15 +336,35 @@ export default function Admin() {
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
           <Card className="border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-amber-600" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Total Volume</p>
-                  <p className="text-2xl font-bold text-gray-900">£{totalVolume.toLocaleString('en-GB', { maximumFractionDigits: 0 })}</p>
-                </div>
+            <CardContent className="p-4">
+              <div className="text-center">
+                <DollarSign className="w-6 h-6 text-amber-600 mx-auto mb-2" />
+                <p className="text-xs text-gray-500">Volume</p>
+                <p className="text-xl font-bold text-gray-900">£{(totalVolume / 1000).toFixed(0)}k</p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+          <Card className="border-0 shadow-lg">
+            <CardContent className="p-4">
+              <div className="text-center">
+                <Users className="w-6 h-6 text-purple-600 mx-auto mb-2" />
+                <p className="text-xs text-gray-500">Copy Trades</p>
+                <p className="text-xl font-bold text-gray-900">{activeCopyTrades}</p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+          <Card className="border-0 shadow-lg">
+            <CardContent className="p-4">
+              <div className="text-center">
+                <Users className="w-6 h-6 text-pink-600 mx-auto mb-2" />
+                <p className="text-xs text-gray-500">Posts</p>
+                <p className="text-xl font-bold text-gray-900">{totalPosts}</p>
               </div>
             </CardContent>
           </Card>
