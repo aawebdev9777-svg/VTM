@@ -68,71 +68,18 @@ export default function Portfolio() {
     }
   }, [stockPrices]);
 
-  // Animate prices between real data updates with momentum
-  // For owned stocks, gradually realize predicted gains
+  // Smooth display updates when prices change from backend updates
   useEffect(() => {
-    const interval = setInterval(() => {
-      setMomentum(m => {
-        const updated = { ...m };
-        for (const symbol in updated) {
-          const holding = portfolio.find(p => p.symbol === symbol);
-          
-          if (holding) {
-            // For owned stocks, push momentum toward the predicted recovery/gain
-            const displayPrice = displayPrices[symbol];
-            if (displayPrice) {
-              const dailyChange = displayPrice.change || 0;
-              let predictedTarget = 0;
-              
-              // If price dropped, predict recovery (dip buy opportunity)
-              if (dailyChange < -2) {
-                predictedTarget = Math.abs(dailyChange) * 0.75; // 75% recovery
-              } else if (dailyChange < -0.8) {
-                predictedTarget = Math.abs(dailyChange) * 0.6; // 60% recovery
-              }
-              // If price is up, predict continuation (momentum play)
-              else if (dailyChange > 1.2) {
-                predictedTarget = dailyChange * 0.65; // 65% continuation
-              } else if (dailyChange > 0.4) {
-                predictedTarget = dailyChange * 0.5; // 50% continuation
-              }
-              
-              // Move momentum toward predicted target (gradually realize the prediction)
-              const currentMomentum = updated[symbol];
-              const diff = predictedTarget - currentMomentum;
-              updated[symbol] = currentMomentum + (diff * 0.15); // 15% step toward target
-            }
-          } else {
-            // For non-owned stocks, keep random momentum
-            const dipOpportunity = Math.random() < 0.1 ? (Math.random() * 0.8 - 0.6) : 0;
-            const trendAdjustment = (Math.random() * 0.12 - 0.06) + dipOpportunity;
-            updated[symbol] = Math.max(-0.8, Math.min(0.8, updated[symbol] + trendAdjustment));
-          }
-        }
-        return updated;
-      });
-
-      setDisplayPrices(prev => {
-        const updated = {};
-        for (const symbol in prev) {
-          const current = prev[symbol];
-          const movementPercent = momentum[symbol] || 0;
-          const newPrice = current.basePrice * (1 + movementPercent / 100);
-          const newChange = current.baseChange + movementPercent;
-          
-          updated[symbol] = {
-            price: parseFloat(newPrice.toFixed(2)),
-            change: parseFloat(newChange.toFixed(2)),
-            basePrice: current.basePrice,
-            baseChange: current.baseChange
-          };
-        }
-        return updated;
-      });
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [momentum, portfolio, displayPrices]);
+    if (stockPrices.length > 0) {
+      setDisplayPrices(stockPrices.reduce((acc, stock) => {
+        acc[stock.symbol] = {
+          price: stock.price_gbp,
+          change: stock.daily_change_percent,
+        };
+        return acc;
+      }, {}));
+    }
+  }, [stockPrices]);
 
   const { data: accounts } = useQuery({
     queryKey: ['userAccount', currentUser?.email],
