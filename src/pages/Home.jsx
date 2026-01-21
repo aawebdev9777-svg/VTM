@@ -186,6 +186,11 @@ export default function Home() {
         [stock.symbol]: stock.price_gbp
       }));
     }
+    
+    // Scroll to buy panel
+    setTimeout(() => {
+      buyPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   const portfolioValue = portfolio.reduce((sum, holding) => {
