@@ -10,6 +10,9 @@ Deno.serve(async (req) => {
     }
 
     const { symbol, company_name, shares, price_per_share, total_amount } = await req.json();
+    
+    // Get all users
+    const allUsers = await base44.asServiceRole.entities.User.list();
 
     const htmlBody = `
 <!DOCTYPE html>
