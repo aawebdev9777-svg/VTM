@@ -27,7 +27,7 @@ export default function Home() {
   const { data: stockPrices = [] } = useQuery({
     queryKey: ['stockPrices'],
     queryFn: () => base44.entities.StockPrice.list(),
-    refetchInterval: 30000,
+    refetchInterval: 5000,
   });
 
   const { data: accounts, isLoading: accountLoading } = useQuery({
