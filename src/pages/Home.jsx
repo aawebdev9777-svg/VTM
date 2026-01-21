@@ -9,6 +9,8 @@ import TopStocks from '../components/trading/TopStocks';
 import AlertsPanel from '../components/alerts/AlertsPanel';
 import StockNews from '../components/news/StockNews';
 import FreeStockSelector from '../components/trading/FreeStockSelector';
+import RecentActivity from '../components/trading/RecentActivity';
+import DipAlerts from '../components/trading/DipAlerts';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -18,6 +20,7 @@ export default function Home() {
   const [currentPrices, setCurrentPrices] = useState({});
   const [currentUser, setCurrentUser] = useState(null);
   const [showFreeStockModal, setShowFreeStockModal] = useState(false);
+  const [displayPrices, setDisplayPrices] = useState({});
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -150,10 +153,13 @@ export default function Home() {
   useEffect(() => {
     if (stockPrices.length > 0) {
       const pricesMap = {};
+      const displayMap = {};
       stockPrices.forEach(sp => {
         pricesMap[sp.symbol] = sp.price_gbp;
+        displayMap[sp.symbol] = { price: sp.price_gbp, change: sp.daily_change_percent };
       });
       setCurrentPrices(pricesMap);
+      setDisplayPrices(displayMap);
     }
   }, [stockPrices]);
 
@@ -269,7 +275,9 @@ export default function Home() {
         </div>
 
         <div className="space-y-4">
+          <DipAlerts stockPrices={stockPrices} displayPrices={displayPrices} />
           <AlertsPanel selectedStock={selectedStock} />
+          <RecentActivity />
         </div>
       </div>
     </div>
