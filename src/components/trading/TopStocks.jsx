@@ -59,7 +59,7 @@ export default function TopStocks({ onSelectStock }) {
         const updated = { ...prev };
         stockPrices.forEach(stock => {
           if (!updated[stock.symbol]) {
-            updated[stock.symbol] = (Math.random() * 1.2 - 0.6); // Random trend between -0.6% and +0.6%
+            updated[stock.symbol] = (Math.random() * 0.6 - 0.3); // Random trend between -0.3% and +0.3%
           }
         });
         return updated;
@@ -73,10 +73,10 @@ export default function TopStocks({ onSelectStock }) {
       setMomentum(m => {
         const updated = { ...m };
         for (const symbol in updated) {
-          // Occasional large swings for profit opportunities
-          const largeSwing = Math.random() < 0.1 ? (Math.random() * 2 - 1) * 0.5 : 0;
-          const trendAdjustment = (Math.random() * 0.2 - 0.1) + largeSwing;
-          updated[symbol] = Math.max(-2, Math.min(2, updated[symbol] + trendAdjustment));
+          // Occasional dips for "buy the dip" opportunities (10% chance)
+          const dipOpportunity = Math.random() < 0.1 ? (Math.random() * 0.8 - 0.6) : 0;
+          const trendAdjustment = (Math.random() * 0.12 - 0.06) + dipOpportunity;
+          updated[symbol] = Math.max(-0.8, Math.min(0.8, updated[symbol] + trendAdjustment));
         }
         return updated;
       });
