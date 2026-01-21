@@ -147,9 +147,14 @@ export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cash
                     <div className="text-xs text-gray-500">{rec.reason}</div>
                   </div>
                 </div>
-                <Badge variant={rec.signal === 'strong' || rec.signal === 'hot' ? 'default' : 'secondary'} className="text-xs flex-shrink-0">
-                  {rec.change > 0 ? '+' : ''}{rec.change.toFixed(2)}%
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant={rec.signal === 'strong' || rec.signal === 'hot' ? 'default' : 'secondary'} className="text-xs flex-shrink-0">
+                    {rec.change > 0 ? '+' : ''}{rec.change.toFixed(2)}%
+                  </Badge>
+                  <Badge variant="outline" className="text-xs flex-shrink-0 bg-blue-50 text-blue-700 border-blue-200">
+                    Upside: +£{Math.round(rec.potentialGain).toLocaleString()}
+                  </Badge>
+                </div>
               </div>
               
               <div className="grid grid-cols-3 gap-2 text-xs mb-2">
