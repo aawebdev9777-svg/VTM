@@ -166,51 +166,55 @@ export default function Portfolio() {
     }
   };
 
-  // Calculate portfolio metrics
-  const portfolioWithMetrics = portfolio.map(holding => {
-    const latestPrice = stockPrices.find(sp => sp.symbol === holding.symbol)?.price_gbp || holding.average_buy_price;
-    const currentValue = holding.shares * latestPrice;
-    const costBasis = holding.shares * holding.average_buy_price;
-    const profitLoss = currentValue - costBasis;
-    const profitLossPercent = ((latestPrice - holding.average_buy_price) / holding.average_buy_price) * 100;
+  // Calculate portfolio metrics (memoized)
+  const portfolioWithMetrics = React.useMemo(() => 
+    portfolio.map(holding => {
+      const latestPrice = stockPrices.find(sp => sp.symbol === holding.symbol)?.price_gbp || holding.average_buy_price;
+      const currentValue = holding.shares * latestPrice;
+      const costBasis = holding.shares * holding.average_buy_price;
+      const profitLoss = currentValue - costBasis;
+      const profitLossPercent = ((latestPrice - holding.average_buy_price) / holding.average_buy_price) * 100;
 
-    return {
-      ...holding,
-      currentPrice: latestPrice,
-      currentValue,
-      costBasis,
-      profitLoss,
-      profitLossPercent
-    };
-  });
+      return {
+        ...holding,
+        currentPrice: latestPrice,
+        currentValue,
+        costBasis,
+        profitLoss,
+        profitLossPercent
+      };
+    }), [portfolio, stockPrices]
+  );
 
-  // Calculate copy trade values
-  const copyTradesWithMetrics = myCopyTrades.map(ct => {
-    const leaderData = leaderboard.find(l => l.email === ct.leader_email);
-    const currentValue = ct.investment_amount * (1 + ((leaderData?.percentageReturn || 0) / 100));
-    const profitLoss = currentValue - ct.investment_amount;
-    return {
-      ...ct,
-      currentValue,
-      profitLoss,
-      leaderName: ct.leader_email.split('@')[0],
-      leaderReturn: leaderData?.percentageReturn || 0,
-    };
-  });
+  // Calculate copy trade values (memoized)
+  const copyTradesWithMetrics = React.useMemo(() =>
+    myCopyTrades.map(ct => {
+      const leaderData = leaderboard.find(l => l.email === ct.leader_email);
+      const currentValue = ct.investment_amount * (1 + ((leaderData?.percentageReturn || 0) / 100));
+      const profitLoss = currentValue - ct.investment_amount;
+      return {
+        ...ct,
+        currentValue,
+        profitLoss,
+        leaderName: ct.leader_email.split('@')[0],
+        leaderReturn: leaderData?.percentageReturn || 0,
+      };
+    }), [myCopyTrades, leaderboard]
+  );
 
-  const totalCopyTradeValue = copyTradesWithMetrics.reduce((sum, ct) => sum + ct.currentValue, 0);
-  const totalCopyTradeInvested = myCopyTrades.reduce((sum, ct) => sum + ct.investment_amount, 0);
-  const totalCopyTradePL = totalCopyTradeValue - totalCopyTradeInvested;
+  const totalCopyTradeValue = React.useMemo(() => copyTradesWithMetrics.reduce((sum, ct) => sum + ct.currentValue, 0), [copyTradesWithMetrics]);
+  const totalCopyTradeInvested = React.useMemo(() => myCopyTrades.reduce((sum, ct) => sum + ct.investment_amount, 0), [myCopyTrades]);
+  const totalCopyTradePL = React.useMemo(() => totalCopyTradeValue - totalCopyTradeInvested, [totalCopyTradeValue, totalCopyTradeInvested]);
 
-  const totalPortfolioValue = portfolioWithMetrics.reduce((sum, h) => sum + h.currentValue, 0);
-  const totalCostBasis = portfolioWithMetrics.reduce((sum, h) => sum + h.costBasis, 0);
+  const totalPortfolioValue = React.useMemo(() => portfolioWithMetrics.reduce((sum, h) => sum + h.currentValue, 0), [portfolioWithMetrics]);
+  const totalCostBasis = React.useMemo(() => portfolioWithMetrics.reduce((sum, h) => sum + h.costBasis, 0), [portfolioWithMetrics]);
   
-  // Combined metrics including copy trades
-  const combinedInvested = totalCostBasis + totalCopyTradeInvested;
-  const combinedCurrentValue = totalPortfolioValue + totalCopyTradeValue;
-  const combinedProfitLoss = (totalPortfolioValue - totalCostBasis) + totalCopyTradePL;
-  const combinedProfitLossPercent = combinedInvested > 0 ? (combinedProfitLoss / combinedInvested) * 100 : 0;
-  const totalValue = cashBalance + totalPortfolioValue + totalCopyTradeValue;
+  // Combined metrics (memoized)
+  const combinedInvested = React.useMemo(() => totalCostBasis + totalCopyTradeInvested, [totalCostBasis, totalCopyTradeInvested]);
+  const combinedCurrentValue = React.useMemo(() => totalPortfolioValue + totalCopyTradeValue, [totalPortfolioValue, totalCopyTradeValue]);
+  const combinedProfitLoss = React.useMemo(() => (totalPortfolioValue - totalCostBasis) + totalCopyTradePL, [totalPortfolioValue, totalCostBasis, totalCopyTradePL]);
+  const combinedProfitLossPercent = React.useMemo(() => combinedInvested > 0 ? (combinedProfitLoss / combinedInvested) * 100 : 0, [combinedProfitLoss, combinedInvested]);
+  const totalValue = React.useMemo(() => cashBalance + totalPortfolioValue + totalCopyTradeValue, [cashBalance, totalPortfolioValue, totalCopyTradeValue]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 md:py-8">
