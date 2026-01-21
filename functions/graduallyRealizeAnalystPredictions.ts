@@ -19,34 +19,32 @@ Deno.serve(async (req) => {
     
     let updated = 0;
     
-    // For each owned stock, push price toward predicted gain
+    // For each stock price, push toward predicted gain if owned
     for (const stock of allPrices) {
-      if (!ownedSymbols.has(stock.symbol)) continue;
-      
       const dailyChange = stock.daily_change_percent || 0;
       let predictedTarget = 0;
       
-      // Calculate predicted target based on current daily change
-      if (dailyChange < -2) {
-        // Dip - predict 75% recovery
-        predictedTarget = Math.abs(dailyChange) * 0.75;
-      } else if (dailyChange < -0.8) {
-        // Mild dip - predict 60% recovery
-        predictedTarget = Math.abs(dailyChange) * 0.6;
-      } else if (dailyChange > 1.2) {
-        // Hot trend - predict 65% continuation
-        predictedTarget = dailyChange * 0.65;
-      } else if (dailyChange > 0.4) {
-        // Positive momentum - predict 50% continuation
-        predictedTarget = dailyChange * 0.5;
+      // ABPF always trends up (super profitable)
+      if (stock.symbol === 'ABPF') {
+        predictedTarget = 3.5; // Always gaining 3.5% extra
+      } else if (ownedSymbols.has(stock.symbol)) {
+        // For other owned stocks, predict based on current change
+        if (dailyChange < -2) {
+          predictedTarget = Math.abs(dailyChange) * 0.75;
+        } else if (dailyChange < -0.8) {
+          predictedTarget = Math.abs(dailyChange) * 0.6;
+        } else if (dailyChange > 1.2) {
+          predictedTarget = dailyChange * 0.65;
+        } else if (dailyChange > 0.4) {
+          predictedTarget = dailyChange * 0.5;
+        }
       }
       
-      // If we haven't reached target yet, move price toward it
+      // If we have a target, gradually move toward it
       if (predictedTarget > 0 && dailyChange < predictedTarget) {
-        const step = (predictedTarget - dailyChange) * 0.15; // 15% step each update
+        const step = (predictedTarget - dailyChange) * 0.15;
         const newChange = Math.min(dailyChange + step, predictedTarget);
         
-        // Update stock price
         const newPrice = stock.price_gbp * (1 + (newChange - dailyChange) / 100);
         
         await base44.asServiceRole.entities.StockPrice.update(stock.id, {
