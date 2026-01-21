@@ -107,6 +107,14 @@ export default function Home() {
 
   const account = accounts?.[0];
 
+  const handleFreeStockClose = async () => {
+    setShowFreeStockModal(false);
+    // Update account to remove free stock flag
+    if (account?.id) {
+      await base44.entities.UserAccount.update(account.id, { free_stocks_available: 0 });
+    }
+  };
+
   const buyMutation = useMutation({
     mutationFn: async ({ stock, shares }) => {
       const response = await base44.functions.invoke('buyStock', { stock, shares });
@@ -191,14 +199,6 @@ export default function Home() {
       </div>
     );
   }
-
-  const handleFreeStockClose = async () => {
-    setShowFreeStockModal(false);
-    // Update account to remove free stock flag
-    if (account?.id) {
-      await base44.entities.UserAccount.update(account.id, { free_stocks_available: 0 });
-    }
-  };
 
   return (
     <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6 pb-20">
