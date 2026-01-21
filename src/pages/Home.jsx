@@ -42,6 +42,22 @@ export default function Home() {
     refetchInterval: 2000,
   });
 
+  const { data: myCopyTrades = [] } = useQuery({
+    queryKey: ['myCopyTrades', currentUser?.email],
+    queryFn: () => base44.entities.CopyTrade.filter({ follower_email: currentUser?.email, is_active: true }),
+    enabled: !!currentUser?.email,
+    refetchInterval: 2000,
+  });
+
+  const { data: leaderboard = [] } = useQuery({
+    queryKey: ['leaderboard'],
+    queryFn: async () => {
+      const response = await base44.functions.invoke('getLeaderboard', {});
+      return response.data.leaderboard || [];
+    },
+    refetchInterval: 5000,
+  });
+
   useEffect(() => {
     if (!currentUser?.email) return;
     
@@ -152,6 +168,13 @@ export default function Home() {
     return sum + (holding.shares * price);
   }, 0);
 
+  // Calculate copy trade value
+  const copyTradeValue = myCopyTrades.reduce((sum, ct) => {
+    const leaderData = leaderboard.find(l => l.email === ct.leader_email);
+    const currentValue = ct.investment_amount * (1 + ((leaderData?.percentageReturn || 0) / 100));
+    return sum + currentValue;
+  }, 0);
+
   if (accountLoading || portfolioLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -190,7 +213,7 @@ export default function Home() {
       <div className="mb-4">
         <PortfolioSummary
           cashBalance={account?.cash_balance || 0}
-          portfolioValue={portfolioValue}
+          portfolioValue={portfolioValue + copyTradeValue}
           initialBalance={account?.initial_balance || account?.cash_balance || 10000}
         />
       </div>
