@@ -19,8 +19,11 @@ Deno.serve(async (req) => {
     const endDate = Math.floor(Date.now() / 1000);
     const startDate = endDate - (days * 24 * 60 * 60);
 
+    // Use hourly interval for 30 days or less for more detailed data
+    const interval = days <= 30 ? '1h' : '1d';
+
     // Fetch historical data from Yahoo Finance
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?period1=${startDate}&period2=${endDate}&interval=1d`;
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?period1=${startDate}&period2=${endDate}&interval=${interval}`;
     
     const response = await fetch(url);
     const data = await response.json();
@@ -51,8 +54,12 @@ Deno.serve(async (req) => {
       if (!price) return null;
 
       const date = new Date(timestamp * 1000);
+      const dateStr = interval === '1h' 
+        ? date.toLocaleTimeString('en-GB', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+        : date.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' });
+      
       return {
-        date: date.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }),
+        date: dateStr,
         price: parseFloat((price * exchangeRate).toFixed(2))
       };
     }).filter(item => item !== null);
