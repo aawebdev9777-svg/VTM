@@ -164,8 +164,8 @@ export default function BuyAnalysis({ stockPrices = [], displayPrices = {}, cash
                 </div>
                 <div className="bg-green-50 p-2 rounded border border-green-200">
                   <div className="text-green-700 text-xs font-semibold">Potential</div>
-                  <div className="font-bold text-green-900">+£{rec.potentialGain.toFixed(0)}</div>
-                  <div className="text-green-600 text-xs">+{rec.potentialPercent}%</div>
+                  <div className="font-bold text-green-900">+£{Math.round(rec.potentialGain)}</div>
+                  <div className="text-green-600 text-xs">+{rec.potentialPercent.toFixed(1)}%</div>
                 </div>
               </div>
             </motion.div>
