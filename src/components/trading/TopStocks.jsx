@@ -34,21 +34,20 @@ export default function TopStocks({ onSelectStock }) {
 
   const { data: stockPrices = [], refetch, isRefetching } = useQuery({
     queryKey: ['stockPrices'],
-    queryFn: async () => {
-      try {
-        const response = await base44.functions.invoke('getUpdatedPrices', {});
-        return response.data.prices || [];
-      } catch {
-        return base44.entities.StockPrice.list();
-      }
-    },
-    refetchInterval: 5000,
+    queryFn: () => base44.entities.StockPrice.list(),
+    refetchInterval: 3000,
   });
 
-  // Trigger initial price update
+  // Trigger initial price update and subscribe to real-time changes
   useEffect(() => {
-    base44.functions.invoke('updateStockPrices', {}).catch(err => console.error('Price update failed:', err));
-  }, []);
+    base44.functions.invoke('getUpdatedPrices', {}).catch(err => console.error('Price update failed:', err));
+    
+    const unsubscribe = base44.entities.StockPrice.subscribe(() => {
+      refetch();
+    });
+
+    return () => unsubscribe();
+  }, [refetch]);
 
   // Create price map
   const priceMap = stockPrices.reduce((acc, stock) => {
