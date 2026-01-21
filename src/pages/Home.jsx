@@ -261,13 +261,15 @@ export default function Home() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2 space-y-4">
-          <BuyStockPanel
-            selectedStock={selectedStock}
-            cashBalance={account?.cash_balance || 0}
-            onBuy={handleBuy}
-            isLoading={buyMutation.isPending}
-          />
+         <div className="lg:col-span-2 space-y-4">
+           <div ref={buyPanelRef}>
+             <BuyStockPanel
+               selectedStock={selectedStock}
+               cashBalance={account?.cash_balance || 0}
+               onBuy={handleBuy}
+               isLoading={buyMutation.isPending}
+             />
+           </div>
           <StockSearch 
             onSelectStock={handleSelectStock} 
             selectedStock={selectedStock}
