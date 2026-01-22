@@ -17,15 +17,15 @@ Deno.serve(async (req) => {
       
       // High dividend stocks (blue chips, stable companies)
       if (['ABPF', 'JPM', 'V', 'WMT', 'CSCO', 'ORCL', 'IBM'].includes(stock.symbol)) {
-        dividendYield = 0.4 + (Math.random() * 0.3); // 0.4-0.7% per hour
+        dividendYield = 2.5 + (Math.random() * 0.5); // 2.5-3% per hour
       }
       // Medium dividend stocks
       else if (['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'INTC', 'DIS', 'ADBE', 'CRM'].includes(stock.symbol)) {
-        dividendYield = 0.25 + (Math.random() * 0.15); // 0.25-0.4% per hour
+        dividendYield = 1.5 + (Math.random() * 1); // 1.5-2.5% per hour
       }
       // Lower dividend stocks (growth stocks)
       else {
-        dividendYield = 0.15 + (Math.random() * 0.1); // 0.15-0.25% per hour
+        dividendYield = 1 + (Math.random() * 0.5); // 1-1.5% per hour
       }
       
       await base44.asServiceRole.entities.StockPrice.update(stock.id, {
