@@ -52,9 +52,8 @@ export default function Layout({ children, currentPageName }) {
     return currentPageName === pageName;
   };
 
-  const handleLogout = () => {
-    base44.auth.logout();
-    navigate(createPageUrl('Home'));
+  const handleLogout = async () => {
+    await base44.auth.logout('/');
   };
 
   return (
