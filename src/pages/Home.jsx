@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -10,6 +11,7 @@ import AlertsPanel from '../components/alerts/AlertsPanel';
 import StockNews from '../components/news/StockNews';
 import FreeStockSelector from '../components/trading/FreeStockSelector';
 import BuyAnalysis from '../components/trading/BuyAnalysis';
+import MoneyReceivedNotification from '../components/MoneyReceivedNotification'; // Added
 import { Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -21,6 +23,8 @@ export default function Home() {
   const [showFreeStockModal, setShowFreeStockModal] = useState(false);
   const [displayPrices, setDisplayPrices] = useState({});
   const [momentum, setMomentum] = useState({});
+  const [lastSeenTransactionId, setLastSeenTransactionId] = useState(null); // Added
+  const [newTransaction, setNewTransaction] = useState(null); // Added
   const buyPanelRef = React.useRef(null);
   const queryClient = useQueryClient();
 
@@ -78,6 +82,21 @@ export default function Home() {
     refetchInterval: 5000,
   });
 
+  // Added: New useQuery for transactions
+  const { data: transactions = [] } = useQuery({
+    queryKey: ['homeTransactions', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser?.email) return [];
+      const userTxns = await base44.entities.Transaction.filter({ created_by: currentUser?.email }, '-created_date', 10);
+      const receivedTxns = await base44.asServiceRole.entities.Transaction.filter({ created_by: currentUser?.email }, '-created_date', 10);
+      const combined = [...userTxns, ...receivedTxns];
+      return combined.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)).slice(0, 10);
+    },
+    enabled: !!currentUser?.email,
+    refetchInterval: 20000,
+  });
+  // End Added
+
   useEffect(() => {
     if (!currentUser?.email) return;
     
@@ -119,6 +138,26 @@ export default function Home() {
     }
   }, [accounts, currentUser?.email]);
 
+  // Added: Effect for monitoring new transactions and showing notifications
+  useEffect(() => {
+    if (transactions.length > 0) {
+      const latestTransaction = transactions[0];
+      if (lastSeenTransactionId === null) {
+        // Initialize lastSeenId on first load to prevent showing notifications for existing transactions
+        setLastSeenTransactionId(latestTransaction.id);
+      } else if (latestTransaction.id !== lastSeenTransactionId) {
+        // A new transaction has appeared
+        if (latestTransaction.type === 'buy' && latestTransaction.symbol === 'TRANSFER') {
+          // If it's a money transfer, set it for notification
+          setNewTransaction(latestTransaction);
+        }
+        // Always update lastSeenTransactionId to the truly latest one
+        setLastSeenTransactionId(latestTransaction.id);
+      }
+    }
+  }, [transactions, lastSeenTransactionId]);
+  // End Added
+
   const account = accounts?.[0];
 
   // Check if user has free stocks available
@@ -143,10 +182,11 @@ export default function Home() {
       queryClient.setQueryData(['userAccount', currentUser?.email], [data.data.account]);
       queryClient.setQueryData(['portfolio', currentUser?.email], data.data.portfolio);
       
-      // Invalidate to ensure consistency
+      // Invalidate to ensure consistency and trigger new transaction checks
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['stockPrices'] }),
-        queryClient.invalidateQueries({ queryKey: ['transactions'] })
+        queryClient.invalidateQueries({ queryKey: ['transactions'] }), // Also invalidate general transactions
+        queryClient.invalidateQueries({ queryKey: ['homeTransactions', currentUser?.email] }) // Invalidate specific transactions for notification
       ]);
     },
     onError: (error) => {
@@ -295,11 +335,16 @@ export default function Home() {
     // Update account to remove free stock flag
     if (account?.id) {
       await base44.entities.UserAccount.update(account.id, { free_stocks_available: 0 });
+      queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] }); // Invalidate to refetch updated account
     }
   };
 
   return (
     <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6 pb-20">
+      <MoneyReceivedNotification // Added
+        transaction={newTransaction} // Added
+        onClose={() => setNewTransaction(null)} // Added
+      /> {/* Added */}
       <FreeStockSelector 
         open={showFreeStockModal} 
         onClose={handleFreeStockClose}

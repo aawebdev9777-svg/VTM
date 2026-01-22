@@ -51,14 +51,14 @@ export default function Leaderboard() {
     queryKey: ['myCopyTrades', currentUser?.email],
     queryFn: () => base44.entities.CopyTrade.filter({ follower_email: currentUser?.email }),
     enabled: !!currentUser?.email,
-    refetchInterval: 5000,
+    refetchInterval: 15000,
   });
 
   const { data: copiers = [] } = useQuery({
     queryKey: ['copiers', currentUser?.email],
     queryFn: () => base44.entities.CopyTrade.filter({ leader_email: currentUser?.email, is_active: true }),
     enabled: !!currentUser?.email,
-    refetchInterval: 5000,
+    refetchInterval: 15000,
   });
 
   const startCopyTradeMutation = useMutation({
@@ -86,7 +86,7 @@ export default function Leaderboard() {
   const { data: posts = [] } = useQuery({
     queryKey: ['socialPosts'],
     queryFn: () => base44.entities.SocialPost.list('-created_date', 100),
-    refetchInterval: 5000,
+    refetchInterval: 15000,
   });
 
   const { data: myLikes = [] } = useQuery({
