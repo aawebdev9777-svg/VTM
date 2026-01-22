@@ -111,6 +111,13 @@ export default function AIWidget() {
 
     setInput('');
 
+    // Add user message immediately for instant feedback
+    const tempMessage = {
+      role: 'user',
+      content: messageToSend,
+    };
+    setMessages(prev => [...prev, tempMessage]);
+
     try {
       await base44.agents.addMessage(conversation, {
         role: 'user',
@@ -118,6 +125,8 @@ export default function AIWidget() {
       });
     } catch (error) {
       console.error('Failed to send message:', error);
+      // Remove temp message on error
+      setMessages(prev => prev.filter(m => m !== tempMessage));
     }
   };
 
