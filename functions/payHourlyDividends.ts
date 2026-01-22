@@ -23,7 +23,6 @@ Deno.serve(async (req) => {
     // Process each portfolio holding
     let totalPayouts = 0;
     const updates = [];
-    const portfolioUpdates = [];
     const accountUpdates = {};
     
     for (const holding of portfolios) {
@@ -36,12 +35,10 @@ Deno.serve(async (req) => {
         const holdingValue = holding.shares * currentPrice;
         const dividendAmount = holdingValue * (dividendYield / 100);
         
-        // Queue portfolio update
-        portfolioUpdates.push(
-          base44.asServiceRole.entities.Portfolio.update(holding.id, {
-            total_dividends_earned: (holding.total_dividends_earned || 0) + dividendAmount
-          })
-        );
+        // Update portfolio directly (batched with delay)
+        await base44.asServiceRole.entities.Portfolio.update(holding.id, {
+          total_dividends_earned: (holding.total_dividends_earned || 0) + dividendAmount
+        });
         
         // Queue account update
         const account = accountMap[holding.created_by];
@@ -61,16 +58,23 @@ Deno.serve(async (req) => {
       }
     }
     
-    // Execute all portfolio updates in parallel
-    await Promise.all(portfolioUpdates);
-    
-    // Execute all account updates in parallel
-    const accountUpdatePromises = Object.entries(accountUpdates).map(([accountId, { account, total }]) =>
-      base44.asServiceRole.entities.UserAccount.update(accountId, {
-        cash_balance: account.cash_balance + total
-      })
-    );
-    await Promise.all(accountUpdatePromises);
+    // Execute account updates in batches of 20
+    const accountEntries = Object.entries(accountUpdates);
+    const batchSize = 20;
+    for (let i = 0; i < accountEntries.length; i += batchSize) {
+      const batch = accountEntries.slice(i, i + batchSize);
+      await Promise.all(
+        batch.map(([accountId, { account, total }]) =>
+          base44.asServiceRole.entities.UserAccount.update(accountId, {
+            cash_balance: account.cash_balance + total
+          })
+        )
+      );
+      // Add small delay between batches
+      if (i + batchSize < accountEntries.length) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
     
     return Response.json({ 
       success: true, 
