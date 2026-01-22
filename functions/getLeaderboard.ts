@@ -16,7 +16,8 @@ Deno.serve(async (req) => {
     const allCopyTrades = await base44.asServiceRole.entities.CopyTrade.list();
 
     const adminEmail = 'aa.web.dev9777@gmail.com';
-    const nonAdminUsers = allUsers.filter(u => u.email !== adminEmail);
+    const excludedEmails = ['aa.web.dev9777@gmail.com', 'ahmetzhan.aldiyar'];
+    const nonAdminUsers = allUsers.filter(u => !excludedEmails.includes(u.email));
 
     // Create a map of stock prices for quick lookup
     const priceMap = {};
