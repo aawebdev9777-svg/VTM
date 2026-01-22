@@ -106,11 +106,8 @@ export default function Admin() {
     queryKey: ['allUsers'],
     queryFn: async () => {
       try {
-        const user = await base44.auth.me();
-        if (user?.email !== 'aa.web.dev9777@gmail.com') {
-          return [];
-        }
-        return await base44.asServiceRole.entities.User.list();
+        const response = await base44.functions.invoke('getAllUsers', {});
+        return response.data?.users || [];
       } catch (error) {
         console.error('Failed to fetch users:', error);
         return [];
