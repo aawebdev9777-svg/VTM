@@ -16,6 +16,7 @@ export default function AIWidget() {
   const [messages, setMessages] = useState([]);
   const [displayedContent, setDisplayedContent] = useState({});
   const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
   const [lastAutoScroll, setLastAutoScroll] = useState(Date.now());
   const [quickActions, setQuickActions] = useState([
     { icon: TrendingUp, label: 'Analyze Portfolio', prompt: 'Give me a comprehensive analysis of my portfolio performance, risk exposure, and diversification. Include specific recommendations.' },
@@ -50,6 +51,7 @@ export default function AIWidget() {
 
     const unsubscribe = base44.agents.subscribeToConversation(conversation.id, (data) => {
       setMessages(data.messages);
+      setIsTyping(false);
       setLastAutoScroll(Date.now());
     });
 
@@ -110,6 +112,7 @@ export default function AIWidget() {
     if (!messageToSend.trim() || !conversation) return;
 
     setInput('');
+    setIsTyping(true);
 
     // Add user message immediately for instant feedback
     const tempMessage = {
@@ -125,6 +128,7 @@ export default function AIWidget() {
       });
     } catch (error) {
       console.error('Failed to send message:', error);
+      setIsTyping(false);
       // Remove temp message on error
       setMessages(prev => prev.filter(m => m !== tempMessage));
     }
@@ -290,6 +294,21 @@ export default function AIWidget() {
                           </div>
                         );
                       })}
+
+                      {isTyping && (
+                        <div className="flex gap-3 justify-start">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center flex-shrink-0">
+                            <Sparkles className="w-4 h-4 text-white" />
+                          </div>
+                          <div className="max-w-[80%] rounded-2xl px-4 py-3 bg-white">
+                            <div className="flex gap-1">
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       <div ref={scrollRef} />
                     </div>
