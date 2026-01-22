@@ -14,8 +14,9 @@ Deno.serve(async (req) => {
     }
 
     const accessToken = await base44.asServiceRole.connectors.getAccessToken('googlesheets');
-    const sheets = google.sheets({ version: 'v4', auth: new google.auth.OAuth2() });
-    sheets.setCredentials({ access_token: accessToken });
+    const auth = new google.auth.OAuth2();
+    auth.setCredentials({ access_token: accessToken });
+    const sheets = google.sheets({ version: 'v4', auth });
 
     let spreadsheetId = Deno.env.get('TRADING_LOG_SHEET_ID');
 
