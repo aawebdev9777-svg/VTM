@@ -364,6 +364,11 @@ export default function Admin() {
             <h3 className="text-sm font-semibold text-gray-700 mb-3">Send Money to User</h3>
             <AdminSendMoney />
           </div>
+
+          <div className="border-t pt-4 mt-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Impersonate User</h3>
+            <ImpersonateUser />
+          </div>
         </CardContent>
       </Card>
 
