@@ -25,7 +25,14 @@ export default function Home() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setCurrentUser);
+    base44.auth.me()
+      .then(user => {
+        if (!user) {
+          base44.auth.redirectToLogin();
+        }
+        setCurrentUser(user);
+      })
+      .catch(() => base44.auth.redirectToLogin());
   }, []);
 
   const { data: stockPrices = [] } = useQuery({
