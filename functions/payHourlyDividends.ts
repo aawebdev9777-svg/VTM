@@ -4,7 +4,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Get all portfolios
+    // Get all portfolios and data
     const portfolios = await base44.asServiceRole.entities.Portfolio.list();
     const stockPrices = await base44.asServiceRole.entities.StockPrice.list();
     const userAccounts = await base44.asServiceRole.entities.UserAccount.list();
@@ -20,23 +20,24 @@ Deno.serve(async (req) => {
       accountMap[acc.created_by] = acc;
     });
     
-    // Process each portfolio holding
+    // Process portfolios and calculate dividends per account
     let totalPayouts = 0;
     const updates = [];
     const accountUpdates = {};
+    const portfolioUpdates = [];
     
     for (const holding of portfolios) {
       const dividendYield = dividendMap[holding.symbol] || 0;
       
       if (dividendYield > 0) {
-        // Calculate dividend: (shares * current_price * dividend_yield_hourly / 100)
         const currentStock = stockPrices.find(s => s.symbol === holding.symbol);
         const currentPrice = currentStock?.price_gbp || holding.average_buy_price;
         const holdingValue = holding.shares * currentPrice;
         const dividendAmount = holdingValue * (dividendYield / 100);
         
-        // Update portfolio directly (batched with delay)
-        await base44.asServiceRole.entities.Portfolio.update(holding.id, {
+        // Queue portfolio update
+        portfolioUpdates.push({
+          id: holding.id,
           total_dividends_earned: (holding.total_dividends_earned || 0) + dividendAmount
         });
         
@@ -58,11 +59,25 @@ Deno.serve(async (req) => {
       }
     }
     
-    // Execute account updates in batches of 20
+    // Batch portfolio updates in groups of 10 with delays
+    const portfolioBatchSize = 10;
+    for (let i = 0; i < portfolioUpdates.length; i += portfolioBatchSize) {
+      const batch = portfolioUpdates.slice(i, i + portfolioBatchSize);
+      await Promise.all(
+        batch.map(update =>
+          base44.asServiceRole.entities.Portfolio.update(update.id, {
+            total_dividends_earned: update.total_dividends_earned
+          })
+        )
+      );
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    
+    // Batch account updates in groups of 10 with delays
     const accountEntries = Object.entries(accountUpdates);
-    const batchSize = 20;
-    for (let i = 0; i < accountEntries.length; i += batchSize) {
-      const batch = accountEntries.slice(i, i + batchSize);
+    const accountBatchSize = 10;
+    for (let i = 0; i < accountEntries.length; i += accountBatchSize) {
+      const batch = accountEntries.slice(i, i + accountBatchSize);
       await Promise.all(
         batch.map(([accountId, { account, total }]) =>
           base44.asServiceRole.entities.UserAccount.update(accountId, {
@@ -70,10 +85,7 @@ Deno.serve(async (req) => {
           })
         )
       );
-      // Add small delay between batches
-      if (i + batchSize < accountEntries.length) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
     
     return Response.json({ 
