@@ -394,7 +394,8 @@ export default function Wallet() {
       </div>
 
       <div className="grid grid-cols-1 gap-6">
-         {/* Send Money */}
+         {/* Send Money - Only show if not admin */}
+         {!isAdmin && (
          <motion.div
            initial={{ opacity: 0, y: 20 }}
            animate={{ opacity: 1, y: 0 }}
@@ -487,6 +488,7 @@ export default function Wallet() {
              </CardContent>
            </Card>
          </motion.div>
+         )}
 
          {/* Recent Activity */}
          <motion.div
