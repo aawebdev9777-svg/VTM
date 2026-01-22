@@ -96,6 +96,16 @@ export default function RealtimeAnalyticsDashboard() {
     const portfolioValue = portfolios?.reduce((sum, p) => sum + (p.shares * p.average_buy_price), 0) || 0;
     const activeUsers = accounts?.filter(a => a.cash_balance > 0).length || 0;
     const totalTrades = transactions?.length || 0;
+    
+    // Calculate total P/L across all users
+    const totalProfitLoss = accounts?.reduce((sum, acc) => {
+      const initialBalance = acc.initial_balance || 10000;
+      const currentValue = acc.cash_balance + (portfolios?.filter(p => p.created_by === acc.created_by).reduce((pSum, p) => pSum + (p.shares * p.average_buy_price), 0) || 0);
+      return sum + (currentValue - initialBalance);
+    }, 0) || 0;
+    
+    // Calculate total transaction volume (all buy/sell amounts)
+    const totalVolume = transactions?.reduce((sum, tx) => sum + (tx.total_amount || 0), 0) || 0;
 
     setStats({
       totalUsers: users?.length || 0,
@@ -103,7 +113,9 @@ export default function RealtimeAnalyticsDashboard() {
       totalValue: totalValue + portfolioValue,
       totalTrades,
       copyTrades: copyTrades?.length || 0,
-      portfolioValue
+      portfolioValue,
+      totalProfitLoss,
+      totalVolume
     });
   }, [users, accounts, portfolios, transactions, copyTrades]);
 
