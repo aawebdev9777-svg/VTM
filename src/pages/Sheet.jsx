@@ -18,11 +18,11 @@ export default function Sheet() {
     const checkUser = async () => {
       const user = await base44.auth.me();
       if (user?.email === 'aa.web.dev9777@gmail.com') {
-        navigate(createPageUrl('Home'));
+        await base44.auth.logout('/');
       }
     };
     checkUser();
-  }, [navigate]);
+  }, []);
 
   const handleExport = async () => {
     setIsLoading(true);
