@@ -14,8 +14,8 @@ export default function AIWidget() {
   const [isMinimized, setIsMinimized] = useState(false);
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [displayedContent, setDisplayedContent] = useState({});
   const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [lastAutoScroll, setLastAutoScroll] = useState(Date.now());
   const [quickActions, setQuickActions] = useState([
     { icon: TrendingUp, label: 'Analyze Portfolio', prompt: 'Give me a comprehensive analysis of my portfolio performance, risk exposure, and diversification. Include specific recommendations.' },
@@ -24,6 +24,7 @@ export default function AIWidget() {
     { icon: Brain, label: 'Smart Moves', prompt: 'What are the smartest trades I can make today based on market conditions and my holdings?' },
   ]);
   const scrollRef = React.useRef(null);
+  const typewriterRefs = React.useRef({});
 
   useEffect(() => {
     if (isOpen && !conversation) {
@@ -54,6 +55,46 @@ export default function AIWidget() {
 
     return () => unsubscribe();
   }, [conversation?.id]);
+
+  // Typewriter effect for assistant messages
+  useEffect(() => {
+    messages.forEach((msg, idx) => {
+      if (msg.role === 'assistant' && msg.content) {
+        const messageKey = `${idx}-${msg.content.substring(0, 50)}`;
+        
+        // If we already have the full content displayed, skip
+        if (displayedContent[messageKey] === msg.content) return;
+        
+        // Clear any existing interval for this message
+        if (typewriterRefs.current[messageKey]) {
+          clearInterval(typewriterRefs.current[messageKey]);
+        }
+
+        const fullContent = msg.content;
+        let currentIndex = displayedContent[messageKey]?.length || 0;
+
+        // Start typewriter effect
+        typewriterRefs.current[messageKey] = setInterval(() => {
+          if (currentIndex < fullContent.length) {
+            const charsToAdd = Math.min(3, fullContent.length - currentIndex);
+            currentIndex += charsToAdd;
+            
+            setDisplayedContent(prev => ({
+              ...prev,
+              [messageKey]: fullContent.substring(0, currentIndex)
+            }));
+          } else {
+            clearInterval(typewriterRefs.current[messageKey]);
+            delete typewriterRefs.current[messageKey];
+          }
+        }, 10);
+      }
+    });
+
+    return () => {
+      Object.values(typewriterRefs.current).forEach(interval => clearInterval(interval));
+    };
+  }, [messages]);
 
   // Auto-scroll when messages change
   useEffect(() => {
@@ -161,57 +202,69 @@ export default function AIWidget() {
 
                   <ScrollArea className="flex-1 p-4 bg-white">
                     <div className="space-y-4">
-                      {messages.map((msg, idx) => (
-                        <div
-                          key={idx}
-                          className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                        >
-                          {msg.role !== 'user' && (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center flex-shrink-0">
-                              <Sparkles className="w-4 h-4 text-white" />
+                      {messages.map((msg, idx) => {
+                        const messageKey = `${idx}-${msg.content?.substring(0, 50) || ''}`;
+                        const contentToDisplay = msg.role === 'assistant' 
+                          ? (displayedContent[messageKey] || '')
+                          : msg.content;
+                        
+                        return (
+                          <div
+                            key={idx}
+                            className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                          >
+                            {msg.role !== 'user' && (
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center flex-shrink-0">
+                                <Sparkles className="w-4 h-4 text-white" />
+                              </div>
+                            )}
+                            <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
+                              msg.role === 'user'
+                                ? 'bg-gray-100 text-gray-900'
+                                : 'bg-white text-gray-900'
+                            }`}>
+                              {msg.role === 'user' ? (
+                                <p className="text-sm leading-relaxed">{msg.content}</p>
+                              ) : (
+                                <>
+                                  <ReactMarkdown 
+                                    className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                                    components={{
+                                      h1: ({children}) => <h1 className="text-base font-semibold text-gray-900 mb-2">{children}</h1>,
+                                      h2: ({children}) => <h2 className="text-sm font-semibold text-gray-900 mb-1.5 mt-3">{children}</h2>,
+                                      h3: ({children}) => <h3 className="text-sm font-semibold text-gray-900 mb-1">{children}</h3>,
+                                      ul: ({children}) => <ul className="space-y-1 my-2 ml-4 list-disc">{children}</ul>,
+                                      ol: ({children}) => <ol className="space-y-1 my-2 ml-4 list-decimal">{children}</ol>,
+                                      li: ({children}) => <li className="text-sm leading-relaxed text-gray-700">{children}</li>,
+                                      p: ({children}) => <p className="text-sm leading-relaxed text-gray-900 my-1.5">{children}</p>,
+                                      strong: ({children}) => <strong className="font-semibold text-gray-900">{children}</strong>,
+                                      code: ({inline, children}) => inline ? (
+                                        <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm text-gray-900">{children}</code>
+                                      ) : (
+                                        <code className="block bg-gray-100 p-3 rounded-lg text-sm my-2 overflow-x-auto">{children}</code>
+                                      ),
+                                      table: ({children}) => <div className="overflow-x-auto my-2"><table className="min-w-full text-sm">{children}</table></div>,
+                                      thead: ({children}) => <thead className="bg-gray-50">{children}</thead>,
+                                      th: ({children}) => <th className="px-3 py-2 text-left font-semibold text-gray-900 border-b">{children}</th>,
+                                      td: ({children}) => <td className="px-3 py-2 text-gray-700 border-b">{children}</td>,
+                                    }}
+                                  >
+                                    {contentToDisplay}
+                                  </ReactMarkdown>
+                                  {contentToDisplay && contentToDisplay !== msg.content && (
+                                    <span className="inline-block w-1 h-4 bg-gray-900 animate-pulse ml-0.5"></span>
+                                  )}
+                                </>
+                              )}
                             </div>
-                          )}
-                          <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
-                            msg.role === 'user'
-                              ? 'bg-gray-100 text-gray-900'
-                              : 'bg-white text-gray-900'
-                          }`}>
-                            {msg.role === 'user' ? (
-                              <p className="text-sm leading-relaxed">{msg.content}</p>
-                            ) : (
-                              <ReactMarkdown 
-                                className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
-                                components={{
-                                  h1: ({children}) => <h1 className="text-base font-semibold text-gray-900 mb-2">{children}</h1>,
-                                  h2: ({children}) => <h2 className="text-sm font-semibold text-gray-900 mb-1.5 mt-3">{children}</h2>,
-                                  h3: ({children}) => <h3 className="text-sm font-semibold text-gray-900 mb-1">{children}</h3>,
-                                  ul: ({children}) => <ul className="space-y-1 my-2 ml-4 list-disc">{children}</ul>,
-                                  ol: ({children}) => <ol className="space-y-1 my-2 ml-4 list-decimal">{children}</ol>,
-                                  li: ({children}) => <li className="text-sm leading-relaxed text-gray-700">{children}</li>,
-                                  p: ({children}) => <p className="text-sm leading-relaxed text-gray-900 my-1.5">{children}</p>,
-                                  strong: ({children}) => <strong className="font-semibold text-gray-900">{children}</strong>,
-                                  code: ({inline, children}) => inline ? (
-                                    <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm text-gray-900">{children}</code>
-                                  ) : (
-                                    <code className="block bg-gray-100 p-3 rounded-lg text-sm my-2 overflow-x-auto">{children}</code>
-                                  ),
-                                  table: ({children}) => <div className="overflow-x-auto my-2"><table className="min-w-full text-sm">{children}</table></div>,
-                                  thead: ({children}) => <thead className="bg-gray-50">{children}</thead>,
-                                  th: ({children}) => <th className="px-3 py-2 text-left font-semibold text-gray-900 border-b">{children}</th>,
-                                  td: ({children}) => <td className="px-3 py-2 text-gray-700 border-b">{children}</td>,
-                                }}
-                              >
-                                {msg.content}
-                              </ReactMarkdown>
+                            {msg.role === 'user' && (
+                              <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0 text-white text-sm font-medium">
+                                U
+                              </div>
                             )}
                           </div>
-                          {msg.role === 'user' && (
-                            <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0 text-white text-sm font-medium">
-                              U
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                        );
+                      })}
 
                       <div ref={scrollRef} />
                     </div>
