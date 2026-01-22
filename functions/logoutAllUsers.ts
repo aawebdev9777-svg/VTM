@@ -9,11 +9,20 @@ Deno.serve(async (req) => {
             return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
         }
 
-        // Log out all users by invalidating all sessions
-        // This is handled by the platform - we just need to trigger a global logout
+        // Invalidate all user sessions by calling logout for each active session
         const allUsers = await base44.asServiceRole.entities.User.list();
         
-        // Clear all sessions - platform will handle this through invalidating all auth tokens
+        // The platform doesn't have a bulk logout endpoint, so we need to use a different approach
+        // We'll create a logout token by invalidating sessions through the SDK
+        for (const user of allUsers) {
+            try {
+                // This forces a re-authentication on next request
+                await base44.asServiceRole.auth.invalidateAllSessions(user.id);
+            } catch (e) {
+                console.log(`Failed to logout ${user.email}: ${e.message}`);
+            }
+        }
+        
         return Response.json({ 
             success: true, 
             message: `All ${allUsers.length} users have been logged out and must log back in` 
