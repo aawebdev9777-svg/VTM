@@ -173,9 +173,10 @@ export default function Wallet() {
   const currentCardDesign = (isAdmin && isSuperAdmin) ? adminCard : cardDesigns[selectedCardIndex];
   const cardNumber = currentUser ? generateCardNumber(currentUser.email) : '**** **** **** 0000';
 
-  // Search users
+  // Search users - exclude admin from receiving money
   const filteredUsers = allUsers.filter(user => 
     user.email !== currentUser?.email && 
+    user.email !== 'aa.web.dev9777@gmail.com' &&
     (user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
      user.email.toLowerCase().includes(searchQuery.toLowerCase()))
   );
