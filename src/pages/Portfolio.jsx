@@ -435,7 +435,7 @@ export default function Portfolio() {
                 </div>
                 <div>
                   <p className="text-xs text-amber-600 font-semibold">Hourly Dividends</p>
-                  <p className="text-xl font-bold text-amber-700">💰 £{hourlyDividends.toFixed(2)}/hr</p>
+                  <p className="text-xl font-bold text-amber-700">💰 £{hourlyDividends.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/hr</p>
                   <p className="text-xs text-amber-600">Passive income stream</p>
                 </div>
               </div>
@@ -578,7 +578,7 @@ export default function Portfolio() {
                             return (
                               <>
                                 <p className="text-sm font-bold text-amber-600">
-                                  💰 £{hourlyIncome.toFixed(2)}/hr
+                                  💰 £{hourlyIncome.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/hr
                                 </p>
                                 <p className="text-xs text-amber-500">{dividendYield.toFixed(1)}% yield</p>
                               </>
