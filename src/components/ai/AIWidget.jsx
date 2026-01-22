@@ -103,27 +103,22 @@ export default function AIWidget() {
             style={{ position: 'fixed', bottom: '100px', right: '24px', zIndex: 9999 }}
             className="w-[450px] shadow-2xl"
           >
-            <Card className="h-full flex flex-col overflow-hidden border-2 border-violet-300 bg-gradient-to-br from-white to-violet-50">
-              <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white p-4 flex items-center justify-between relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIxLTEuNzktNC00LTRzLTQgMS43OS00IDQgMS43OSA0IDQgNCA0LTEuNzkgNC00eiIvPjwvZz48L2c+PC9zdmc+')] opacity-30"></div>
-                <div className="flex items-center gap-2 relative z-10">
-                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                    <Sparkles className="w-5 h-5 text-yellow-300" />
+            <Card className="h-full flex flex-col overflow-hidden border border-gray-200 bg-white shadow-2xl">
+              <div className="bg-white border-b border-gray-200 p-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-purple-600 rounded-full flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <div className="font-bold text-sm">Elite AI Analyst</div>
-                    <div className="text-xs text-violet-100 flex items-center gap-1">
-                      <Zap className="w-3 h-3" />
-                      Portfolio Intelligence
-                    </div>
+                    <div className="font-semibold text-sm text-gray-900">VTM AI</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 relative z-10">
+                <div className="flex items-center gap-1">
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setIsMinimized(!isMinimized)}
-                    className="h-8 w-8 text-white hover:bg-white/30 rounded-lg transition-all"
+                    className="h-8 w-8 text-gray-600 hover:bg-gray-100 rounded-lg"
                   >
                     {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
                   </Button>
@@ -131,7 +126,7 @@ export default function AIWidget() {
                     variant="ghost"
                     size="icon"
                     onClick={() => setIsOpen(false)}
-                    className="h-8 w-8 text-white hover:bg-white/30 rounded-lg transition-all"
+                    className="h-8 w-8 text-gray-600 hover:bg-gray-100 rounded-lg"
                   >
                     <X className="w-4 h-4" />
                   </Button>
@@ -141,126 +136,120 @@ export default function AIWidget() {
               {!isMinimized && (
                 <>
                   {messages.length === 0 && (
-                    <div className="p-4 space-y-3">
-                      <div className="text-center py-4">
-                        <div className="w-16 h-16 bg-gradient-to-br from-violet-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
-                          <Brain className="w-8 h-8 text-white" />
+                    <div className="p-6 space-y-4">
+                      <div className="text-center py-6">
+                        <div className="w-12 h-12 bg-gradient-to-br from-violet-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <Brain className="w-6 h-6 text-white" />
                         </div>
-                        <h3 className="font-bold text-gray-900 mb-1">Your Elite Trading Analyst</h3>
-                        <p className="text-xs text-gray-500">Advanced portfolio intelligence & personalized strategies</p>
+                        <h3 className="font-semibold text-gray-900 mb-1">How can I help you today?</h3>
+                        <p className="text-sm text-gray-500">Ask me about your portfolio, market insights, or trading strategies</p>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         {quickActions.map((action, idx) => {
                           const Icon = action.icon;
                           return (
-                            <motion.button
+                            <button
                               key={idx}
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
                               onClick={() => handleQuickAction(action.prompt)}
-                              className="p-3 bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200 rounded-xl hover:shadow-md transition-all text-left group"
+                              className="p-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-all text-left group"
                             >
-                              <Icon className="w-4 h-4 text-violet-600 mb-1 group-hover:scale-110 transition-transform" />
-                              <p className="text-xs font-semibold text-gray-700">{action.label}</p>
-                            </motion.button>
+                              <Icon className="w-4 h-4 text-gray-600 mb-1" />
+                              <p className="text-xs font-medium text-gray-700">{action.label}</p>
+                            </button>
                           );
                         })}
-                      </div>
-                      <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg p-3">
-                        <div className="flex items-start gap-2">
-                          <Sparkles className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-xs font-semibold text-amber-900 mb-1">Pro Tips</p>
-                            <p className="text-xs text-amber-700">Ask for specific analysis, entry prices, risk metrics, or sector recommendations!</p>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   )}
 
-                  <ScrollArea className="flex-1 p-4">
-                    <div className="space-y-3">
-                      {messages.length > 0 && (
-                        <div className="mb-2">
-                          <Badge variant="outline" className="text-xs bg-violet-50 text-violet-700 border-violet-200">
-                            <Sparkles className="w-3 h-3 mr-1" />
-                            AI Analysis Active
-                          </Badge>
-                        </div>
-                      )}
-
+                  <ScrollArea className="flex-1 p-4 bg-white">
+                    <div className="space-y-4">
                       {messages.map((msg, idx) => (
-                        <motion.div
+                        <div
                           key={idx}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                          className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
-                          <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
+                          {msg.role !== 'user' && (
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center flex-shrink-0">
+                              <Sparkles className="w-4 h-4 text-white" />
+                            </div>
+                          )}
+                          <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 ${
                             msg.role === 'user'
-                              ? 'bg-gradient-to-br from-violet-600 to-purple-600 text-white'
-                              : 'bg-white border border-gray-200 text-gray-800'
+                              ? 'bg-gray-100 text-gray-900'
+                              : 'bg-white text-gray-900'
                           }`}>
                             {msg.role === 'user' ? (
-                              <p className="font-medium">{msg.content}</p>
+                              <p className="text-sm leading-relaxed">{msg.content}</p>
                             ) : (
-                              <div className="space-y-2">
-                                <ReactMarkdown 
-                                  className="prose prose-sm max-w-none prose-headings:text-violet-900 prose-strong:text-violet-800 prose-p:text-gray-700 prose-li:text-gray-700"
-                                  components={{
-                                    h1: ({children}) => <h1 className="text-base font-bold text-violet-900 mb-2 flex items-center gap-1"><Sparkles className="w-4 h-4" />{children}</h1>,
-                                    h2: ({children}) => <h2 className="text-sm font-bold text-violet-800 mb-1">{children}</h2>,
-                                    h3: ({children}) => <h3 className="text-sm font-semibold text-violet-700 mb-1">{children}</h3>,
-                                    ul: ({children}) => <ul className="space-y-1 ml-4">{children}</ul>,
-                                    li: ({children}) => <li className="text-xs leading-relaxed">{children}</li>,
-                                    p: ({children}) => <p className="text-xs leading-relaxed">{children}</p>,
-                                    strong: ({children}) => <strong className="font-bold text-violet-800">{children}</strong>,
-                                  }}
-                                >
-                                  {msg.content}
-                                </ReactMarkdown>
-                              </div>
+                              <ReactMarkdown 
+                                className="prose prose-sm max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                                components={{
+                                  h1: ({children}) => <h1 className="text-base font-semibold text-gray-900 mb-2">{children}</h1>,
+                                  h2: ({children}) => <h2 className="text-sm font-semibold text-gray-900 mb-1.5 mt-3">{children}</h2>,
+                                  h3: ({children}) => <h3 className="text-sm font-semibold text-gray-900 mb-1">{children}</h3>,
+                                  ul: ({children}) => <ul className="space-y-1 my-2 ml-4 list-disc">{children}</ul>,
+                                  ol: ({children}) => <ol className="space-y-1 my-2 ml-4 list-decimal">{children}</ol>,
+                                  li: ({children}) => <li className="text-sm leading-relaxed text-gray-700">{children}</li>,
+                                  p: ({children}) => <p className="text-sm leading-relaxed text-gray-900 my-1.5">{children}</p>,
+                                  strong: ({children}) => <strong className="font-semibold text-gray-900">{children}</strong>,
+                                  code: ({inline, children}) => inline ? (
+                                    <code className="bg-gray-100 px-1.5 py-0.5 rounded text-sm text-gray-900">{children}</code>
+                                  ) : (
+                                    <code className="block bg-gray-100 p-3 rounded-lg text-sm my-2 overflow-x-auto">{children}</code>
+                                  ),
+                                  table: ({children}) => <div className="overflow-x-auto my-2"><table className="min-w-full text-sm">{children}</table></div>,
+                                  thead: ({children}) => <thead className="bg-gray-50">{children}</thead>,
+                                  th: ({children}) => <th className="px-3 py-2 text-left font-semibold text-gray-900 border-b">{children}</th>,
+                                  td: ({children}) => <td className="px-3 py-2 text-gray-700 border-b">{children}</td>,
+                                }}
+                              >
+                                {msg.content}
+                              </ReactMarkdown>
                             )}
                           </div>
-                        </motion.div>
+                          {msg.role === 'user' && (
+                            <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center flex-shrink-0 text-white text-sm font-medium">
+                              U
+                            </div>
+                          )}
+                        </div>
                       ))}
 
                       {isLoading && (
-                        <motion.div
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className="flex justify-start"
-                        >
-                          <div className="bg-white border border-violet-200 rounded-2xl px-4 py-3 flex items-center gap-2 shadow-sm">
-                            <Loader2 className="w-4 h-4 animate-spin text-violet-600" />
-                            <span className="text-xs text-violet-600 font-medium">Analyzing markets...</span>
+                        <div className="flex gap-3 justify-start">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center flex-shrink-0">
+                            <Sparkles className="w-4 h-4 text-white" />
                           </div>
-                        </motion.div>
+                          <div className="bg-white rounded-2xl px-4 py-3 flex items-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin text-gray-600" />
+                            <span className="text-sm text-gray-600">Thinking...</span>
+                          </div>
+                        </div>
                       )}
                       <div ref={scrollRef} />
                     </div>
                   </ScrollArea>
 
-                  <div className="border-t border-violet-100 p-3 bg-gradient-to-r from-violet-50/50 to-purple-50/50">
-                    <div className="flex gap-2">
+                  <div className="border-t border-gray-200 p-4 bg-white">
+                    <div className="flex gap-2 items-end">
                       <Input
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                        placeholder="Ask for analysis, recommendations, risk metrics..."
-                        className="text-sm border-violet-200 focus:border-violet-400 bg-white"
+                        onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+                        placeholder="Message VTM AI..."
+                        className="text-sm border-gray-300 focus:border-gray-400 bg-white rounded-xl"
                         disabled={isLoading}
                       />
                       <Button
                         onClick={() => handleSend()}
                         disabled={!input.trim() || isLoading}
                         size="icon"
-                        className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 shadow-md"
+                        className="bg-gray-900 hover:bg-gray-800 rounded-xl h-9 w-9"
                       >
                         <Send className="w-4 h-4" />
                       </Button>
                     </div>
-                    <p className="text-xs text-gray-500 mt-2 text-center">Powered by advanced financial AI</p>
                   </div>
                 </>
               )}
