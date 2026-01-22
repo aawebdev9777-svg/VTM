@@ -59,10 +59,10 @@ export default function Layout({ children, currentPageName }) {
   const handleLogout = async () => {
     try {
       await base44.auth.logout();
-      window.location.reload();
+      await base44.auth.redirectToLogin();
     } catch (error) {
       console.error('Logout error:', error);
-      window.location.reload();
+      await base44.auth.redirectToLogin();
     }
   };
 
