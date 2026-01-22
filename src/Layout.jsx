@@ -44,7 +44,6 @@ export default function Layout({ children, currentPageName }) {
       { name: 'Transactions', href: createPageUrl('Transactions'), icon: History },
       { name: 'Leaderboard', href: createPageUrl('Leaderboard'), icon: Trophy },
       { name: 'Wallet', href: createPageUrl('Wallet'), icon: Wallet },
-      { name: 'Sheet', href: createPageUrl('Sheet'), icon: Wallet },
       { name: 'Settings', href: createPageUrl('Settings'), icon: User },
       ...(isAdmin ? [{ name: 'Admin', href: createPageUrl('Admin'), icon: Shield }] : []),
     ];
