@@ -51,7 +51,10 @@ export default function AIWidget() {
 
     const unsubscribe = base44.agents.subscribeToConversation(conversation.id, (data) => {
       setMessages(data.messages);
-      setIsTyping(false);
+      // Only stop typing if the last message is from assistant
+      if (data.messages.length > 0 && data.messages[data.messages.length - 1].role === 'assistant') {
+        setIsTyping(false);
+      }
       setLastAutoScroll(Date.now());
     });
 
