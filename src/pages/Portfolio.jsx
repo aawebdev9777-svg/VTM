@@ -216,6 +216,27 @@ export default function Portfolio() {
         }
       });
 
+      // Track profit/loss as separate event
+      if (profitLoss > 0) {
+        base44.analytics.track({
+          eventName: 'profit_realized',
+          properties: {
+            symbol: holding.symbol,
+            amount: profitLoss,
+            roi_percent: (profitLoss / costBasis) * 100
+          }
+        });
+      } else if (profitLoss < 0) {
+        base44.analytics.track({
+          eventName: 'loss_realized',
+          properties: {
+            symbol: holding.symbol,
+            amount: Math.abs(profitLoss),
+            loss_percent: (Math.abs(profitLoss) / costBasis) * 100
+          }
+        });
+      }
+
       // Send sell confirmation email
       try {
         await base44.asServiceRole.functions.invoke('sendSellConfirmationEmail', {
