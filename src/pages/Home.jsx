@@ -187,8 +187,8 @@ export default function Home() {
       setMomentum(m => {
         const updated = { ...m };
         for (const symbol in updated) {
-          const trendAdjustment = (Math.random() * 0.1 - 0.05);
-          updated[symbol] = Math.max(-0.5, Math.min(0.5, updated[symbol] + trendAdjustment));
+          const trendAdjustment = (Math.random() * 0.8 - 0.4);
+          updated[symbol] = Math.max(-4, Math.min(4, updated[symbol] + trendAdjustment));
         }
         return updated;
       });
