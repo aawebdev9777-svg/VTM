@@ -15,18 +15,8 @@ Deno.serve(async (req) => {
       // Different yields based on stock characteristics
       let dividendYield;
       
-      // High dividend stocks (blue chips, stable companies)
-      if (['ABPF', 'JPM', 'V', 'WMT', 'CSCO', 'ORCL', 'IBM'].includes(stock.symbol)) {
-        dividendYield = 25 + (Math.random() * 5); // 25-30% per hour
-      }
-      // Medium dividend stocks
-      else if (['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'INTC', 'DIS', 'ADBE', 'CRM'].includes(stock.symbol)) {
-        dividendYield = 20 + (Math.random() * 5); // 20-25% per hour
-      }
-      // Lower dividend stocks (growth stocks)
-      else {
-        dividendYield = 15 + (Math.random() * 5); // 15-20% per hour
-      }
+      // Dynamic dividend yields for all stocks - 7% to 30% range
+      dividendYield = 7 + (Math.random() * 23); // 7-30% per hour
       
       await base44.asServiceRole.entities.StockPrice.update(stock.id, {
         dividend_yield_hourly: parseFloat(dividendYield.toFixed(4))
