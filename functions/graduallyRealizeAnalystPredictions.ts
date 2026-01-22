@@ -26,25 +26,25 @@ Deno.serve(async (req) => {
       
       // ABPF always trends up (super profitable)
       if (stock.symbol === 'ABPF') {
-        predictedTarget = 3.5; // Always gaining 3.5% extra
+        predictedTarget = 5.5; // Always gaining 5.5% extra (higher volatility)
       } else if (ownedSymbols.has(stock.symbol)) {
-        // For other owned stocks, predict based on current change
-        if (dailyChange < -2) {
-          predictedTarget = Math.abs(dailyChange) * 0.75;
-        } else if (dailyChange < -0.8) {
-          predictedTarget = Math.abs(dailyChange) * 0.6;
-        } else if (dailyChange > 1.2) {
-          predictedTarget = dailyChange * 0.65;
-        } else if (dailyChange > 0.4) {
-          predictedTarget = dailyChange * 0.5;
+        // For other owned stocks, predict based on current change with MORE VOLATILITY
+        if (dailyChange < -3) {
+          predictedTarget = Math.abs(dailyChange) * 1.2; // Bigger bounces
+        } else if (dailyChange < -1.5) {
+          predictedTarget = Math.abs(dailyChange) * 0.95;
+        } else if (dailyChange > 2) {
+          predictedTarget = dailyChange * 1.1; // Keep momentum stronger
+        } else if (dailyChange > 0.6) {
+          predictedTarget = dailyChange * 0.75;
         }
       }
       
-      // If we have a target, gradually move toward it with realistic volatility
+      // If we have a target, gradually move toward it with INCREASED volatility
       if (predictedTarget > 0 && dailyChange < predictedTarget) {
-        const step = (predictedTarget - dailyChange) * 0.15;
-        // Add random volatility (-0.3% to +0.5%) for realism
-        const volatility = (Math.random() * 0.8 - 0.3);
+        const step = (predictedTarget - dailyChange) * 0.25; // Faster movement (was 0.15)
+        // Add larger random volatility (-0.7% to +1.2%) for more dramatic swings
+        const volatility = (Math.random() * 1.9 - 0.7);
         const newChange = Math.min(dailyChange + step + volatility, predictedTarget);
         
         const newPrice = stock.price_gbp * (1 + (newChange - dailyChange) / 100);
