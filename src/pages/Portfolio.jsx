@@ -323,10 +323,14 @@ export default function Portfolio() {
   const combinedProfitLossPercent = React.useMemo(() => combinedInvested > 0 ? (combinedProfitLoss / combinedInvested) * 100 : 0, [combinedProfitLoss, combinedInvested]);
   const totalValue = React.useMemo(() => cashBalance + totalPortfolioValue + totalCopyTradeValue, [cashBalance, totalPortfolioValue, totalCopyTradeValue]);
   
-  const totalDividendsEarned = React.useMemo(() => 
-    portfolioWithMetrics.reduce((sum, h) => sum + (h.total_dividends_earned || 0), 0), 
-    [portfolioWithMetrics]
-  );
+  const hourlyDividends = React.useMemo(() => {
+    return portfolioWithMetrics.reduce((sum, h) => {
+      const stockPrice = stockPrices.find(s => s.symbol === h.symbol);
+      const dividendYield = stockPrice?.dividend_yield_hourly || 0;
+      const holdingValue = h.shares * h.currentPrice;
+      return sum + (holdingValue * (dividendYield / 100));
+    }, 0);
+  }, [portfolioWithMetrics, stockPrices]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 md:py-8">
@@ -423,16 +427,16 @@ export default function Portfolio() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50">
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-yellow-50">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                  <Coins className="w-6 h-6 text-green-600" />
+                <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-xl flex items-center justify-center shadow-md">
+                  <Coins className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">Total Dividends</p>
-                  <p className="text-lg font-bold text-green-700">£{totalDividendsEarned.toFixed(2)}/hr</p>
-                  <p className="text-xs text-gray-500">Passive income earned</p>
+                  <p className="text-xs text-amber-600 font-semibold">Hourly Dividends</p>
+                  <p className="text-xl font-bold text-amber-700">💰 £{hourlyDividends.toFixed(2)}/hr</p>
+                  <p className="text-xs text-amber-600">Passive income stream</p>
                 </div>
               </div>
             </CardContent>
@@ -566,10 +570,20 @@ export default function Portfolio() {
                       </td>
                       <td className="text-right py-4 px-4">
                         <div className="flex flex-col items-end">
-                          <p className="text-sm font-semibold text-green-600">
-                            💰 £{(holding.total_dividends_earned || 0).toFixed(2)}
-                          </p>
-                          <p className="text-xs text-gray-500">earned</p>
+                          {(() => {
+                            const stockPrice = stockPrices.find(s => s.symbol === holding.symbol);
+                            const dividendYield = stockPrice?.dividend_yield_hourly || 0;
+                            const holdingValue = holding.shares * holding.currentPrice;
+                            const hourlyIncome = holdingValue * (dividendYield / 100);
+                            return (
+                              <>
+                                <p className="text-sm font-bold text-amber-600">
+                                  💰 £{hourlyIncome.toFixed(2)}/hr
+                                </p>
+                                <p className="text-xs text-amber-500">{dividendYield.toFixed(1)}% yield</p>
+                              </>
+                            );
+                          })()}
                         </div>
                       </td>
                       <td className="text-right py-4 px-4">
