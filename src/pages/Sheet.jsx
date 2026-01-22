@@ -1,28 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileSpreadsheet, Loader2, CheckCircle2, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Sheet() {
-  const navigate = useNavigate();
   const [dateRange, setDateRange] = useState('all');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const user = await base44.auth.me();
-      if (user?.email === 'aa.web.dev9777@gmail.com') {
-        await base44.auth.logout('/');
-      }
-    };
-    checkUser();
-  }, []);
 
   const handleExport = async () => {
     setIsLoading(true);

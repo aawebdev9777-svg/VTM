@@ -13,67 +13,68 @@ Deno.serve(async (req) => {
       return Response.json({ success: true });
     }
 
-    try {
-      const accessToken = await base44.asServiceRole.connectors.getAccessToken('googlesheets');
-      const auth = new google.auth.OAuth2();
-      auth.setCredentials({ access_token: accessToken });
-      const sheets = google.sheets({ version: 'v4', auth });
+    const accessToken = await base44.asServiceRole.connectors.getAccessToken('googlesheets');
+    const sheets = google.sheets({ version: 'v4', auth: new google.auth.OAuth2() });
+    sheets.setCredentials({ access_token: accessToken });
 
-      let spreadsheetId = Deno.env.get('TRADING_LOG_SHEET_ID');
+    let spreadsheetId = Deno.env.get('TRADING_LOG_SHEET_ID');
 
-      if (!spreadsheetId) {
-        const spreadsheetRes = await sheets.spreadsheets.create({
-          requestBody: {
-            properties: { title: 'Trading Log - Master Sheet' }
-          }
-        });
-        spreadsheetId = spreadsheetRes.data.spreadsheetId;
-
-        // Add headers
-        await sheets.spreadsheets.values.update({
-          spreadsheetId,
-          range: 'Sheet1!A1',
-          valueInputOption: 'RAW',
-          requestBody: {
-            values: [[
-              'Timestamp',
-              'User Email',
-              'Type',
-              'Symbol',
-              'Company',
-              'Shares',
-              'Price per Share',
-              'Total Amount'
-            ]]
-          }
-        });
-      }
-
-      // Append transaction
-      const row = [
-        new Date(data.created_date).toISOString(),
-        data.created_by,
-        data.type,
-        data.symbol,
-        data.company_name,
-        data.shares,
-        data.price_per_share,
-        data.total_amount
-      ];
-
-      await sheets.spreadsheets.values.append({
-        spreadsheetId,
-        range: 'Sheet1',
-        valueInputOption: 'RAW',
-        requestBody: { values: [row] }
+    if (!spreadsheetId) {
+      const spreadsheetRes = await sheets.spreadsheets.create({
+        requestBody: {
+          properties: { title: 'Trading Log - Master Sheet' }
+        }
       });
-    } catch (sheetError) {
-      console.error('Sheet logging failed silently:', sheetError.message);
+      spreadsheetId = spreadsheetRes.data.spreadsheetId;
+      
+      // Store for future use
+      await base44.asServiceRole.entities.AppConfig.create({
+        key: 'trading_log_sheet_id',
+        value: spreadsheetId
+      }).catch(() => {});
+
+      // Add headers
+      await sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: 'Sheet1!A1',
+        valueInputOption: 'RAW',
+        requestBody: {
+          values: [[
+            'Timestamp',
+            'User Email',
+            'Type',
+            'Symbol',
+            'Company',
+            'Shares',
+            'Price per Share',
+            'Total Amount'
+          ]]
+        }
+      });
     }
 
-    return Response.json({ success: true });
+    // Append transaction
+    const row = [
+      new Date(data.created_date).toISOString(),
+      data.created_by,
+      data.type,
+      data.symbol,
+      data.company_name,
+      data.shares,
+      data.price_per_share,
+      data.total_amount
+    ];
+
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: 'Sheet1',
+      valueInputOption: 'RAW',
+      requestBody: { values: [row] }
+    });
+
+    return Response.json({ success: true, spreadsheetId });
   } catch (error) {
-    console.error('Transaction processing error:', error);
-    return Response.json({ success: true });
+    console.error('Log transaction error:', error);
+    return Response.json({ error: error.message }, { status: 500 });
   }
 });
