@@ -14,7 +14,6 @@ import RealtimeAnalyticsDashboard from '../components/admin/RealtimeAnalyticsDas
 export default function Admin() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [leaderboardPage, setLeaderboardPage] = useState(0);
   const queryClient = useQueryClient();
 
   useEffect(() => {
