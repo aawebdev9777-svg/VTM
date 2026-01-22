@@ -7,16 +7,24 @@ Deno.serve(async (req) => {
     // Get all portfolios
     const portfolios = await base44.asServiceRole.entities.Portfolio.list();
     const stockPrices = await base44.asServiceRole.entities.StockPrice.list();
+    const userAccounts = await base44.asServiceRole.entities.UserAccount.list();
     
-    // Create a map of stock symbols to their dividend yields
+    // Create maps for efficient lookup
     const dividendMap = {};
     stockPrices.forEach(stock => {
       dividendMap[stock.symbol] = stock.dividend_yield_hourly || 0;
     });
     
+    const accountMap = {};
+    userAccounts.forEach(acc => {
+      accountMap[acc.created_by] = acc;
+    });
+    
     // Process each portfolio holding
     let totalPayouts = 0;
     const updates = [];
+    const portfolioUpdates = [];
+    const accountUpdates = {};
     
     for (const holding of portfolios) {
       const dividendYield = dividendMap[holding.symbol] || 0;
@@ -28,22 +36,20 @@ Deno.serve(async (req) => {
         const holdingValue = holding.shares * currentPrice;
         const dividendAmount = holdingValue * (dividendYield / 100);
         
-        // Update portfolio with new total dividends
-        const newTotalDividends = (holding.total_dividends_earned || 0) + dividendAmount;
-        await base44.asServiceRole.entities.Portfolio.update(holding.id, {
-          total_dividends_earned: newTotalDividends
-        });
+        // Queue portfolio update
+        portfolioUpdates.push(
+          base44.asServiceRole.entities.Portfolio.update(holding.id, {
+            total_dividends_earned: (holding.total_dividends_earned || 0) + dividendAmount
+          })
+        );
         
-        // Get user account and add dividend to cash balance
-        const userAccounts = await base44.asServiceRole.entities.UserAccount.filter({
-          created_by: holding.created_by
-        });
-        
-        if (userAccounts.length > 0) {
-          const account = userAccounts[0];
-          await base44.asServiceRole.entities.UserAccount.update(account.id, {
-            cash_balance: account.cash_balance + dividendAmount
-          });
+        // Queue account update
+        const account = accountMap[holding.created_by];
+        if (account) {
+          if (!accountUpdates[account.id]) {
+            accountUpdates[account.id] = { account, total: 0 };
+          }
+          accountUpdates[account.id].total += dividendAmount;
           
           totalPayouts += dividendAmount;
           updates.push({
@@ -54,6 +60,17 @@ Deno.serve(async (req) => {
         }
       }
     }
+    
+    // Execute all portfolio updates in parallel
+    await Promise.all(portfolioUpdates);
+    
+    // Execute all account updates in parallel
+    const accountUpdatePromises = Object.entries(accountUpdates).map(([accountId, { account, total }]) =>
+      base44.asServiceRole.entities.UserAccount.update(accountId, {
+        cash_balance: account.cash_balance + total
+      })
+    );
+    await Promise.all(accountUpdatePromises);
     
     return Response.json({ 
       success: true, 
