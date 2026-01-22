@@ -316,6 +316,11 @@ export default function Leaderboard() {
                       }`}>
                         {(trader.percentageReturn || 0) >= 0 ? '+' : ''}{(trader.percentageReturn || 0).toFixed(2)}%
                       </p>
+                      <div className="flex items-center justify-end gap-1 mt-1">
+                        <p className="text-xs font-bold text-amber-600">
+                          💰 £{(trader.hourlyDividends || 0).toFixed(2)}/hr
+                        </p>
+                      </div>
                       <p className="text-xs text-gray-400 mt-1">
                         Cash: £{(trader.balance || 0).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} • 
                         Stocks: £{(trader.portfolioValue || 0).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} • 
