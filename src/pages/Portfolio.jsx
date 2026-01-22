@@ -287,6 +287,17 @@ export default function Portfolio() {
       });
     },
     onSuccess: () => {
+      // Track copy trade stop event
+      base44.analytics.track({
+        eventName: 'copy_trade_stopped',
+        properties: {
+          leader_email: copyTrade.leader_email,
+          investment_amount: copyTrade.investment_amount,
+          final_value: currentValue,
+          profit_loss: currentValue - copyTrade.investment_amount
+        }
+      });
+
       queryClient.invalidateQueries({ queryKey: ['myCopyTrades', currentUser?.email] });
       queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] });
       queryClient.invalidateQueries({ queryKey: ['recentTransactions'] });
