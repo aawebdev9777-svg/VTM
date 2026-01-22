@@ -52,13 +52,9 @@ export default function Layout({ children, currentPageName }) {
     return currentPageName === pageName;
   };
 
-  const handleLogout = async () => {
-    try {
-      await base44.auth.logout(createPageUrl('Home'));
-    } catch (error) {
-      console.error('Logout failed:', error);
-      window.location.href = createPageUrl('Home');
-    }
+  const handleLogout = () => {
+    base44.auth.logout();
+    navigate(createPageUrl('Home'));
   };
 
   return (
