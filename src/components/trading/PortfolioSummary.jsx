@@ -3,14 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, Wallet, PiggyBank, Coins } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function PortfolioSummary({ cashBalance, portfolioValue, initialBalance = 10000, leaderboard = [], currentUserEmail }) {
+export default function PortfolioSummary({ cashBalance, portfolioValue, initialBalance = 10000, hourlyDividends = 0 }) {
   const totalValue = cashBalance + portfolioValue;
   const totalReturn = totalValue - initialBalance;
   const returnPercentage = initialBalance > 0 ? (totalReturn / initialBalance) * 100 : 0;
   const isProfit = returnPercentage >= 0;
-  
-  const currentUserData = leaderboard.find(u => u.email === currentUserEmail);
-  const hourlyDividends = currentUserData?.hourlyDividends || 0;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">

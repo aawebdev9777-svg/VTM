@@ -205,6 +205,15 @@ export default function Home() {
     return sum + currentValue;
   }, 0);
 
+  // Calculate hourly dividends
+  const hourlyDividends = portfolio.reduce((sum, holding) => {
+    const stockPrice = stockPrices.find(s => s.symbol === holding.symbol);
+    const dividendYield = stockPrice?.dividend_yield_hourly || 0;
+    const currentPrice = currentPrices[holding.symbol] || holding.average_buy_price;
+    const holdingValue = holding.shares * currentPrice;
+    return sum + (holdingValue * (dividendYield / 100));
+  }, 0);
+
   if (accountLoading || portfolioLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -257,8 +266,7 @@ export default function Home() {
           cashBalance={account?.cash_balance || 0}
           portfolioValue={portfolioValue + copyTradeValue}
           initialBalance={account?.initial_balance || account?.cash_balance || 10000}
-          leaderboard={leaderboard}
-          currentUserEmail={currentUser?.email}
+          hourlyDividends={hourlyDividends}
         />
       </div>
 
