@@ -116,6 +116,20 @@ export default function Admin() {
     refetchInterval: 2000,
   });
 
+  const { data: allStockPrices = [] } = useQuery({
+    queryKey: ['allStockPrices'],
+    queryFn: async () => {
+      try {
+        const response = await base44.functions.invoke('getUpdatedPrices', {});
+        return response.data?.prices || [];
+      } catch {
+        return base44.asServiceRole.entities.StockPrice.list();
+      }
+    },
+    enabled: isAdmin,
+    refetchInterval: 5000,
+  });
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
