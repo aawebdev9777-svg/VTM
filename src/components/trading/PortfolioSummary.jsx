@@ -80,7 +80,7 @@ export default function PortfolioSummary({ cashBalance, portfolioValue, initialB
           </CardHeader>
           <CardContent className="relative z-10">
             <p className="text-2xl md:text-3xl font-bold">
-              💰 £{hourlyDividends.toFixed(2)}/hr
+              💰 £{hourlyDividends.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/hr
             </p>
             <p className="text-xs md:text-sm opacity-75 mt-1">
               £{totalValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} total
