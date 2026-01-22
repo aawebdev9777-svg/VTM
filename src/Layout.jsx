@@ -51,7 +51,12 @@ export default function Layout({ children, currentPageName }) {
   };
 
   const handleLogout = async () => {
-    base44.auth.logout();
+    try {
+      await base44.auth.logout(createPageUrl('Home'));
+    } catch (error) {
+      console.error('Logout failed:', error);
+      window.location.href = createPageUrl('Home');
+    }
   };
 
   return (
