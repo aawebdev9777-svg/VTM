@@ -16,8 +16,8 @@ Deno.serve(async (req) => {
     }
 
     // Get sender account
-    const senderAccounts = await base44.entities.UserAccount.list();
-    if (senderAccounts.length === 0) {
+    const senderAccounts = await base44.entities.UserAccount.filter({ created_by: user.email });
+    if (!senderAccounts || senderAccounts.length === 0) {
       return Response.json({ error: 'Sender account not found' }, { status: 404 });
     }
     const senderAccount = senderAccounts[0];
@@ -28,13 +28,13 @@ Deno.serve(async (req) => {
 
     // Get recipient account
     const recipientAccounts = await base44.asServiceRole.entities.UserAccount.filter({ created_by: recipientEmail });
-    if (recipientAccounts.length === 0) {
+    if (!recipientAccounts || recipientAccounts.length === 0) {
       return Response.json({ error: 'Recipient account not found' }, { status: 404 });
     }
     const recipientAccount = recipientAccounts[0];
 
     // Perform FULL transfer (100% of amount)
-    await base44.asServiceRole.entities.UserAccount.update(senderAccount.id, {
+    await base44.entities.UserAccount.update(senderAccount.id, {
       cash_balance: senderAccount.cash_balance - amount
     });
 
@@ -43,8 +43,7 @@ Deno.serve(async (req) => {
     });
 
     // Create transaction records for both sender and recipient
-    await base44.asServiceRole.entities.Transaction.create({
-      created_by: user.email,
+    await base44.entities.Transaction.create({
       symbol: 'TRANSFER',
       company_name: `Sent to ${recipientEmail.split('@')[0]}`,
       type: 'sell',
