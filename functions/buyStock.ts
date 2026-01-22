@@ -142,6 +142,11 @@ Deno.serve(async (req) => {
       total_amount: parseFloat((totalCostPennies / 100).toFixed(2))
     });
 
+    // Track event for analytics
+    await base44.asServiceRole.integrations.Core.InvokeLLM({
+      prompt: `Track a stock purchase event: ${shares} shares of ${stock.symbol.toUpperCase()} at £${(pricePennies / 100).toFixed(2)} per share for total £${(totalCostPennies / 100).toFixed(2)}`
+    }).catch(() => {});
+
     // Update stock price cache
     const existingPrice = await base44.asServiceRole.entities.StockPrice.filter({ 
       symbol: stock.symbol.toUpperCase() 
