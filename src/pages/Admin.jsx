@@ -158,7 +158,11 @@ export default function Admin() {
   const userStats = nonAdminUsers.map(user => {
     const userAccount = allAccounts.find(acc => acc.created_by === user.email);
     const userPortfolio = allPortfolios.filter(p => p.created_by === user.email);
-    const portfolioValue = userPortfolio.reduce((sum, p) => sum + (p.shares * p.average_buy_price), 0);
+    const portfolioValue = userPortfolio.reduce((sum, p) => {
+      const stockPrice = allStockPrices.find(s => s.symbol === p.symbol);
+      const currentPrice = stockPrice?.price_gbp || p.average_buy_price;
+      return sum + (p.shares * currentPrice);
+    }, 0);
     const totalValue = (userAccount?.cash_balance || 10000) + portfolioValue;
     const profitLoss = totalValue - 10000;
     const profitPercent = (profitLoss / 10000) * 100;
