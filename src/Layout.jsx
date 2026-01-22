@@ -13,6 +13,7 @@ import {
   History, 
   TrendingUp, 
   LogOut,
+  LogIn,
   User,
   Wallet,
   Shield,
