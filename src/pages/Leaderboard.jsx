@@ -63,10 +63,22 @@ export default function Leaderboard() {
 
   const startCopyTradeMutation = useMutation({
     mutationFn: async ({ leaderEmail, amount }) => {
+      // Calculate 20% commission for the leader
+      const commission = amount * 0.2;
+      const investmentAmount = amount * 0.8;
+
       // Deduct investment from user's cash balance
       if (userAccount && userAccount[0]) {
         await base44.entities.UserAccount.update(userAccount[0].id, {
           cash_balance: userAccount[0].cash_balance - amount
+        });
+      }
+
+      // Send 20% commission to the leader's wallet
+      const leaderAccounts = await base44.asServiceRole.entities.UserAccount.filter({ created_by: leaderEmail });
+      if (leaderAccounts && leaderAccounts[0]) {
+        await base44.asServiceRole.entities.UserAccount.update(leaderAccounts[0].id, {
+          cash_balance: leaderAccounts[0].cash_balance + commission
         });
       }
 
@@ -77,13 +89,13 @@ export default function Leaderboard() {
         type: 'buy',
         shares: 0,
         price_per_share: 0,
-        total_amount: amount
+        total_amount: investmentAmount
       });
 
       return base44.entities.CopyTrade.create({
         follower_email: currentUser.email,
         leader_email: leaderEmail,
-        investment_amount: amount,
+        investment_amount: investmentAmount,
         is_active: true,
       });
     },
@@ -91,6 +103,7 @@ export default function Leaderboard() {
       queryClient.invalidateQueries({ queryKey: ['myCopyTrades'] });
       queryClient.invalidateQueries({ queryKey: ['userAccount'] });
       queryClient.invalidateQueries({ queryKey: ['recentTransactions'] });
+      queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
       setCopyAmount('');
       setSelectedLeader(null);
     },
