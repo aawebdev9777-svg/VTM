@@ -243,10 +243,26 @@ export default function AIWidget() {
                                       ) : (
                                         <code className="block bg-gray-100 p-3 rounded-lg text-sm my-2 overflow-x-auto">{children}</code>
                                       ),
-                                      table: ({children}) => <div className="overflow-x-auto my-2"><table className="min-w-full text-sm">{children}</table></div>,
+                                      table: ({children}) => (
+                                        <div className="overflow-x-auto my-3 border border-gray-200 rounded-lg">
+                                          <table className="min-w-full divide-y divide-gray-200 text-xs">
+                                            {children}
+                                          </table>
+                                        </div>
+                                      ),
                                       thead: ({children}) => <thead className="bg-gray-50">{children}</thead>,
-                                      th: ({children}) => <th className="px-3 py-2 text-left font-semibold text-gray-900 border-b">{children}</th>,
-                                      td: ({children}) => <td className="px-3 py-2 text-gray-700 border-b">{children}</td>,
+                                      tbody: ({children}) => <tbody className="bg-white divide-y divide-gray-200">{children}</tbody>,
+                                      tr: ({children}) => <tr className="hover:bg-gray-50">{children}</tr>,
+                                      th: ({children}) => (
+                                        <th className="px-3 py-2 text-left text-xs font-semibold text-gray-900 uppercase tracking-wider">
+                                          {children}
+                                        </th>
+                                      ),
+                                      td: ({children}) => (
+                                        <td className="px-3 py-2 text-xs text-gray-700 whitespace-nowrap">
+                                          {children}
+                                        </td>
+                                      ),
                                     }}
                                   >
                                     {contentToDisplay}
