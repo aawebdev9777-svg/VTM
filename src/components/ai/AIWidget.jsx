@@ -107,7 +107,7 @@ export default function AIWidget() {
 
   const handleSend = async (message) => {
     const messageToSend = message || input;
-    if (!messageToSend.trim() || !conversation || isLoading) return;
+    if (!messageToSend.trim() || !conversation) return;
 
     setInput('');
 
