@@ -43,7 +43,8 @@ export default function Leaderboard() {
       const response = await base44.functions.invoke('getLeaderboard', {});
       return response.data.leaderboard || [];
     },
-    refetchInterval: 5000,
+    refetchInterval: 2000,
+    staleTime: 0,
   });
 
   const { data: myCopyTrades = [] } = useQuery({
