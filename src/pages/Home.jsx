@@ -257,6 +257,8 @@ export default function Home() {
           cashBalance={account?.cash_balance || 0}
           portfolioValue={portfolioValue + copyTradeValue}
           initialBalance={account?.initial_balance || account?.cash_balance || 10000}
+          leaderboard={leaderboard}
+          currentUserEmail={currentUser?.email}
         />
       </div>
 
