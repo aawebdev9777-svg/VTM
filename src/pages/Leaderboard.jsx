@@ -107,6 +107,10 @@ export default function Leaderboard() {
       setCopyAmount('');
       setSelectedLeader(null);
     },
+    onError: (error) => {
+      console.error('Copy trade failed:', error);
+      alert(`Failed to start copy trading: ${error.message}`);
+    },
   });
 
   const { data: posts = [] } = useQuery({
