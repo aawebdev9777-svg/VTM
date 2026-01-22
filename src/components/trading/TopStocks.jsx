@@ -189,6 +189,11 @@ export default function TopStocks({ onSelectStock }) {
                     <div className="font-bold text-gray-900 text-sm">{stock.symbol}</div>
                     <div className="text-xs text-gray-500 truncate">{stock.name}</div>
                   </div>
+                  {stockPrices.find(s => s.symbol === stock.symbol)?.dividend_yield_hourly > 0 && (
+                    <div className="ml-1 px-1.5 py-0.5 bg-green-100 rounded text-xs font-semibold text-green-700">
+                      💰 {(stockPrices.find(s => s.symbol === stock.symbol)?.dividend_yield_hourly || 0).toFixed(2)}%/hr
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-end justify-between">

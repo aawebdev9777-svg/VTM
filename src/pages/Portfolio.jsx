@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Briefcase, TrendingUp, TrendingDown, DollarSign, Percent, Loader2 } from 'lucide-react';
+import { Briefcase, TrendingUp, TrendingDown, DollarSign, Percent, Loader2, Coins } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Portfolio() {
@@ -322,6 +322,11 @@ export default function Portfolio() {
   const combinedProfitLoss = React.useMemo(() => (totalPortfolioValue - totalCostBasis) + totalCopyTradePL, [totalPortfolioValue, totalCostBasis, totalCopyTradePL]);
   const combinedProfitLossPercent = React.useMemo(() => combinedInvested > 0 ? (combinedProfitLoss / combinedInvested) * 100 : 0, [combinedProfitLoss, combinedInvested]);
   const totalValue = React.useMemo(() => cashBalance + totalPortfolioValue + totalCopyTradeValue, [cashBalance, totalPortfolioValue, totalCopyTradeValue]);
+  
+  const totalDividendsEarned = React.useMemo(() => 
+    portfolioWithMetrics.reduce((sum, h) => sum + (h.total_dividends_earned || 0), 0), 
+    [portfolioWithMetrics]
+  );
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 md:py-8">
@@ -340,7 +345,7 @@ export default function Portfolio() {
       </motion.div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <Card className="border-0 shadow-lg">
             <CardContent className="p-6">
@@ -412,6 +417,23 @@ export default function Portfolio() {
                   {combinedProfitLossPercent >= 0 ? '+' : ''}{combinedProfitLossPercent.toFixed(2)}%
                 </p>
               </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+          <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                  <Coins className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-600">Total Dividends</p>
+                  <p className="text-lg font-bold text-green-700">£{totalDividendsEarned.toFixed(2)}/hr</p>
+                  <p className="text-xs text-gray-500">Passive income earned</p>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -516,6 +538,7 @@ export default function Portfolio() {
                     <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Avg Cost</th>
                     <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Current</th>
                     <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Value</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Dividends</th>
                     <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">P/L</th>
                     <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Action</th>
                     </tr>
@@ -540,6 +563,14 @@ export default function Portfolio() {
                       <td className="text-right py-4 px-4 text-gray-900">£{holding.currentPrice?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                       <td className="text-right py-4 px-4 font-medium text-gray-900">
                         £{holding.currentValue?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </td>
+                      <td className="text-right py-4 px-4">
+                        <div className="flex flex-col items-end">
+                          <p className="text-sm font-semibold text-green-600">
+                            💰 £{(holding.total_dividends_earned || 0).toFixed(2)}
+                          </p>
+                          <p className="text-xs text-gray-500">earned</p>
+                        </div>
                       </td>
                       <td className="text-right py-4 px-4">
                         <div className="flex flex-col items-end gap-1">
