@@ -63,41 +63,11 @@ export default function Leaderboard() {
 
   const startCopyTradeMutation = useMutation({
     mutationFn: async ({ leaderEmail, amount }) => {
-      // Calculate 20% commission for the leader
-      const commission = amount * 0.2;
-      const investmentAmount = amount * 0.8;
-
-      // Deduct investment from user's cash balance
-      if (userAccount && userAccount[0]) {
-        await base44.entities.UserAccount.update(userAccount[0].id, {
-          cash_balance: userAccount[0].cash_balance - amount
-        });
-      }
-
-      // Send 20% commission to the leader's wallet
-      const leaderAccounts = await base44.asServiceRole.entities.UserAccount.filter({ created_by: leaderEmail });
-      if (leaderAccounts && leaderAccounts[0]) {
-        await base44.asServiceRole.entities.UserAccount.update(leaderAccounts[0].id, {
-          cash_balance: leaderAccounts[0].cash_balance + commission
-        });
-      }
-
-      // Create transaction record for copy trade
-      await base44.entities.Transaction.create({
-        symbol: 'COPY',
-        company_name: `Copy Trading - ${leaderEmail.split('@')[0]}`,
-        type: 'buy',
-        shares: 0,
-        price_per_share: 0,
-        total_amount: investmentAmount
+      const response = await base44.functions.invoke('startCopyTrade', {
+        leaderEmail,
+        amount: parseFloat(amount)
       });
-
-      return base44.entities.CopyTrade.create({
-        follower_email: currentUser.email,
-        leader_email: leaderEmail,
-        investment_amount: investmentAmount,
-        is_active: true,
-      });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myCopyTrades'] });
@@ -109,7 +79,7 @@ export default function Leaderboard() {
     },
     onError: (error) => {
       console.error('Copy trade failed:', error);
-      alert(`Failed to start copy trading: ${error.message}`);
+      alert(`Failed to start copy trading: ${error.response?.data?.error || error.message}`);
     },
   });
 
