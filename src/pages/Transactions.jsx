@@ -19,7 +19,13 @@ export default function Transactions() {
 
   const { data: transactions = [], isLoading } = useQuery({
     queryKey: ['transactions', currentUser?.email],
-    queryFn: () => base44.entities.Transaction.filter({ created_by: currentUser?.email }, '-created_date', 50),
+    queryFn: async () => {
+      if (!currentUser?.email) return [];
+      const userTxns = await base44.entities.Transaction.filter({ created_by: currentUser?.email }, '-created_date', 50);
+      const receivedTxns = await base44.asServiceRole.entities.Transaction.filter({ created_by: currentUser?.email }, '-created_date', 50);
+      const combined = [...userTxns, ...receivedTxns];
+      return combined.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)).slice(0, 50);
+    },
     enabled: !!currentUser?.email,
     refetchInterval: 3000,
   });
