@@ -100,7 +100,8 @@ export default function AIWidget() {
               height: isMinimized ? '60px' : '600px'
             }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-24 right-6 z-50 w-[450px] shadow-2xl"
+            style={{ position: 'fixed', bottom: '100px', right: '24px', zIndex: 9999 }}
+            className="w-[450px] shadow-2xl"
           >
             <Card className="h-full flex flex-col overflow-hidden border-2 border-violet-300 bg-gradient-to-br from-white to-violet-50">
               <div className="bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white p-4 flex items-center justify-between relative overflow-hidden">
@@ -272,7 +273,8 @@ export default function AIWidget() {
         whileHover={{ scale: 1.05, rotate: 5 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 w-16 h-16 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 text-white rounded-2xl shadow-2xl flex items-center justify-center hover:shadow-violet-400/50 transition-all relative overflow-hidden group"
+        style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999 }}
+        className="w-16 h-16 bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-600 text-white rounded-2xl shadow-2xl flex items-center justify-center hover:shadow-violet-400/50 transition-all relative overflow-hidden group"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-white/20 group-hover:from-white/10 group-hover:to-white/30 transition-all"></div>
         <Sparkles className="w-7 h-7 relative z-10 group-hover:rotate-12 transition-transform" />
