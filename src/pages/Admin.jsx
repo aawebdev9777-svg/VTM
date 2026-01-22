@@ -516,76 +516,7 @@ export default function Admin() {
         </Card>
       </div>
 
-      {/* Leaderboard */}
-      <Card className="border-0 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Award className="w-5 h-5 text-amber-500" />
-            Top Traders Leaderboard
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {userStats.length === 0 ? (
-            <p className="text-center py-8 text-gray-500">No users yet</p>
-          ) : (
-            <div className="space-y-3">
-              {userStats.slice(leaderboardPage * 10, (leaderboardPage + 1) * 10).map((user, index) => (
-                <motion.div
-                  key={user.email}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-gray-50 to-white border border-gray-100"
-                  >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
-                      leaderboardPage * 10 + index === 0 ? 'bg-amber-400 text-white' :
-                      leaderboardPage * 10 + index === 1 ? 'bg-gray-300 text-gray-700' :
-                      leaderboardPage * 10 + index === 2 ? 'bg-amber-600 text-white' :
-                      'bg-gray-100 text-gray-600'
-                    }`}>
-                      {leaderboardPage * 10 + index + 1}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">{user.name}</p>
-                      <p className="text-xs text-gray-500">{user.trades} trades</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-gray-900">
-                      £{user.totalValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
-                    <Badge variant={user.profitLoss >= 0 ? 'default' : 'destructive'} className="text-xs">
-                      {user.profitLoss >= 0 ? '+' : ''}{user.profitPercent.toFixed(2)}%
-                    </Badge>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-          {userStats.length > 10 && (
-            <div className="flex justify-between items-center mt-4 pt-4 border-t">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLeaderboardPage(p => Math.max(0, p - 1))}
-                disabled={leaderboardPage === 0}
-              >
-                Previous
-              </Button>
-              <span className="text-xs text-gray-500">Page {leaderboardPage + 1} of {Math.ceil(userStats.length / 10)}</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLeaderboardPage(p => Math.min(Math.ceil(userStats.length / 10) - 1, p + 1))}
-                disabled={leaderboardPage >= Math.ceil(userStats.length / 10) - 1}
-              >
-                Next
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+
     </div>
   );
 }
