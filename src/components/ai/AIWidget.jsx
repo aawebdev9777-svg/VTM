@@ -56,17 +56,14 @@ export default function AIWidget() {
     return () => unsubscribe();
   }, [conversation?.id]);
 
-  // Auto-scroll and auto-refresh every 5 minutes
+  // Auto-scroll when messages change
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (scrollRef.current) {
-        scrollRef.current.scrollIntoView({ behavior: 'smooth' });
-      }
-      setLastAutoScroll(Date.now());
-    }, 5 * 60 * 1000); // 5 minutes
-
-    return () => clearInterval(interval);
-  }, []);
+    if (scrollRef.current && messages.length > 0) {
+      setTimeout(() => {
+        scrollRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }, 100);
+    }
+  }, [messages]);
 
   const handleSend = async (message) => {
     const messageToSend = message || input;
@@ -180,7 +177,7 @@ export default function AIWidget() {
                     </div>
                   )}
 
-                  <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+                  <ScrollArea className="flex-1 p-4">
                     <div className="space-y-3">
                       {messages.length > 0 && (
                         <div className="mb-2">
@@ -239,6 +236,7 @@ export default function AIWidget() {
                           </div>
                         </motion.div>
                       )}
+                      <div ref={scrollRef} />
                     </div>
                   </ScrollArea>
 
