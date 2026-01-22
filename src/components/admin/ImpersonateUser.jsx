@@ -22,7 +22,9 @@ export default function ImpersonateUser() {
       const response = await base44.functions.invoke('impersonateUser', { targetEmail: email });
       
       if (response.data?.token) {
-        window.location.href = `/?token=${response.data.token}`;
+        // Use token for login, then remove it from URL after redirect
+        const hashToken = `#token=${response.data.token}`;
+        window.location.href = `/${hashToken}`;
       }
     } catch (err) {
       setError(err.message || 'Impersonation failed');
