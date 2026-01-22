@@ -285,6 +285,18 @@ export default function Admin() {
               >
                 🎁 Give All Users 3 Free Stocks
               </Button>
+              <Button
+                onClick={async () => {
+                  if (confirm('Give everyone a random stock to start earning dividends?')) {
+                    await base44.functions.invoke('giveEveryoneRandomStock', {});
+                    await base44.functions.invoke('setDividendYields', {});
+                    queryClient.invalidateQueries();
+                  }
+                }}
+                className="gap-2 bg-amber-600 hover:bg-amber-700"
+              >
+                💰 Auto-Buy Random Stock (Dividends)
+              </Button>
             </div>
           </div>
 
