@@ -53,14 +53,7 @@ export default function Layout({ children, currentPageName }) {
   };
 
   const handleLogout = async () => {
-    try {
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.href = '/';
-      await base44.auth.logout('/');
-    } catch (error) {
-      window.location.href = '/';
-    }
+    await base44.auth.logout('/');
   };
 
   return (
