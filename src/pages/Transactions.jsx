@@ -27,7 +27,7 @@ export default function Transactions() {
       return combined.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)).slice(0, 50);
     },
     enabled: !!currentUser?.email,
-    refetchInterval: 3000,
+    refetchInterval: 15000,
   });
 
   return (
