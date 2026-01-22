@@ -204,6 +204,18 @@ export default function Portfolio() {
         total_amount: totalAmount
       });
 
+      // Track event for analytics
+      base44.analytics.track({
+        eventName: 'stock_sell',
+        properties: {
+          symbol: holding.symbol,
+          shares: shares,
+          price_per_share: holding.currentPrice,
+          total_amount: totalAmount,
+          profit_loss: profitLoss
+        }
+      });
+
       // Send sell confirmation email
       try {
         await base44.asServiceRole.functions.invoke('sendSellConfirmationEmail', {
