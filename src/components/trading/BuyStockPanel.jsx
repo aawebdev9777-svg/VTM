@@ -10,8 +10,23 @@ import StockChart from './StockChart';
 export default function BuyStockPanel({ selectedStock, cashBalance, onBuy, isLoading }) {
   const [shares, setShares] = useState('');
 
-  const handleBuy = () => {
+  const handleBuy = async () => {
     if (canBuy) {
+      try {
+        // Track buy event before purchase
+        await base44.analytics.track({
+          eventName: 'stock_buy_initiated',
+          properties: {
+            symbol: selectedStock.symbol,
+            shares: parseFloat(shares),
+            price_per_share: selectedStock.price_gbp,
+            total_amount: selectedStock.price_gbp * parseFloat(shares)
+          }
+        });
+      } catch (error) {
+        console.log('Analytics tracking skipped');
+      }
+      
       onBuy(selectedStock, parseFloat(shares));
       setShares('');
     }
