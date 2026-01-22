@@ -110,7 +110,7 @@ export default function RealtimeAnalyticsDashboard() {
   return (
     <div className="space-y-6">
       {/* Key Metrics - Big Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-br from-blue-600 to-blue-700 text-white border-0 shadow-xl">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium opacity-90">Total Trades Executed</CardTitle>
@@ -123,21 +123,33 @@ export default function RealtimeAnalyticsDashboard() {
 
         <Card className="bg-gradient-to-br from-green-600 to-emerald-700 text-white border-0 shadow-xl">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium opacity-90">Money Circulating</CardTitle>
+            <CardTitle className="text-sm font-medium opacity-90">Total Market Cap</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold">£{(stats?.totalValue / 1000000).toFixed(1)}M</p>
-            <p className="text-xs opacity-75 mt-2">total app value</p>
+            <p className="text-xs opacity-75 mt-2">all traders combined</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-600 to-violet-700 text-white border-0 shadow-xl">
+        <Card className="bg-gradient-to-br from-amber-500 to-orange-600 text-white border-0 shadow-xl">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium opacity-90">Total P/L Today</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className={`text-4xl font-bold ${(stats?.totalProfitLoss || 0) >= 0 ? 'text-green-300' : 'text-red-300'}`}>
+              {(stats?.totalProfitLoss || 0) >= 0 ? '+' : ''}£{((stats?.totalProfitLoss || 0) / 1000).toFixed(1)}k
+            </p>
+            <p className="text-xs opacity-75 mt-2">platform earnings</p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-pink-600 to-rose-700 text-white border-0 shadow-xl">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium opacity-90">Trading Volume</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">£{(stats?.totalValue / 1000).toFixed(0)}k</p>
-            <p className="text-xs opacity-75 mt-2">circulation</p>
+            <p className="text-4xl font-bold">£{(stats?.totalVolume / 1000).toFixed(0)}k</p>
+            <p className="text-xs opacity-75 mt-2">daily circulation</p>
           </CardContent>
         </Card>
       </div>
