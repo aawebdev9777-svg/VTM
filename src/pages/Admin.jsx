@@ -10,6 +10,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import AdminSendMoney from '../components/admin/AdminSendMoney';
 import MarketStats from '../components/admin/MarketStats';
 import RealtimeAnalyticsDashboard from '../components/admin/RealtimeAnalyticsDashboard';
+import ImpersonateUser from '../components/admin/ImpersonateUser';
 
 export default function Admin() {
   const [isAdmin, setIsAdmin] = useState(false);
