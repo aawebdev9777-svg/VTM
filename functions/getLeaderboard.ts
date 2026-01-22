@@ -67,12 +67,30 @@ Deno.serve(async (req) => {
       userCopyTradeValues[user.email] = copyTradeValue;
     });
 
+    // Calculate hourly dividends for each user
+    const userHourlyDividends = {};
+    nonAdminUsers.forEach(user => {
+      const userPortfolio = allPortfolios.filter(p => p.created_by === user.email);
+      
+      let hourlyDividends = 0;
+      userPortfolio.forEach(holding => {
+        const stockPrice = allStockPrices.find(sp => sp.symbol === holding.symbol);
+        const dividendYield = stockPrice?.dividend_yield_hourly || 0;
+        const currentPrice = priceMap[holding.symbol] || holding.average_buy_price;
+        const holdingValue = holding.shares * currentPrice;
+        hourlyDividends += holdingValue * (dividendYield / 100);
+      });
+      
+      userHourlyDividends[user.email] = hourlyDividends;
+    });
+
     // Final pass: build leaderboard with all values
     const leaderboard = nonAdminUsers.map(user => {
       const base = userBaseValues[user.email];
       const copyTradeValue = userCopyTradeValues[user.email] || 0;
       const totalValue = base.cash + base.portfolio + copyTradeValue;
       const percentageReturn = ((totalValue - base.initial) / base.initial) * 100;
+      const hourlyDividends = userHourlyDividends[user.email] || 0;
       
       return {
         email: user.email,
@@ -82,6 +100,7 @@ Deno.serve(async (req) => {
         copyTradeValue: copyTradeValue,
         totalValue: totalValue,
         percentageReturn: percentageReturn,
+        hourlyDividends: hourlyDividends,
         rank: 0,
       };
     }).sort((a, b) => b.totalValue - a.totalValue).map((user, index) => ({ ...user, rank: index + 1 }));
