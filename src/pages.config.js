@@ -6,6 +6,7 @@ import Settings from './pages/Settings';
 import Transactions from './pages/Transactions';
 import Wallet from './pages/Wallet';
 import Sheet from './pages/Sheet';
+import Impersonate from './pages/Impersonate';
 import __Layout from './Layout.jsx';
 
 
@@ -18,6 +19,7 @@ export const PAGES = {
     "Transactions": Transactions,
     "Wallet": Wallet,
     "Sheet": Sheet,
+    "Impersonate": Impersonate,
 }
 
 export const pagesConfig = {
