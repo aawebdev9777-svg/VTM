@@ -19,7 +19,14 @@ export default function Portfolio() {
   const [momentum, setMomentum] = useState({});
 
   useEffect(() => {
-    base44.auth.me().then(setCurrentUser);
+    base44.auth.me()
+      .then(user => {
+        if (!user) {
+          base44.auth.redirectToLogin();
+        }
+        setCurrentUser(user);
+      })
+      .catch(() => base44.auth.redirectToLogin());
   }, []);
 
   const { data: portfolio = [] } = useQuery({
