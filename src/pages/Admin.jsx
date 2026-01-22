@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import AdminSendMoney from '../components/admin/AdminSendMoney';
 import MarketStats from '../components/admin/MarketStats';
+import RealtimeAnalyticsDashboard from '../components/admin/RealtimeAnalyticsDashboard';
 
 export default function Admin() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -209,9 +210,9 @@ export default function Admin() {
         </p>
       </motion.div>
 
-      {/* Market Stats */}
+      {/* Realtime Analytics Dashboard */}
       <div className="mb-6">
-        <MarketStats />
+        <RealtimeAnalyticsDashboard />
       </div>
 
       {/* Admin Controls */}
