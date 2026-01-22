@@ -49,7 +49,6 @@ export default function AIWidget() {
 
     const unsubscribe = base44.agents.subscribeToConversation(conversation.id, (data) => {
       setMessages(data.messages);
-      setIsLoading(false);
       setLastAutoScroll(Date.now());
     });
 
@@ -70,7 +69,6 @@ export default function AIWidget() {
     if (!messageToSend.trim() || !conversation || isLoading) return;
 
     setInput('');
-    setIsLoading(true);
 
     try {
       await base44.agents.addMessage(conversation, {
@@ -79,7 +77,6 @@ export default function AIWidget() {
       });
     } catch (error) {
       console.error('Failed to send message:', error);
-      setIsLoading(false);
     }
   };
 
@@ -216,17 +213,6 @@ export default function AIWidget() {
                         </div>
                       ))}
 
-                      {isLoading && (
-                        <div className="flex gap-3 justify-start">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center flex-shrink-0">
-                            <Sparkles className="w-4 h-4 text-white" />
-                          </div>
-                          <div className="bg-white rounded-2xl px-4 py-3 flex items-center gap-2">
-                            <Loader2 className="w-4 h-4 animate-spin text-gray-600" />
-                            <span className="text-sm text-gray-600">Thinking...</span>
-                          </div>
-                        </div>
-                      )}
                       <div ref={scrollRef} />
                     </div>
                   </ScrollArea>
@@ -239,11 +225,10 @@ export default function AIWidget() {
                         onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
                         placeholder="Message VTM AI..."
                         className="text-sm border-gray-300 focus:border-gray-400 bg-white rounded-xl"
-                        disabled={isLoading}
                       />
                       <Button
                         onClick={() => handleSend()}
-                        disabled={!input.trim() || isLoading}
+                        disabled={!input.trim()}
                         size="icon"
                         className="bg-gray-900 hover:bg-gray-800 rounded-xl h-9 w-9"
                       >
