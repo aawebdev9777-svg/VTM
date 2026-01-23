@@ -15,8 +15,8 @@ Deno.serve(async (req) => {
       // Different yields based on stock characteristics
       let dividendYield;
       
-      // Dynamic dividend yields - slightly higher (8-31% range per hour)
-      const baseYield = 8 + (Math.random() * 23); // 8-31% per hour
+      // Low dividend yields (0.01-0.05% per hour)
+      const baseYield = 0.01 + (Math.random() * 0.04); // 0.01-0.05% per hour
       dividendYield = baseYield;
       
       await base44.asServiceRole.entities.StockPrice.update(stock.id, {
