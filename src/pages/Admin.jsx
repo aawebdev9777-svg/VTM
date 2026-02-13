@@ -366,7 +366,7 @@ export default function Admin() {
 
           <div className="border-t pt-4 mt-4">
             <h3 className="text-sm font-semibold text-gray-700 mb-3">Impersonate User</h3>
-            <ImpersonateUser />
+            <p className="text-sm text-gray-500">Feature temporarily disabled</p>
           </div>
         </CardContent>
       </Card>
