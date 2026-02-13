@@ -14,6 +14,8 @@ import MoneyReceivedNotification from '../components/MoneyReceivedNotification';
 import StatsCard from '../components/competitive/StatsCard';
 import PerformanceHeatmap from '../components/competitive/PerformanceHeatmap';
 import RankBadge from '../components/competitive/RankBadge';
+import RivalTracker from '../components/competitive/RivalTracker';
+import MissionTracker from '../components/competitive/MissionTracker';
 import { Loader2, RefreshCw, Trophy, Zap, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -438,6 +440,8 @@ export default function Home() {
         </div>
 
         <div className="space-y-4">
+          <RivalTracker leaderboard={leaderboard} currentUser={currentUser} />
+          <MissionTracker transactions={transactions} rank={{}} />
           <PerformanceHeatmap transactions={transactions} />
           <BuyAnalysis 
             stockPrices={stockPrices} 
@@ -445,7 +449,6 @@ export default function Home() {
             cashBalance={account?.cash_balance || 0} 
             totalPortfolioValue={portfolioValue + copyTradeValue} 
           />
-          <AlertsPanel selectedStock={selectedStock} />
         </div>
       </div>
     </div>
