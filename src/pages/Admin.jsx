@@ -70,21 +70,24 @@ export default function Admin() {
     queryKey: ['allAccounts'],
     queryFn: () => base44.asServiceRole.entities.UserAccount.list(),
     enabled: isAdmin,
-    refetchInterval: 2000,
+    refetchInterval: 1000,
+    staleTime: 0,
   });
 
   const { data: allPortfolios = [] } = useQuery({
     queryKey: ['allPortfolios'],
     queryFn: () => base44.asServiceRole.entities.Portfolio.list(),
     enabled: isAdmin,
-    refetchInterval: 2000,
+    refetchInterval: 1000,
+    staleTime: 0,
   });
 
   const { data: allTransactions = [] } = useQuery({
     queryKey: ['allTransactions'],
     queryFn: () => base44.asServiceRole.entities.Transaction.list('-created_date', 500),
     enabled: isAdmin,
-    refetchInterval: 2000,
+    refetchInterval: 1000,
+    staleTime: 0,
   });
 
   const { data: allSocialPosts = [] } = useQuery({
@@ -105,29 +108,24 @@ export default function Admin() {
     queryKey: ['allUsers'],
     queryFn: async () => {
       try {
-        const response = await base44.functions.invoke('getAllUsers', {});
-        return response.data?.users || [];
+        const vtmUsers = await base44.asServiceRole.entities.VTMUser.list();
+        return vtmUsers || [];
       } catch (error) {
         console.error('Failed to fetch users:', error);
         return [];
       }
     },
     enabled: isAdmin,
-    refetchInterval: 2000,
+    refetchInterval: 1000,
+    staleTime: 0,
   });
 
   const { data: allStockPrices = [] } = useQuery({
     queryKey: ['allStockPrices'],
-    queryFn: async () => {
-      try {
-        const response = await base44.functions.invoke('getUpdatedPrices', {});
-        return response.data?.prices || [];
-      } catch {
-        return base44.asServiceRole.entities.StockPrice.list();
-      }
-    },
+    queryFn: () => base44.asServiceRole.entities.StockPrice.list(),
     enabled: isAdmin,
-    refetchInterval: 5000,
+    refetchInterval: 2000,
+    staleTime: 0,
   });
 
   if (loading) {
@@ -151,13 +149,13 @@ export default function Admin() {
   const adminEmail = 'aa.web.dev9777@gmail.com';
 
   // Filter out admin from all data
-  const nonAdminUsers = allUsers.filter(u => u.email !== adminEmail);
+  const nonAdminUsers = allUsers.filter(u => u.id !== adminEmail && u.username !== 'admin');
   const nonAdminTransactions = allTransactions.filter(t => t.created_by !== adminEmail);
 
   // Calculate leaderboard (excluding admin)
   const userStats = nonAdminUsers.map(user => {
-    const userAccount = allAccounts.find(acc => acc.created_by === user.email);
-    const userPortfolio = allPortfolios.filter(p => p.created_by === user.email);
+    const userAccount = allAccounts.find(acc => acc.created_by === user.id);
+    const userPortfolio = allPortfolios.filter(p => p.created_by === user.id);
     const portfolioValue = userPortfolio.reduce((sum, p) => {
       const stockPrice = allStockPrices.find(s => s.symbol === p.symbol);
       const currentPrice = stockPrice?.price_gbp || p.average_buy_price;
@@ -168,12 +166,13 @@ export default function Admin() {
     const profitPercent = (profitLoss / 10000) * 100;
 
     return {
-      email: user.email,
-      name: user.full_name || user.email,
+      id: user.id,
+      username: user.username,
+      name: user.display_name || user.username,
       totalValue,
       profitLoss,
       profitPercent,
-      trades: nonAdminTransactions.filter(t => t.created_by === user.email).length,
+      trades: nonAdminTransactions.filter(t => t.created_by === user.id).length,
     };
   }).sort((a, b) => b.totalValue - a.totalValue);
 
