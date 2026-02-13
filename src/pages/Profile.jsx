@@ -21,47 +21,72 @@ export default function Profile() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('vtm_user') || '{}');
-    setCurrentUser(user);
+    const fetchUser = async () => {
+      try {
+        const authUser = await base44.auth.me();
+        if (authUser) {
+          const vtmUsers = await base44.entities.VTMUser.filter({ id: authUser.email });
+          setCurrentUser(vtmUsers[0] || null);
+        }
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
+      }
+    };
+    fetchUser();
   }, []);
 
   const { data: profileUser } = useQuery({
-    queryKey: ['profileUser', profileUsername],
+    queryKey: ['profileUser', profileUsername, currentUser?.username],
     queryFn: async () => {
-      if (!profileUsername) return currentUser;
-      const users = await base44.asServiceRole.entities.VTMUser.filter({ username: profileUsername });
-      return users[0] || null;
+      if (profileUsername) {
+        const users = await base44.asServiceRole.entities.VTMUser.filter({ username: profileUsername });
+        return users[0] || null;
+      }
+      return currentUser;
     },
     enabled: !!profileUsername || !!currentUser,
+    refetchInterval: 5000,
   });
 
   const { data: userAccount } = useQuery({
     queryKey: ['userAccountProfile', profileUser?.id],
     queryFn: () => base44.asServiceRole.entities.UserAccount.filter({ created_by: profileUser?.id }),
     enabled: !!profileUser?.id,
+    refetchInterval: 3000,
   });
 
   const { data: portfolio = [] } = useQuery({
     queryKey: ['portfolioProfile', profileUser?.id],
     queryFn: () => base44.asServiceRole.entities.Portfolio.filter({ created_by: profileUser?.id }),
     enabled: !!profileUser?.id,
+    refetchInterval: 3000,
   });
 
   const { data: transactions = [] } = useQuery({
     queryKey: ['transactionsProfile', profileUser?.id],
     queryFn: () => base44.asServiceRole.entities.Transaction.filter({ created_by: profileUser?.id }, '-created_date', 20),
     enabled: !!profileUser?.id,
+    refetchInterval: 5000,
   });
 
   const { data: posts = [] } = useQuery({
     queryKey: ['postsProfile', profileUser?.id],
     queryFn: () => base44.asServiceRole.entities.SocialPost.filter({ created_by: profileUser?.id }, '-created_date', 50),
     enabled: !!profileUser?.id,
+    refetchInterval: 5000,
   });
 
   const { data: stockPrices = [] } = useQuery({
     queryKey: ['stockPrices'],
-    queryFn: () => base44.entities.StockPrice.list(),
+    queryFn: async () => {
+      try {
+        const response = await base44.functions.invoke('getUpdatedPrices', {});
+        return response.data.prices || [];
+      } catch {
+        return base44.entities.StockPrice.list();
+      }
+    },
+    refetchInterval: 5000,
   });
 
   const updateProfileMutation = useMutation({
