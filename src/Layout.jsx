@@ -42,13 +42,11 @@ export default function Layout({ children, currentPageName }) {
   const navigation = [
       { name: 'Home', href: createPageUrl('Home'), icon: Home },
       { name: 'Portfolio', href: createPageUrl('Portfolio'), icon: TrendingUp },
-      { name: 'Transactions', href: createPageUrl('Transactions'), icon: History },
-      { name: 'Leaderboard', href: createPageUrl('Leaderboard'), icon: Trophy },
+      { name: 'Community', href: createPageUrl('Leaderboard'), icon: Trophy },
+      { name: 'Profile', href: createPageUrl('Profile'), icon: User },
       { name: 'Wallet', href: createPageUrl('Wallet'), icon: Wallet },
-      { name: 'Settings', href: createPageUrl('Settings'), icon: User },
       ...(isAdmin ? [
-        { name: 'Admin', href: createPageUrl('Admin'), icon: Shield },
-        { name: 'Impersonate', href: createPageUrl('Impersonate'), icon: LogIn }
+        { name: 'Admin', href: createPageUrl('Admin'), icon: Shield }
       ] : []),
     ];
 

@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Crown, Medal, Award, Copy, Loader2, MessageSquare, Heart, Send, Lightbulb, TrendingUp as TrendingUpIcon } from 'lucide-react';
+import { createPageUrl } from '../utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import moment from 'moment';
 
@@ -275,9 +276,12 @@ export default function Leaderboard() {
 
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="font-semibold text-gray-900">
+                        <a 
+                          href={createPageUrl('Profile') + '?user=' + trader.email.split('@')[0]}
+                          className="font-semibold text-gray-900 hover:text-violet-600 transition-colors"
+                        >
                           {trader.name}
-                        </p>
+                        </a>
                         {isCurrentUser && (
                           <span className="text-xs bg-violet-600 text-white px-2 py-0.5 rounded-full">
                             You
@@ -504,11 +508,19 @@ export default function Leaderboard() {
                         <CardHeader className="pb-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                              <a 
+                                href={createPageUrl('Profile') + '?user=' + post.created_by?.split('@')[0]}
+                                className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold hover:ring-2 hover:ring-violet-300 transition-all"
+                              >
                                 {post.created_by?.charAt(0).toUpperCase()}
-                              </div>
+                              </a>
                               <div>
-                                <p className="font-semibold text-sm">{post.created_by?.split('@')[0]}</p>
+                                <a 
+                                  href={createPageUrl('Profile') + '?user=' + post.created_by?.split('@')[0]}
+                                  className="font-semibold text-sm hover:text-violet-600 transition-colors"
+                                >
+                                  {post.created_by?.split('@')[0]}
+                                </a>
                                 <p className="text-xs text-gray-500">{moment(post.created_date).fromNow()}</p>
                               </div>
                             </div>

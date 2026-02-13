@@ -56,6 +56,7 @@ import Settings from './pages/Settings';
 import Sheet from './pages/Sheet';
 import Transactions from './pages/Transactions';
 import Wallet from './pages/Wallet';
+import Profile from './pages/Profile';
 import __Layout from './Layout.jsx';
 
 
@@ -69,6 +70,7 @@ export const PAGES = {
     "Sheet": Sheet,
     "Transactions": Transactions,
     "Wallet": Wallet,
+    "Profile": Profile,
 }
 
 export const pagesConfig = {
