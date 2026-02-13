@@ -16,6 +16,7 @@ import PerformanceHeatmap from '../components/competitive/PerformanceHeatmap';
 import RankBadge from '../components/competitive/RankBadge';
 import RivalTracker from '../components/competitive/RivalTracker';
 import MissionTracker from '../components/competitive/MissionTracker';
+import ABPFDetailedChart from '../components/trading/ABPFDetailedChart';
 import { Loader2, RefreshCw, Trophy, Zap, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -418,7 +419,9 @@ export default function Home() {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <ABPFDetailedChart />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
          <div className="lg:col-span-2 space-y-4">
            <div ref={buyPanelRef}>
              <BuyStockPanel

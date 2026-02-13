@@ -2,8 +2,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 // Advanced dividend calculation with multiple factors
 function calculateDividendYield(stock, marketConditions, userHolding) {
-  // Base yield (0.001% - 0.008% per hour)
-  let baseYield = 0.001 + (Math.random() * 0.007);
+  // Base yield (0.00005% - 0.0002% per hour) - extremely low
+  let baseYield = 0.00005 + (Math.random() * 0.00015);
   
   // Sector multiplier
   const sectorMultipliers = {
@@ -44,8 +44,8 @@ function calculateDividendYield(stock, marketConditions, userHolding) {
     * holdingBonus
     * timeDecay;
   
-  // Clamp to reasonable range
-  return Math.max(0.0005, Math.min(0.012, finalYield));
+  // Clamp to reasonable range (extremely low)
+  return Math.max(0.00001, Math.min(0.0003, finalYield));
 }
 
 Deno.serve(async (req) => {
