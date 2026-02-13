@@ -27,19 +27,19 @@ export default function PerformanceHeatmap({ transactions = [] }) {
   }
 
   const getColor = (profit, trades) => {
-    if (trades === 0) return 'bg-slate-800';
-    if (profit > 500) return 'bg-green-500';
-    if (profit > 0) return 'bg-green-600/70';
-    if (profit < -500) return 'bg-red-500';
-    if (profit < 0) return 'bg-red-600/70';
-    return 'bg-slate-700';
+    if (trades === 0) return 'bg-slate-200';
+    if (profit > 500) return 'bg-green-600';
+    if (profit > 0) return 'bg-green-400';
+    if (profit < -500) return 'bg-red-600';
+    if (profit < 0) return 'bg-red-400';
+    return 'bg-slate-300';
   };
 
   return (
-    <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+    <Card className="border-0 shadow-lg bg-white">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
-          <Activity className="w-5 h-5" />
+        <CardTitle className="flex items-center gap-2 text-gray-900">
+          <Activity className="w-5 h-5 text-violet-600" />
           30-Day Activity
         </CardTitle>
       </CardHeader>
@@ -48,17 +48,17 @@ export default function PerformanceHeatmap({ transactions = [] }) {
           {days.map((day, i) => (
             <div
               key={i}
-              className={`aspect-square rounded ${getColor(day.profit, day.trades)} transition-all hover:ring-2 hover:ring-white/30 cursor-pointer`}
+              className={`aspect-square rounded ${getColor(day.profit, day.trades)} transition-all hover:ring-2 hover:ring-violet-300 cursor-pointer`}
               title={`${day.date}: ${day.trades} trades, ${day.profit >= 0 ? '+' : ''}£${day.profit.toFixed(0)}`}
             />
           ))}
         </div>
-        <div className="flex items-center justify-between mt-4 text-xs text-slate-400">
+        <div className="flex items-center justify-between mt-4 text-xs text-gray-500">
           <span>Less active</span>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-slate-800 rounded"></div>
-            <div className="w-3 h-3 bg-green-600/70 rounded"></div>
-            <div className="w-3 h-3 bg-green-500 rounded"></div>
+            <div className="w-3 h-3 bg-slate-200 rounded"></div>
+            <div className="w-3 h-3 bg-green-400 rounded"></div>
+            <div className="w-3 h-3 bg-green-600 rounded"></div>
           </div>
           <span>More profitable</span>
         </div>

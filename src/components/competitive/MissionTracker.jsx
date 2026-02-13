@@ -42,10 +42,10 @@ export default function MissionTracker({ transactions = [], rank = {} }) {
   };
 
   return (
-    <Card className="border-0 shadow-lg bg-gradient-to-br from-slate-900 to-slate-800 text-white">
+    <Card className="border-0 shadow-lg bg-white">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
-          <Zap className="w-5 h-5 text-yellow-400" />
+        <CardTitle className="flex items-center gap-2 text-gray-900">
+          <Zap className="w-5 h-5 text-amber-500" />
           Weekly Missions
         </CardTitle>
       </CardHeader>
@@ -63,23 +63,23 @@ export default function MissionTracker({ transactions = [], rank = {} }) {
               transition={{ delay: i * 0.1 }}
               className={`p-3 rounded-lg border ${
                 isComplete 
-                  ? 'bg-green-900/20 border-green-500/30' 
-                  : 'bg-slate-800/50 border-slate-700/30'
+                  ? 'bg-green-50 border-green-300' 
+                  : 'bg-gray-50 border-gray-200'
               }`}
             >
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-2">
                   {isComplete ? (
-                    <CheckCircle className="w-4 h-4 text-green-400" />
+                    <CheckCircle className="w-4 h-4 text-green-600" />
                   ) : (
-                    <Circle className="w-4 h-4 text-slate-500" />
+                    <Circle className="w-4 h-4 text-gray-400" />
                   )}
-                  <span className="text-sm font-semibold">{mission.title}</span>
+                  <span className="text-sm font-semibold text-gray-900">{mission.title}</span>
                 </div>
-                <span className="text-xs text-yellow-400">{mission.reward}</span>
+                <span className="text-xs font-semibold text-amber-600">{mission.reward}</span>
               </div>
               <Progress value={percentage} className="h-2 mb-1" />
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-gray-600">
                 {progress.current} / {progress.target} {mission.id === 3 && '(£)'}
               </p>
             </motion.div>
