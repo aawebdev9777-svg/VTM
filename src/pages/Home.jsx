@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -11,8 +10,11 @@ import AlertsPanel from '../components/alerts/AlertsPanel';
 import StockNews from '../components/news/StockNews';
 import FreeStockSelector from '../components/trading/FreeStockSelector';
 import BuyAnalysis from '../components/trading/BuyAnalysis';
-import MoneyReceivedNotification from '../components/MoneyReceivedNotification'; // Added
-import { Loader2, RefreshCw } from 'lucide-react';
+import MoneyReceivedNotification from '../components/MoneyReceivedNotification';
+import StatsCard from '../components/competitive/StatsCard';
+import PerformanceHeatmap from '../components/competitive/PerformanceHeatmap';
+import RankBadge from '../components/competitive/RankBadge';
+import { Loader2, RefreshCw, Trophy, Zap, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 
@@ -352,16 +354,17 @@ export default function Home() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-4"
+        className="mb-6"
       >
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
-                ABPF Trading
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                VTM Arena
               </h1>
+              <p className="text-xs md:text-sm text-gray-500 mt-1">Compete. Dominate. Win.</p>
             </div>
-            <p className="text-xs md:text-sm text-gray-500 mt-1">Virtual Portfolio • Live Market Data</p>
+            <RankBadge tier="Gold" size="md" showLabel={false} />
           </div>
           <Button
             variant="outline"
@@ -371,6 +374,36 @@ export default function Home() {
           >
             <RefreshCw className="w-3 h-3" />
           </Button>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+          <StatsCard 
+            label="Portfolio Value" 
+            value={`£${(portfolioValue + copyTradeValue + (account?.cash_balance || 0)).toLocaleString('en-GB', { maximumFractionDigits: 0 })}`}
+            change={((portfolioValue + copyTradeValue + (account?.cash_balance || 0) - 10000) / 10000 * 100).toFixed(1)}
+            icon={Trophy}
+            delay={0}
+          />
+          <StatsCard 
+            label="Win Rate" 
+            value="0%"
+            change={0}
+            icon={Target}
+            delay={0.1}
+          />
+          <StatsCard 
+            label="Rank" 
+            value="Gold"
+            icon={Zap}
+            delay={0.2}
+          />
+          <StatsCard 
+            label="Streak" 
+            value="0"
+            change={0}
+            icon={Zap}
+            delay={0.3}
+          />
         </div>
       </motion.div>
 
@@ -405,6 +438,7 @@ export default function Home() {
         </div>
 
         <div className="space-y-4">
+          <PerformanceHeatmap transactions={transactions} />
           <BuyAnalysis 
             stockPrices={stockPrices} 
             displayPrices={displayPrices} 
