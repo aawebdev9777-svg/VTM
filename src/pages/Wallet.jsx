@@ -10,20 +10,16 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import confetti from 'canvas-confetti';
 
-const cardDesigns = [
-  { gradient: 'from-violet-600 via-violet-700 to-indigo-800', name: 'Royal Purple' },
-  { gradient: 'from-rose-500 via-pink-600 to-purple-700', name: 'Sunset Blaze' },
-  { gradient: 'from-cyan-500 via-blue-600 to-indigo-700', name: 'Ocean Deep' },
-  { gradient: 'from-emerald-500 via-teal-600 to-cyan-700', name: 'Forest Mist' },
-  { gradient: 'from-amber-500 via-orange-600 to-red-700', name: 'Fire Gold' },
-  { gradient: 'from-slate-700 via-gray-800 to-black', name: 'Carbon Black' },
-  { gradient: 'from-fuchsia-500 via-purple-600 to-indigo-700', name: 'Mystic Night' },
-  { gradient: 'from-lime-500 via-green-600 to-emerald-700', name: 'Jade Dream' },
-  { gradient: 'from-yellow-400 via-orange-500 to-red-600', name: 'Solar Flare' },
-  { gradient: 'from-blue-600 via-indigo-700 to-purple-800', name: 'Twilight' },
-];
+const tierCards = {
+  Bronze: { gradient: 'from-amber-700 via-orange-800 to-amber-900', name: 'Bronze Tier', icon: '🥉' },
+  Silver: { gradient: 'from-slate-400 via-slate-500 to-slate-600', name: 'Silver Tier', icon: '🥈' },
+  Gold: { gradient: 'from-yellow-500 via-amber-500 to-yellow-600', name: 'Gold Tier', icon: '🥇' },
+  Platinum: { gradient: 'from-cyan-400 via-blue-500 to-indigo-600', name: 'Platinum Tier', icon: '💎' },
+  Diamond: { gradient: 'from-purple-500 via-fuchsia-600 to-pink-600', name: 'Diamond Tier', icon: '💠' },
+  Titan: { gradient: 'from-red-600 via-orange-600 to-yellow-500', name: 'Titan Tier', icon: '👑' },
+};
 
-const adminCard = { gradient: 'from-yellow-400 via-amber-500 to-orange-600', name: 'Super Admin' };
+const adminCard = { gradient: 'from-yellow-400 via-amber-500 to-orange-600', name: 'Super Admin', icon: '⚡' };
 
 const generateCardNumber = (email) => {
   let hash = 0;
@@ -85,6 +81,15 @@ export default function Wallet() {
       return response.data.leaderboard || [];
     },
     refetchInterval: 5000,
+  });
+
+  const { data: traderRank } = useQuery({
+    queryKey: ['traderRank', currentUser?.email],
+    queryFn: async () => {
+      const ranks = await base44.entities.TraderRank.filter({ user_id: currentUser?.email });
+      return ranks[0];
+    },
+    enabled: !!currentUser?.email,
   });
 
   const createAccountMutation = useMutation({
@@ -170,7 +175,8 @@ export default function Wallet() {
   const totalSpent = transactions.filter(t => t.type === 'buy').reduce((sum, t) => sum + t.total_amount, 0);
   const totalEarned = transactions.filter(t => t.type === 'sell').reduce((sum, t) => sum + t.total_amount, 0);
 
-  const currentCardDesign = (isAdmin && isSuperAdmin) ? adminCard : cardDesigns[selectedCardIndex];
+  const userTier = traderRank?.tier || 'Bronze';
+  const currentCardDesign = (isAdmin && isSuperAdmin) ? adminCard : tierCards[userTier];
   const cardNumber = currentUser ? generateCardNumber(currentUser.email) : '**** **** **** 0000';
 
   // Search users - exclude admin from receiving money
@@ -247,8 +253,12 @@ export default function Wallet() {
                 <div className="flex justify-between items-start mb-12">
                   <div>
                     <p className="text-xs opacity-75 mb-1">Trading Account</p>
-                    <p className="text-sm font-medium">{currentCardDesign.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium">{currentCardDesign.name}</p>
+                      <span className="text-2xl">{currentCardDesign.icon}</span>
+                    </div>
                     {isAdmin && isSuperAdmin && <Badge className="mt-1 bg-yellow-400 text-gray-900">SUPER ADMIN</Badge>}
+                    {!isAdmin && traderRank && <Badge className="mt-1 bg-white/20">ELO {traderRank.elo_rating}</Badge>}
                     </div>
                     {isAdmin && isSuperAdmin ? <Crown className="w-10 h-10" /> : <CreditCard className="w-10 h-10 opacity-75" />}
                 </div>
@@ -280,17 +290,21 @@ export default function Wallet() {
               <div className="absolute top-20 left-6 w-12 h-10 bg-gradient-to-br from-yellow-200 to-yellow-400 rounded-md opacity-80"></div>
             </motion.div>
 
-            {(!isAdmin || !isSuperAdmin) && (
-              <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
-                {cardDesigns.map((design, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedCardIndex(index)}
-                    className={`flex-shrink-0 w-16 h-10 rounded-lg bg-gradient-to-br ${design.gradient} transition-all ${
-                      selectedCardIndex === index ? 'ring-4 ring-violet-600 scale-110' : 'opacity-50 hover:opacity-100'
-                    }`}
-                  />
-                ))}
+            {!isAdmin && (
+              <div className="mt-4">
+                <p className="text-xs text-slate-400 mb-2">Your tier card is based on your trading rank</p>
+                <div className="flex gap-2 overflow-x-auto pb-2">
+                  {Object.entries(tierCards).map(([tier, design]) => (
+                    <div
+                      key={tier}
+                      className={`flex-shrink-0 w-20 h-12 rounded-lg bg-gradient-to-br ${design.gradient} transition-all flex items-center justify-center text-2xl ${
+                        userTier === tier ? 'ring-4 ring-amber-500 scale-110' : 'opacity-30'
+                      }`}
+                    >
+                      {design.icon}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

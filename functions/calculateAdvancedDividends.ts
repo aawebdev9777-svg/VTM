@@ -102,10 +102,16 @@ Deno.serve(async (req) => {
       // Apply volatility discount
       hourlyYield = hourlyYield * (1 - volAdjustment * 0.2);
       
-      // Bounds and scaling - REALISTIC YIELDS
-      const minYield = 0.000005; // 0.0005% per hour (~0.044% daily, ~16% APY)
-      const maxYield = 0.00002;  // 0.002% per hour (~0.175% daily, ~64% APY)
-      hourlyYield = Math.max(minYield, Math.min(maxYield, hourlyYield));
+      // Bounds and scaling - 1-7% per 12 hours
+      const min12HourYield = 0.01;  // 1% per 12 hours
+      const max12HourYield = 0.07;  // 7% per 12 hours
+      
+      // Convert composite to 12-hour yield
+      let yield12Hours = hourlyYield * 12;
+      yield12Hours = Math.max(min12HourYield, Math.min(max12HourYield, yield12Hours));
+      
+      // Convert back to hourly for storage
+      hourlyYield = yield12Hours / 12;
       
       // Convert to percentage
       const yieldPercentage = hourlyYield * 100;
