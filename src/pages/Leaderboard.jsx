@@ -171,17 +171,17 @@ export default function Leaderboard() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
+    <div className="max-w-5xl mx-auto px-4 py-6 min-h-screen">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="mb-6"
       >
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <Trophy className="w-8 h-8 text-yellow-500" />
+        <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+          <Trophy className="w-8 h-8 text-amber-500" />
           Community
         </h1>
-        <p className="text-sm text-gray-500 mt-1">Top traders, social feed & copy trading</p>
+        <p className="text-sm text-slate-400 mt-1">Top traders, social feed & copy trading</p>
       </motion.div>
 
       <Tabs defaultValue="leaderboard" className="w-full">
@@ -198,9 +198,9 @@ export default function Leaderboard() {
 
         <TabsContent value="leaderboard">
       {copiers.length > 0 && (
-        <Card className="border-0 shadow-lg mb-6 bg-green-50">
+        <Card className="bg-slate-800 border-slate-700 shadow-lg mb-6">
           <CardContent className="p-4">
-            <p className="text-sm font-semibold text-green-900 mb-2">People Copying You ({copiers.length})</p>
+            <p className="text-sm font-semibold text-green-400 mb-2">People Copying You ({copiers.length})</p>
             <div className="space-y-2">
               {copiers.map(ct => {
                 const leaderData = leaderboard.find(l => l.email === currentUser?.email);
@@ -209,10 +209,10 @@ export default function Leaderboard() {
                 
                 return (
                   <div key={ct.id} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-700">{ct.follower_email.split('@')[0]}</span>
+                    <span className="text-slate-300">{ct.follower_email.split('@')[0]}</span>
                     <div className="text-right">
-                      <span className="font-bold text-gray-900">£{currentValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                      <span className={`text-xs ml-2 ${profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className="font-bold text-white">£{currentValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className={`text-xs ml-2 ${profitLoss >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                         ({profitLoss >= 0 ? '+' : ''}£{profitLoss.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
                       </span>
                     </div>
@@ -225,9 +225,9 @@ export default function Leaderboard() {
       )}
 
       {myCopyTrades.filter(ct => ct.is_active).length > 0 && (
-        <Card className="border-0 shadow-lg mb-6 bg-violet-50">
+        <Card className="bg-slate-800 border-slate-700 shadow-lg mb-6">
           <CardContent className="p-4">
-            <p className="text-sm font-semibold text-violet-900 mb-2">Your Copy Trades</p>
+            <p className="text-sm font-semibold text-amber-400 mb-2">Your Copy Trades</p>
             <div className="space-y-2">
               {myCopyTrades.filter(ct => ct.is_active).map(ct => {
                 const leaderData = leaderboard.find(l => l.email === ct.leader_email);
@@ -236,10 +236,10 @@ export default function Leaderboard() {
                 
                 return (
                   <div key={ct.id} className="flex items-center justify-between text-sm">
-                    <span className="text-gray-700">Copying {ct.leader_email.split('@')[0]}</span>
+                    <span className="text-slate-300">Copying {ct.leader_email.split('@')[0]}</span>
                     <div className="text-right">
-                      <span className="font-bold text-violet-900">£{currentValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                      <span className={`text-xs ml-2 ${profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className="font-bold text-white">£{currentValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className={`text-xs ml-2 ${profitLoss >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                         ({profitLoss >= 0 ? '+' : ''}£{profitLoss.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
                       </span>
                     </div>
@@ -251,9 +251,9 @@ export default function Leaderboard() {
         </Card>
       )}
 
-      <Card className="border-0 shadow-lg">
+      <Card className="bg-slate-800 border-slate-700 shadow-lg">
         <CardContent className="p-0">
-          <div className="divide-y">
+          <div className="divide-y divide-slate-700">
             {leaderboard.map((trader, index) => {
               const rank = index + 1;
               const isCurrentUser = trader.email === currentUser?.email;
@@ -265,12 +265,12 @@ export default function Leaderboard() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.03 }}
-                  className={`p-4 ${getRankClass(rank)} ${
-                    isCurrentUser ? 'ring-2 ring-violet-500' : ''
+                  className={`p-4 bg-slate-900/30 ${
+                    isCurrentUser ? 'ring-2 ring-amber-500' : ''
                   }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-sm font-bold text-gray-700">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-950 shadow-sm font-bold text-white">
                       {getMedalIcon(rank) || `#${rank}`}
                     </div>
 
@@ -278,42 +278,42 @@ export default function Leaderboard() {
                       <div className="flex items-center gap-2">
                         <a 
                           href={createPageUrl('Profile') + '?user=' + trader.email.split('@')[0]}
-                          className="font-semibold text-gray-900 hover:text-violet-600 transition-colors"
+                          className="font-semibold text-white hover:text-amber-400 transition-colors"
                         >
                           {trader.name}
                         </a>
                         {isCurrentUser && (
-                          <span className="text-xs bg-violet-600 text-white px-2 py-0.5 rounded-full">
+                          <span className="text-xs bg-amber-600 text-white px-2 py-0.5 rounded-full">
                             You
                           </span>
                         )}
                         {copying && (
-                          <span className="text-xs bg-green-600 text-white px-2 py-0.5 rounded-full">
+                          <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
                             Copying
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-slate-400">
                         Balance: £{(trader.balance || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                     </div>
 
                     <div className="text-right">
-                      <p className="text-xs text-gray-500 mb-1">Total Value</p>
-                      <p className="text-lg font-bold text-gray-900">
+                      <p className="text-xs text-slate-400 mb-1">Total Value</p>
+                      <p className="text-lg font-bold text-white">
                         £{(trader.totalValue || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                       <p className={`text-xs font-semibold ${
-                        (trader.percentageReturn || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                        (trader.percentageReturn || 0) >= 0 ? 'text-green-500' : 'text-red-500'
                       }`}>
                         {(trader.percentageReturn || 0) >= 0 ? '+' : ''}{(trader.percentageReturn || 0).toFixed(2)}%
                       </p>
                       <div className="flex items-center justify-end gap-1 mt-1">
-                        <p className="text-xs font-bold text-amber-600">
+                        <p className="text-xs font-bold text-amber-500">
                           💰 £{(trader.hourlyDividends || 0).toFixed(2)}/hr
                         </p>
                       </div>
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-slate-500 mt-1">
                         Cash: £{(trader.balance || 0).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} • 
                         Stocks: £{(trader.portfolioValue || 0).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} • 
                         Copy: £{(trader.copyTradeValue || 0).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
@@ -437,7 +437,7 @@ export default function Leaderboard() {
 
         <TabsContent value="social">
           <div className="space-y-4">
-            <Card className="border-0 shadow-md">
+            <Card className="bg-slate-800 border-slate-700 shadow-md">
               <CardContent className="p-4">
                 <div className="space-y-3">
                   <Textarea
@@ -504,24 +504,24 @@ export default function Leaderboard() {
                       exit={{ opacity: 0, y: -20 }}
                       transition={{ delay: index * 0.05 }}
                     >
-                      <Card className="border-0 shadow-md hover:shadow-lg transition-all">
+                      <Card className="bg-slate-800 border-slate-700 shadow-md hover:shadow-lg transition-all">
                         <CardHeader className="pb-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               <a 
                                 href={createPageUrl('Profile') + '?user=' + post.created_by?.split('@')[0]}
-                                className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold hover:ring-2 hover:ring-violet-300 transition-all"
+                                className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white font-bold hover:ring-2 hover:ring-amber-400 transition-all"
                               >
                                 {post.created_by?.charAt(0).toUpperCase()}
                               </a>
                               <div>
                                 <a 
                                   href={createPageUrl('Profile') + '?user=' + post.created_by?.split('@')[0]}
-                                  className="font-semibold text-sm hover:text-violet-600 transition-colors"
+                                  className="font-semibold text-sm text-white hover:text-amber-400 transition-colors"
                                 >
                                   {post.created_by?.split('@')[0]}
                                 </a>
-                                <p className="text-xs text-gray-500">{moment(post.created_date).fromNow()}</p>
+                                <p className="text-xs text-slate-400">{moment(post.created_date).fromNow()}</p>
                               </div>
                             </div>
                             <Badge variant="outline" className={getPostBadge(post.post_type)}>
@@ -531,14 +531,14 @@ export default function Leaderboard() {
                           </div>
                         </CardHeader>
                         <CardContent>
-                          <p className="text-gray-700 whitespace-pre-wrap">{post.content}</p>
+                          <p className="text-slate-300 whitespace-pre-wrap">{post.content}</p>
                           
                           <div className="flex items-center gap-4 mt-4 pt-3 border-t">
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => toggleLikeMutation.mutate({ post, isLiked })}
-                              className={`gap-2 ${isLiked ? 'text-red-600' : 'text-gray-600'}`}
+                              className={`gap-2 ${isLiked ? 'text-red-500' : 'text-slate-400'}`}
                             >
                               <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
                               {post.likes || 0}
@@ -552,10 +552,10 @@ export default function Leaderboard() {
               </AnimatePresence>
 
               {posts.length === 0 && (
-                <Card className="border-0 shadow-md">
+                <Card className="bg-slate-800 border-slate-700 shadow-md">
                   <CardContent className="py-12 text-center">
-                    <MessageSquare className="w-12 h-12 mx-auto text-gray-300 mb-3" />
-                    <p className="text-gray-500">No posts yet. Be the first to share!</p>
+                    <MessageSquare className="w-12 h-12 mx-auto text-slate-600 mb-3" />
+                    <p className="text-slate-400">No posts yet. Be the first to share!</p>
                   </CardContent>
                 </Card>
               )}
