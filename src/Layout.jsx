@@ -65,20 +65,20 @@ export default function Layout({ children, currentPageName }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-violet-50 to-slate-100">
+    <div className="min-h-screen bg-slate-900">
       {/* Stock Ticker */}
       <StockTicker />
 
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+      <header className="bg-slate-800/95 backdrop-blur-md border-b border-slate-700 sticky top-0 z-40 shadow-lg">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to={createPageUrl('Home')} className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
-                <TrendingUp className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center shadow-lg">
+                <TrendingUp className="w-6 h-6 text-slate-900" />
               </div>
-              <span className="text-xl font-bold text-gray-900 hidden sm:block">
+              <span className="text-xl font-bold text-white hidden sm:block">
                 VTM
               </span>
             </Link>
@@ -94,8 +94,8 @@ export default function Layout({ children, currentPageName }) {
                     to={item.href}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
                       active
-                        ? 'bg-violet-100 text-violet-700 font-medium'
-                        : 'text-gray-600 hover:bg-gray-100'
+                        ? 'bg-slate-700 text-amber-400 font-medium'
+                        : 'text-slate-300 hover:bg-slate-700/50'
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -140,7 +140,7 @@ export default function Layout({ children, currentPageName }) {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden border-t border-gray-200 bg-white"
+              className="md:hidden border-t border-slate-700 bg-slate-800"
             >
               <nav className="px-4 py-4 space-y-1">
                 {navigation.map((item) => {
@@ -153,8 +153,8 @@ export default function Layout({ children, currentPageName }) {
                       onClick={() => setIsMenuOpen(false)}
                       className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                         active
-                          ? 'bg-violet-100 text-violet-700 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
+                          ? 'bg-slate-700 text-amber-400 font-medium'
+                          : 'text-slate-300 hover:bg-slate-700/50'
                       }`}
                     >
                       <Icon className="w-5 h-5" />
@@ -167,7 +167,7 @@ export default function Layout({ children, currentPageName }) {
                     handleLogout();
                     setIsMenuOpen(false);
                   }}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 w-full transition-all"
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:bg-slate-700/50 w-full transition-all"
                 >
                   <LogOut className="w-5 h-5" />
                   Logout

@@ -102,9 +102,9 @@ Deno.serve(async (req) => {
       // Apply volatility discount
       hourlyYield = hourlyYield * (1 - volAdjustment * 0.2);
       
-      // Bounds and scaling
-      const minYield = 0.00003; // 0.003% per hour
-      const maxYield = 0.0003;  // 0.03% per hour
+      // Bounds and scaling - REALISTIC YIELDS
+      const minYield = 0.000005; // 0.0005% per hour (~0.044% daily, ~16% APY)
+      const maxYield = 0.00002;  // 0.002% per hour (~0.175% daily, ~64% APY)
       hourlyYield = Math.max(minYield, Math.min(maxYield, hourlyYield));
       
       // Convert to percentage
