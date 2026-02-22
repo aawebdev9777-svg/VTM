@@ -515,13 +515,13 @@ export default function Portfolio() {
                 </thead>
                 <tbody>
                   {copyTradesWithMetrics.map((ct, index) => (
-                    <motion.tr
-                      key={ct.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="border-b hover:bg-gray-50"
-                    >
+                  <motion.tr
+                    key={ct.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="border-b border-slate-700 hover:bg-slate-700/30"
+                  >
                       <td className="py-4 px-4">
                         <div>
                           <p className="font-bold text-white">Copying {ct.leaderName}</p>
