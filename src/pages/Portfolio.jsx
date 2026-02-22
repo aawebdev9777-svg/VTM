@@ -384,17 +384,17 @@ export default function Portfolio() {
   }, [portfolioWithMetrics, stockPrices]);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 md:py-8">
+    <div className="max-w-6xl mx-auto px-4 py-6 md:py-8 min-h-screen">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="mb-6"
       >
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
-          <Briefcase className="w-6 h-6 text-violet-600" />
+        <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
+          <Briefcase className="w-6 h-6 text-amber-500" />
           Portfolio Analysis
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-slate-400 mt-1">
           Detailed view of your holdings and performance
         </p>
       </motion.div>
@@ -402,15 +402,15 @@ export default function Portfolio() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <Card className="border-0 shadow-lg">
+          <Card className="bg-slate-800 border-slate-700 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-violet-100 rounded-xl flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-violet-600" />
+                <div className="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 text-amber-500" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Total Value</p>
-                  <p className="text-lg font-bold text-gray-900">£{totalValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                  <p className="text-xs text-slate-400">Total Value</p>
+                  <p className="text-lg font-bold text-white">£{totalValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </CardContent>
@@ -418,15 +418,15 @@ export default function Portfolio() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <Card className="border-0 shadow-lg">
+          <Card className="bg-slate-800 border-slate-700 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <Briefcase className="w-6 h-6 text-blue-600" />
+                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                  <Briefcase className="w-6 h-6 text-blue-500" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Invested</p>
-                  <p className="text-lg font-bold text-gray-900">£{combinedInvested.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                  <p className="text-xs text-slate-400">Invested</p>
+                  <p className="text-lg font-bold text-white">£{combinedInvested.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
               </div>
             </CardContent>
@@ -434,11 +434,11 @@ export default function Portfolio() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <Card className="border-0 shadow-lg">
+          <Card className="bg-slate-800 border-slate-700 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                combinedProfitLoss >= 0 ? 'bg-green-100' : 'bg-red-100'
+                combinedProfitLoss >= 0 ? 'bg-green-500/20' : 'bg-red-500/20'
               }`}>
                 {combinedProfitLoss >= 0 ? (
                   <TrendingUp className="w-6 h-6 text-green-600" />
@@ -447,7 +447,7 @@ export default function Portfolio() {
                 )}
               </div>
               <div>
-                <p className="text-xs text-gray-500">P/L Amount</p>
+                <p className="text-xs text-slate-400">P/L Amount</p>
                 <p className={`text-lg font-bold ${combinedProfitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {combinedProfitLoss >= 0 ? '+' : ''}£{combinedProfitLoss.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
@@ -458,16 +458,16 @@ export default function Portfolio() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-          <Card className="border-0 shadow-lg">
+          <Card className="bg-slate-800 border-slate-700 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                combinedProfitLossPercent >= 0 ? 'bg-green-100' : 'bg-red-100'
+                combinedProfitLossPercent >= 0 ? 'bg-green-500/20' : 'bg-red-500/20'
               }`}>
-                <Percent className={`w-6 h-6 ${combinedProfitLossPercent >= 0 ? 'text-green-600' : 'text-red-600'}`} />
+                <Percent className={`w-6 h-6 ${combinedProfitLossPercent >= 0 ? 'text-green-500' : 'text-red-500'}`} />
               </div>
               <div>
-                <p className="text-xs text-gray-500">P/L Percent</p>
+                <p className="text-xs text-slate-400">P/L Percent</p>
                 <p className={`text-lg font-bold ${combinedProfitLossPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {combinedProfitLossPercent >= 0 ? '+' : ''}{combinedProfitLossPercent.toFixed(2)}%
                 </p>
@@ -478,16 +478,16 @@ export default function Portfolio() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-          <Card className="border-0 shadow-lg bg-gradient-to-br from-amber-50 to-yellow-50">
+          <Card className="bg-gradient-to-br from-amber-900/40 to-amber-800/40 border-amber-700/50 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-xl flex items-center justify-center shadow-md">
-                  <Coins className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center shadow-md">
+                  <Coins className="w-6 h-6 text-slate-900" />
                 </div>
                 <div>
-                  <p className="text-xs text-amber-600 font-semibold">Hourly Dividends</p>
-                  <p className="text-xl font-bold text-amber-700">💰 £{hourlyDividends.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/hr</p>
-                  <p className="text-xs text-amber-600">Passive income stream</p>
+                  <p className="text-xs text-amber-400 font-semibold">Hourly Dividends</p>
+                  <p className="text-xl font-bold text-amber-300">💰 £{hourlyDividends.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/hr</p>
+                  <p className="text-xs text-amber-400">Passive income stream</p>
                 </div>
               </div>
             </CardContent>
@@ -497,20 +497,20 @@ export default function Portfolio() {
 
       {/* Copy Trading Holdings */}
       {myCopyTrades.length > 0 && (
-        <Card className="border-0 shadow-lg mb-6">
+        <Card className="bg-slate-800 border-slate-700 shadow-lg mb-6">
           <CardHeader>
-            <CardTitle>Copy Trading Positions</CardTitle>
+            <CardTitle className="text-white">Copy Trading Positions</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Trader</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Invested</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Current Value</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">P/L</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Action</th>
+                  <tr className="border-b border-slate-700">
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">Trader</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">Invested</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">Current Value</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">P/L</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -524,14 +524,14 @@ export default function Portfolio() {
                     >
                       <td className="py-4 px-4">
                         <div>
-                          <p className="font-bold text-gray-900">Copying {ct.leaderName}</p>
-                          <p className="text-xs text-gray-500">Return: {ct.leaderReturn >= 0 ? '+' : ''}{ct.leaderReturn.toFixed(2)}%</p>
+                          <p className="font-bold text-white">Copying {ct.leaderName}</p>
+                          <p className="text-xs text-slate-400">Return: {ct.leaderReturn >= 0 ? '+' : ''}{ct.leaderReturn.toFixed(2)}%</p>
                         </div>
                       </td>
-                      <td className="text-right py-4 px-4 text-gray-900">
+                      <td className="text-right py-4 px-4 text-slate-300">
                         £{ct.investment_amount.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
-                      <td className="text-right py-4 px-4 font-medium text-gray-900">
+                      <td className="text-right py-4 px-4 font-medium text-white">
                         £{ct.currentValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                       <td className="text-right py-4 px-4">
@@ -572,30 +572,30 @@ export default function Portfolio() {
       )}
 
       {/* Holdings Table */}
-      <Card className="border-0 shadow-lg">
+      <Card className="bg-slate-800 border-slate-700 shadow-lg">
         <CardHeader>
-          <CardTitle>Stock Holdings</CardTitle>
+          <CardTitle className="text-white">Stock Holdings</CardTitle>
         </CardHeader>
         <CardContent>
           {portfolio.length === 0 ? (
             <div className="text-center py-12">
-              <Briefcase className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-              <p className="text-gray-500">No holdings yet</p>
-              <p className="text-sm text-gray-400 mt-1">Start trading to build your portfolio</p>
+              <Briefcase className="w-16 h-16 mx-auto text-slate-600 mb-4" />
+              <p className="text-slate-400">No holdings yet</p>
+              <p className="text-sm text-slate-500 mt-1">Start trading to build your portfolio</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Stock</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Shares</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Avg Cost</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Current</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Value</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Dividends</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">P/L</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-gray-700">Action</th>
+                  <tr className="border-b border-slate-700">
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">Stock</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">Shares</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">Avg Cost</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">Current</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">Value</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">Dividends</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">P/L</th>
+                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -605,18 +605,18 @@ export default function Portfolio() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="border-b hover:bg-gray-50"
+                      className="border-b border-slate-700 hover:bg-slate-700/30"
                     >
                       <td className="py-4 px-4">
                         <div>
-                          <p className="font-bold text-gray-900">{holding.symbol}</p>
-                          <p className="text-xs text-gray-500">{holding.company_name}</p>
+                          <p className="font-bold text-white">{holding.symbol}</p>
+                          <p className="text-xs text-slate-400">{holding.company_name}</p>
                         </div>
                       </td>
-                      <td className="text-right py-4 px-4 text-gray-900">{holding.shares.toLocaleString()}</td>
-                      <td className="text-right py-4 px-4 text-gray-900">£{holding.average_buy_price?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td className="text-right py-4 px-4 text-gray-900">£{holding.currentPrice?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td className="text-right py-4 px-4 font-medium text-gray-900">
+                      <td className="text-right py-4 px-4 text-slate-300">{holding.shares.toLocaleString()}</td>
+                      <td className="text-right py-4 px-4 text-slate-300">£{holding.average_buy_price?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="text-right py-4 px-4 text-slate-300">£{holding.currentPrice?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="text-right py-4 px-4 font-medium text-white">
                         £{holding.currentValue?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                       <td className="text-right py-4 px-4">

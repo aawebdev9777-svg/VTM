@@ -209,18 +209,18 @@ export default function Wallet() {
    };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 md:py-8">
+    <div className="max-w-6xl mx-auto px-4 py-6 md:py-8 min-h-screen">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="mb-6"
       >
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
-          <WalletIcon className="w-6 h-6 text-violet-600" />
+        <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
+          <WalletIcon className="w-6 h-6 text-amber-500" />
           Wallet
-          {isAdmin && <Crown className="w-6 h-6 text-yellow-500" />}
+          {isAdmin && <Crown className="w-6 h-6 text-amber-500" />}
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-slate-400 mt-1">
           Your virtual trading wallet
         </p>
       </motion.div>
@@ -302,28 +302,28 @@ export default function Wallet() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="border-0 shadow-lg h-full">
+          <Card className="bg-slate-800 border-slate-700 shadow-lg h-full">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-violet-600" />
+              <CardTitle className="flex items-center gap-2 text-white">
+                <TrendingUp className="w-5 h-5 text-amber-500" />
                 Quick Stats
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-600">Recent Trades</span>
-                  <span className="font-bold text-gray-900">{transactions.length}</span>
+                <div className="flex justify-between items-center p-3 bg-slate-900/50 rounded-lg">
+                  <span className="text-sm text-slate-400">Recent Trades</span>
+                  <span className="font-bold text-white">{transactions.length}</span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-600">Net Profit/Loss</span>
-                  <span className={`font-bold ${totalEarned - totalSpent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <div className="flex justify-between items-center p-3 bg-slate-900/50 rounded-lg">
+                  <span className="text-sm text-slate-400">Net Profit/Loss</span>
+                  <span className={`font-bold ${totalEarned - totalSpent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                     £{(totalEarned - totalSpent).toFixed(2)}
                   </span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-600">Available Cash</span>
-                  <span className="font-bold text-violet-600">£{cashBalance.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                <div className="flex justify-between items-center p-3 bg-slate-900/50 rounded-lg">
+                  <span className="text-sm text-slate-400">Available Cash</span>
+                  <span className="font-bold text-amber-500">£{cashBalance.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </div>
               </div>
             </CardContent>
@@ -338,15 +338,15 @@ export default function Wallet() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+          <Card className="bg-slate-800 border-slate-700 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-blue-600" />
+                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 text-blue-500" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Initial Balance</p>
-                  <p className="text-xl font-bold text-gray-900">£{initialBalance.toLocaleString()}</p>
+                  <p className="text-sm text-slate-400">Initial Balance</p>
+                  <p className="text-xl font-bold text-white">£{initialBalance.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
@@ -358,15 +358,15 @@ export default function Wallet() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+          <Card className="bg-slate-800 border-slate-700 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
-                  <TrendingDown className="w-6 h-6 text-red-600" />
+                <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center">
+                  <TrendingDown className="w-6 h-6 text-red-500" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Total Spent</p>
-                  <p className="text-xl font-bold text-red-600">£{totalSpent.toLocaleString()}</p>
+                  <p className="text-sm text-slate-400">Total Spent</p>
+                  <p className="text-xl font-bold text-red-500">£{totalSpent.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
@@ -378,15 +378,15 @@ export default function Wallet() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
+          <Card className="bg-slate-800 border-slate-700 shadow-lg">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-green-600" />
+                <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-green-500" />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500">Total Earned</p>
-                  <p className="text-xl font-bold text-green-600">£{totalEarned.toLocaleString()}</p>
+                  <p className="text-sm text-slate-400">Total Earned</p>
+                  <p className="text-xl font-bold text-green-500">£{totalEarned.toLocaleString()}</p>
                 </div>
               </div>
             </CardContent>
@@ -402,10 +402,10 @@ export default function Wallet() {
            animate={{ opacity: 1, y: 0 }}
            transition={{ delay: 0.6 }}
          >
-           <Card className="border-0 shadow-lg">
+           <Card className="bg-slate-800 border-slate-700 shadow-lg">
              <CardHeader>
-               <CardTitle className="text-lg flex items-center gap-2">
-                 <Send className="w-5 h-5 text-violet-600" />
+               <CardTitle className="text-lg flex items-center gap-2 text-white">
+                 <Send className="w-5 h-5 text-amber-500" />
                  Send Money
                </CardTitle>
              </CardHeader>
@@ -497,35 +497,35 @@ export default function Wallet() {
            animate={{ opacity: 1, y: 0 }}
            transition={{ delay: 0.7 }}
          >
-           <Card className="border-0 shadow-lg">
+           <Card className="bg-slate-800 border-slate-700 shadow-lg">
              <CardHeader>
-               <CardTitle className="text-lg">Recent Activity</CardTitle>
+               <CardTitle className="text-lg text-white">Recent Activity</CardTitle>
              </CardHeader>
              <CardContent>
                {transactions.length === 0 ? (
-                 <p className="text-center py-8 text-gray-500 text-base">No transactions yet</p>
+                 <p className="text-center py-8 text-slate-400 text-base">No transactions yet</p>
                ) : (
                  <div className="space-y-3">
                    {transactions.map((transaction) => (
-                     <div key={transaction.id} className="flex items-center justify-between p-4 rounded-lg bg-gray-50">
+                     <div key={transaction.id} className="flex items-center justify-between p-4 rounded-lg bg-slate-900/50">
                        <div className="flex items-center gap-4 flex-1">
                          <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
-                           transaction.type === 'buy' ? 'bg-red-100' : 'bg-green-100'
+                           transaction.type === 'buy' ? 'bg-red-500/20' : 'bg-green-500/20'
                          }`}>
                            {transaction.type === 'buy' ? (
-                             <TrendingDown className="w-6 h-6 text-red-600" />
+                             <TrendingDown className="w-6 h-6 text-red-500" />
                            ) : (
-                             <TrendingUp className="w-6 h-6 text-green-600" />
+                             <TrendingUp className="w-6 h-6 text-green-500" />
                            )}
                          </div>
                          <div className="min-w-0">
-                           <p className="font-bold text-base text-gray-900">{transaction.symbol}</p>
-                           <p className="text-sm text-gray-500">{transaction.shares} shares · {transaction.company_name}</p>
+                           <p className="font-bold text-base text-white">{transaction.symbol}</p>
+                           <p className="text-sm text-slate-400">{transaction.shares} shares · {transaction.company_name}</p>
                          </div>
                        </div>
                        <div className="text-right ml-2">
                          <p className={`font-bold text-base ${
-                           transaction.type === 'buy' ? 'text-red-600' : 'text-green-600'
+                           transaction.type === 'buy' ? 'text-red-500' : 'text-green-500'
                          }`}>
                            {transaction.type === 'buy' ? '-' : '+'}£{transaction.total_amount?.toFixed(2)}
                          </p>
