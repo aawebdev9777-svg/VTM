@@ -91,24 +91,31 @@ export default function RealtimeAnalyticsDashboard() {
     setNodes([hubNode, ...userNodes]);
     setConnections([...txnConnections, ...ctConnections]);
 
+    // Filter out admin
+    const adminEmail = 'aa.web.dev9777@gmail.com';
+    const nonAdminAccounts = accounts?.filter(a => a.created_by !== adminEmail) || [];
+    const nonAdminPortfolios = portfolios?.filter(p => p.created_by !== adminEmail) || [];
+    const nonAdminTransactions = transactions?.filter(t => t.created_by !== adminEmail) || [];
+    
     // Calculate stats
-    const totalValue = accounts?.reduce((sum, acc) => sum + acc.cash_balance, 0) || 0;
-    const portfolioValue = portfolios?.reduce((sum, p) => sum + (p.shares * p.average_buy_price), 0) || 0;
-    const activeUsers = accounts?.filter(a => a.cash_balance > 0).length || 0;
-    const totalTrades = transactions?.length || 0;
+    const totalValue = nonAdminAccounts.reduce((sum, acc) => sum + acc.cash_balance, 0);
+    const portfolioValue = nonAdminPortfolios.reduce((sum, p) => sum + (p.shares * p.average_buy_price), 0);
+    const activeUsers = nonAdminAccounts.filter(a => a.cash_balance !== 10000).length;
+    const totalTrades = nonAdminTransactions.length;
     
     // Calculate total P/L across all users
-    const totalProfitLoss = accounts?.reduce((sum, acc) => {
+    const totalProfitLoss = nonAdminAccounts.reduce((sum, acc) => {
       const initialBalance = acc.initial_balance || 10000;
-      const currentValue = acc.cash_balance + (portfolios?.filter(p => p.created_by === acc.created_by).reduce((pSum, p) => pSum + (p.shares * p.average_buy_price), 0) || 0);
+      const userPortfolios = nonAdminPortfolios.filter(p => p.created_by === acc.created_by);
+      const currentValue = acc.cash_balance + userPortfolios.reduce((pSum, p) => pSum + (p.shares * p.average_buy_price), 0);
       return sum + (currentValue - initialBalance);
-    }, 0) || 0;
+    }, 0);
     
     // Calculate total transaction volume (all buy/sell amounts)
-    const totalVolume = transactions?.reduce((sum, tx) => sum + (tx.total_amount || 0), 0) || 0;
+    const totalVolume = nonAdminTransactions.reduce((sum, tx) => sum + (tx.total_amount || 0), 0);
 
     setStats({
-      totalUsers: users?.length || 0,
+      totalUsers: users?.filter(u => u.email !== adminEmail).length || 0,
       activeUsers,
       totalValue: totalValue + portfolioValue,
       totalTrades,
