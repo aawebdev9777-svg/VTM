@@ -17,7 +17,7 @@ import RankBadge from '../components/competitive/RankBadge';
 import RivalTracker from '../components/competitive/RivalTracker';
 import MissionTracker from '../components/competitive/MissionTracker';
 import ABPFDetailedChart from '../components/trading/ABPFDetailedChart';
-import { Loader2, RefreshCw, Trophy, Zap, Target } from 'lucide-react';
+import { Loader2, RefreshCw, Trophy, Zap, Target, DollarSign, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 
@@ -360,7 +360,7 @@ export default function Home() {
         className="mb-4"
       >
         {/* Elite Status Bar */}
-        <div className="bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 rounded-2xl p-4 md:p-6 border border-purple-500/20 shadow-2xl mb-4">
+        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-4 md:p-6 border border-slate-700/30 shadow-2xl mb-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               <RankBadge tier="Gold" size="lg" showLabel={false} animate />
@@ -369,18 +369,18 @@ export default function Home() {
                   <h1 className="text-xl md:text-2xl font-black text-white tracking-tight">
                     VTM ARENA
                   </h1>
-                  <div className="px-2 py-0.5 bg-purple-600/30 rounded-md border border-purple-400/50">
-                    <span className="text-xs font-bold text-purple-200">LIVE</span>
+                  <div className="px-2 py-0.5 bg-red-900/40 rounded-md border border-red-600/50">
+                    <span className="text-xs font-bold text-red-400">LIVE</span>
                   </div>
                 </div>
-                <p className="text-xs text-purple-300 font-medium">PROVE YOUR DOMINANCE</p>
+                <p className="text-xs text-slate-400 font-medium">COMPETITIVE TRADING ARENA</p>
               </div>
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => queryClient.invalidateQueries()}
-              className="gap-2 h-8 text-purple-200 hover:text-white hover:bg-purple-800/30"
+              className="gap-2 h-8 text-slate-400 hover:text-white hover:bg-slate-800/50"
             >
               <RefreshCw className="w-3 h-3" />
             </Button>
@@ -388,10 +388,10 @@ export default function Home() {
 
           {/* Competitive Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
-            <div className="bg-black/40 backdrop-blur-sm rounded-xl p-3 border border-purple-500/20">
+            <div className="bg-slate-950/60 backdrop-blur-sm rounded-xl p-3 border border-slate-700/40">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold text-purple-300 uppercase tracking-wider">Portfolio</span>
-                <Trophy className="w-3.5 h-3.5 text-purple-400" />
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Portfolio</span>
+                <Trophy className="w-3.5 h-3.5 text-amber-500" />
               </div>
               <div className="text-xl md:text-2xl font-black text-white">
                 £{(portfolioValue + copyTradeValue + (account?.cash_balance || 0)).toLocaleString('en-GB', { maximumFractionDigits: 0 })}
@@ -401,19 +401,19 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="bg-black/40 backdrop-blur-sm rounded-xl p-3 border border-purple-500/20">
+            <div className="bg-slate-950/60 backdrop-blur-sm rounded-xl p-3 border border-slate-700/40">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold text-purple-300 uppercase tracking-wider">Win Rate</span>
-                <Target className="w-3.5 h-3.5 text-purple-400" />
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Win Rate</span>
+                <Target className="w-3.5 h-3.5 text-blue-500" />
               </div>
               <div className="text-xl md:text-2xl font-black text-white">0%</div>
               <div className="text-xs font-bold text-gray-400">0/0 Trades</div>
             </div>
 
-            <div className="bg-black/40 backdrop-blur-sm rounded-xl p-3 border border-purple-500/20">
+            <div className="bg-slate-950/60 backdrop-blur-sm rounded-xl p-3 border border-slate-700/40">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold text-purple-300 uppercase tracking-wider">Rank</span>
-                <Zap className="w-3.5 h-3.5 text-amber-400" />
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Rank</span>
+                <Zap className="w-3.5 h-3.5 text-amber-500" />
               </div>
               <div className="text-xl md:text-2xl font-black bg-gradient-to-r from-amber-400 to-amber-200 bg-clip-text text-transparent">
                 Gold
@@ -421,10 +421,10 @@ export default function Home() {
               <div className="text-xs font-bold text-amber-300">Top 40%</div>
             </div>
 
-            <div className="bg-black/40 backdrop-blur-sm rounded-xl p-3 border border-purple-500/20">
+            <div className="bg-slate-950/60 backdrop-blur-sm rounded-xl p-3 border border-slate-700/40">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold text-purple-300 uppercase tracking-wider">Streak</span>
-                <Zap className="w-3.5 h-3.5 text-orange-400" />
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Streak</span>
+                <Zap className="w-3.5 h-3.5 text-orange-500" />
               </div>
               <div className="text-xl md:text-2xl font-black text-white">0</div>
               <div className="text-xs font-bold text-gray-400">No streak</div>
@@ -438,7 +438,7 @@ export default function Home() {
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 text-white shadow-xl border border-emerald-400/30"
+          className="bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-xl p-5 text-white shadow-lg border border-emerald-700/40"
         >
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
@@ -456,7 +456,7 @@ export default function Home() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-5 text-white shadow-xl border border-violet-400/30"
+          className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl p-5 text-white shadow-lg border border-blue-700/40"
         >
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
@@ -476,7 +476,7 @@ export default function Home() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-5 text-white shadow-xl border border-amber-400/30"
+          className="bg-gradient-to-br from-amber-600 to-amber-800 rounded-xl p-5 text-white shadow-lg border border-amber-700/40"
         >
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
