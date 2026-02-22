@@ -134,13 +134,13 @@ export default function Profile() {
   const totalTrades = transactions.length;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 pb-20">
+    <div className="max-w-5xl mx-auto px-4 py-6 pb-20 min-h-screen">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
         {/* Profile Header */}
-        <Card className="border-0 shadow-xl overflow-hidden mb-6">
+        <Card className="bg-slate-800 border-slate-700 shadow-xl overflow-hidden mb-6">
           <div 
             className="h-32 relative"
             style={{ background: `linear-gradient(135deg, ${profileUser.banner_color || '#8b5cf6'}, ${profileUser.banner_color || '#8b5cf6'}dd)` }}
@@ -168,40 +168,40 @@ export default function Profile() {
 
           <CardContent className="pt-20 pb-6">
             <div className="mb-4">
-              <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                 {profileUser.display_name || profileUser.username}
-                {profitPercent > 50 && <Crown className="w-6 h-6 text-yellow-500" />}
+                {profitPercent > 50 && <Crown className="w-6 h-6 text-amber-500" />}
               </h1>
-              <p className="text-sm text-gray-500">@{profileUser.username}</p>
+              <p className="text-sm text-slate-400">@{profileUser.username}</p>
               {profileUser.bio && (
-                <p className="text-gray-700 mt-3">{profileUser.bio}</p>
+                <p className="text-slate-300 mt-3">{profileUser.bio}</p>
               )}
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-4 gap-4 mb-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-gray-900">£{totalValue.toLocaleString('en-GB', { maximumFractionDigits: 0 })}</p>
-                <p className="text-xs text-gray-500">Portfolio</p>
+                <p className="text-2xl font-bold text-white">£{totalValue.toLocaleString('en-GB', { maximumFractionDigits: 0 })}</p>
+                <p className="text-xs text-slate-400">Portfolio</p>
               </div>
               <div className="text-center">
-                <p className={`text-2xl font-bold ${profitPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <p className={`text-2xl font-bold ${profitPercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                   {profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(1)}%
                 </p>
-                <p className="text-xs text-gray-500">Return</p>
+                <p className="text-xs text-slate-400">Return</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-gray-900">{totalTrades}</p>
-                <p className="text-xs text-gray-500">Trades</p>
+                <p className="text-2xl font-bold text-white">{totalTrades}</p>
+                <p className="text-xs text-slate-400">Trades</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-gray-900">{posts.length}</p>
-                <p className="text-xs text-gray-500">Posts</p>
+                <p className="text-2xl font-bold text-white">{posts.length}</p>
+                <p className="text-xs text-slate-400">Posts</p>
               </div>
             </div>
 
             {profileUser.favorite_stock && (
-              <Badge className="bg-violet-100 text-violet-700 border-violet-300">
+              <Badge className="bg-amber-500/20 text-amber-300 border-amber-600">
                 💎 Favorite: {profileUser.favorite_stock}
               </Badge>
             )}
@@ -210,10 +210,10 @@ export default function Profile() {
 
         {/* Recent Activity */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="border-0 shadow-lg">
+          <Card className="bg-slate-800 border-slate-700 shadow-lg">
             <CardContent className="p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-violet-600" />
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-amber-500" />
                 Top Holdings
               </h3>
               <div className="space-y-3">
@@ -225,14 +225,14 @@ export default function Profile() {
                   const profitPercent = (profit / (holding.shares * holding.average_buy_price)) * 100;
 
                   return (
-                    <div key={holding.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={holding.id} className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg">
                       <div>
-                        <p className="font-semibold text-gray-900">{holding.symbol}</p>
-                        <p className="text-xs text-gray-500">{holding.shares} shares</p>
+                        <p className="font-semibold text-white">{holding.symbol}</p>
+                        <p className="text-xs text-slate-400">{holding.shares} shares</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-gray-900">£{value.toFixed(2)}</p>
-                        <p className={`text-xs ${profitPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <p className="font-bold text-white">£{value.toFixed(2)}</p>
+                        <p className={`text-xs ${profitPercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                           {profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(1)}%
                         </p>
                       </div>
@@ -240,32 +240,32 @@ export default function Profile() {
                   );
                 })}
                 {portfolio.length === 0 && (
-                  <p className="text-gray-500 text-center py-4">No holdings yet</p>
+                  <p className="text-slate-400 text-center py-4">No holdings yet</p>
                 )}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg">
+          <Card className="bg-slate-800 border-slate-700 shadow-lg">
             <CardContent className="p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <Trophy className="w-5 h-5 text-amber-600" />
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-amber-500" />
                 Recent Posts
               </h3>
               <div className="space-y-3">
                 {posts.slice(0, 5).map(post => (
-                  <div key={post.id} className="p-3 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-700">{post.content.substring(0, 100)}...</p>
+                  <div key={post.id} className="p-3 bg-slate-900/50 rounded-lg">
+                    <p className="text-sm text-slate-300">{post.content.substring(0, 100)}...</p>
                     <div className="flex items-center gap-2 mt-2">
                       <Badge variant="outline" className="text-xs">
                         {post.post_type}
                       </Badge>
-                      <span className="text-xs text-gray-500">❤️ {post.likes || 0}</span>
+                      <span className="text-xs text-slate-400">❤️ {post.likes || 0}</span>
                     </div>
                   </div>
                 ))}
                 {posts.length === 0 && (
-                  <p className="text-gray-500 text-center py-4">No posts yet</p>
+                  <p className="text-slate-400 text-center py-4">No posts yet</p>
                 )}
               </div>
             </CardContent>
