@@ -407,7 +407,7 @@ export default function Home() {
                 <Target className="w-3.5 h-3.5 text-blue-500" />
               </div>
               <div className="text-xl md:text-2xl font-black text-white">0%</div>
-              <div className="text-xs font-bold text-gray-400">0/0 Trades</div>
+              <div className="text-xs font-bold text-slate-500">0/0 Trades</div>
             </div>
 
             <div className="bg-slate-950/60 backdrop-blur-sm rounded-xl p-3 border border-slate-700/40">
@@ -427,7 +427,7 @@ export default function Home() {
                 <Zap className="w-3.5 h-3.5 text-orange-500" />
               </div>
               <div className="text-xl md:text-2xl font-black text-white">0</div>
-              <div className="text-xs font-bold text-gray-400">No streak</div>
+              <div className="text-xs font-bold text-slate-500">No streak</div>
             </div>
           </div>
         </div>
