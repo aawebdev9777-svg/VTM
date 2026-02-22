@@ -208,17 +208,17 @@ export default function Admin() {
   const abpfPercentOfVolume = totalVolume > 0 ? ((abpfVolume / totalVolume) * 100).toFixed(1) : 0;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 md:py-8">
+    <div className="max-w-7xl mx-auto px-4 py-6 md:py-8 min-h-screen">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="mb-6"
       >
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 flex items-center gap-2">
-          <Shield className="w-6 h-6 text-violet-600" />
+        <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
+          <Shield className="w-6 h-6 text-amber-500" />
           Admin Dashboard
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-slate-400 mt-1">
           Platform overview and user statistics
         </p>
       </motion.div>
@@ -229,16 +229,16 @@ export default function Admin() {
       </div>
 
       {/* Admin Controls */}
-      <Card className="border-0 shadow-lg mb-6 bg-gradient-to-br from-violet-50 to-purple-50">
+      <Card className="bg-slate-800 border-slate-700 shadow-lg mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-violet-600" />
+          <CardTitle className="flex items-center gap-2 text-white">
+            <Zap className="w-5 h-5 text-amber-500" />
             Admin Controls
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Market Simulation</h3>
+            <h3 className="text-sm font-semibold text-slate-300 mb-3">Market Simulation</h3>
             <div className="flex flex-wrap gap-3">
               <Button
                 onClick={() => simulateEventMutation.mutate('crash')}
@@ -315,7 +315,7 @@ export default function Admin() {
           </div>
 
           <div className="border-t pt-4">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">User Management</h3>
+            <h3 className="text-sm font-semibold text-slate-300 mb-3">User Management</h3>
             <div className="space-y-3">
               <div className="flex flex-wrap gap-3">
                 <Button
@@ -359,13 +359,13 @@ export default function Admin() {
           </div>
 
           <div className="border-t pt-4 mt-4">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Send Money to User</h3>
+            <h3 className="text-sm font-semibold text-slate-300 mb-3">Send Money to User</h3>
             <AdminSendMoney />
           </div>
 
           <div className="border-t pt-4 mt-4">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Impersonate User</h3>
-            <p className="text-sm text-gray-500">Feature temporarily disabled</p>
+            <h3 className="text-sm font-semibold text-slate-300 mb-3">Impersonate User</h3>
+            <p className="text-sm text-slate-400">Feature temporarily disabled</p>
           </div>
         </CardContent>
       </Card>
@@ -373,72 +373,72 @@ export default function Admin() {
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <Card className="border-0 shadow-lg">
+          <Card className="bg-slate-800 border-slate-700 shadow-lg">
             <CardContent className="p-4">
               <div className="text-center">
-                <Users className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                <p className="text-xs text-gray-500">Total Users</p>
-                <p className="text-xl font-bold text-gray-900">{totalUsers}</p>
+                <Users className="w-6 h-6 text-blue-500 mx-auto mb-2" />
+                <p className="text-xs text-slate-400">Total Users</p>
+                <p className="text-xl font-bold text-white">{totalUsers}</p>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <Card className="border-0 shadow-lg">
+          <Card className="bg-slate-800 border-slate-700 shadow-lg">
             <CardContent className="p-4">
               <div className="text-center">
-                <Activity className="w-6 h-6 text-green-600 mx-auto mb-2" />
-                <p className="text-xs text-gray-500">Active</p>
-                <p className="text-xl font-bold text-gray-900">{activeUsers}</p>
+                <Activity className="w-6 h-6 text-green-500 mx-auto mb-2" />
+                <p className="text-xs text-slate-400">Active</p>
+                <p className="text-xl font-bold text-white">{activeUsers}</p>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <Card className="border-0 shadow-lg">
+          <Card className="bg-slate-800 border-slate-700 shadow-lg">
             <CardContent className="p-4">
               <div className="text-center">
-                <TrendingUp className="w-6 h-6 text-violet-600 mx-auto mb-2" />
-                <p className="text-xs text-gray-500">Trades</p>
-                <p className="text-xl font-bold text-gray-900">{totalTrades}</p>
+                <TrendingUp className="w-6 h-6 text-amber-500 mx-auto mb-2" />
+                <p className="text-xs text-slate-400">Trades</p>
+                <p className="text-xl font-bold text-white">{totalTrades}</p>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-          <Card className="border-0 shadow-lg">
+          <Card className="bg-slate-800 border-slate-700 shadow-lg">
             <CardContent className="p-4">
               <div className="text-center">
-                <DollarSign className="w-6 h-6 text-amber-600 mx-auto mb-2" />
-                <p className="text-xs text-gray-500">Volume</p>
-                <p className="text-xl font-bold text-gray-900">£{(totalVolume / 1000).toFixed(0)}k</p>
+                <DollarSign className="w-6 h-6 text-emerald-500 mx-auto mb-2" />
+                <p className="text-xs text-slate-400">Volume</p>
+                <p className="text-xl font-bold text-white">£{(totalVolume / 1000).toFixed(0)}k</p>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-          <Card className="border-0 shadow-lg">
+          <Card className="bg-slate-800 border-slate-700 shadow-lg">
             <CardContent className="p-4">
               <div className="text-center">
-                <Users className="w-6 h-6 text-purple-600 mx-auto mb-2" />
-                <p className="text-xs text-gray-500">Copy Trades</p>
-                <p className="text-xl font-bold text-gray-900">{activeCopyTrades}</p>
+                <Users className="w-6 h-6 text-purple-500 mx-auto mb-2" />
+                <p className="text-xs text-slate-400">Copy Trades</p>
+                <p className="text-xl font-bold text-white">{activeCopyTrades}</p>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
-          <Card className="border-0 shadow-lg">
+          <Card className="bg-slate-800 border-slate-700 shadow-lg">
             <CardContent className="p-4">
               <div className="text-center">
-                <Users className="w-6 h-6 text-pink-600 mx-auto mb-2" />
-                <p className="text-xs text-gray-500">Posts</p>
-                <p className="text-xl font-bold text-gray-900">{totalPosts}</p>
+                <Users className="w-6 h-6 text-pink-500 mx-auto mb-2" />
+                <p className="text-xs text-slate-400">Posts</p>
+                <p className="text-xl font-bold text-white">{totalPosts}</p>
               </div>
             </CardContent>
           </Card>
@@ -446,41 +446,41 @@ export default function Admin() {
       </div>
 
       {/* ABPF Analytics Card */}
-      <Card className="border-0 shadow-lg mb-6 bg-gradient-to-br from-green-50 to-emerald-50 border-l-4 border-green-500">
+      <Card className="bg-gradient-to-br from-emerald-900/40 to-green-900/40 border-emerald-600 shadow-lg mb-6">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-           <TrendingUp className="w-5 h-5 text-green-600" />
+          <CardTitle className="flex items-center gap-2 text-white">
+           <TrendingUp className="w-5 h-5 text-emerald-400" />
            🚀 ABPF Performance
          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="bg-white p-3 rounded-lg border border-green-200">
-              <p className="text-xs text-gray-500">Investors</p>
-              <p className="text-2xl font-bold text-green-600">{abpfHolders}</p>
+            <div className="bg-slate-950/50 p-3 rounded-lg border border-emerald-700">
+              <p className="text-xs text-emerald-400">Investors</p>
+              <p className="text-2xl font-bold text-emerald-300">{abpfHolders}</p>
             </div>
-            <div className="bg-white p-3 rounded-lg border border-green-200">
-              <p className="text-xs text-gray-500">Total Shares</p>
-              <p className="text-2xl font-bold text-green-600">{abpfShares.toLocaleString()}</p>
+            <div className="bg-slate-950/50 p-3 rounded-lg border border-emerald-700">
+              <p className="text-xs text-emerald-400">Total Shares</p>
+              <p className="text-2xl font-bold text-emerald-300">{abpfShares.toLocaleString()}</p>
             </div>
-            <div className="bg-white p-3 rounded-lg border border-green-200">
-              <p className="text-xs text-gray-500">Volume</p>
-              <p className="text-2xl font-bold text-green-600">£{(abpfVolume / 1000).toFixed(0)}k</p>
+            <div className="bg-slate-950/50 p-3 rounded-lg border border-emerald-700">
+              <p className="text-xs text-emerald-400">Volume</p>
+              <p className="text-2xl font-bold text-emerald-300">£{(abpfVolume / 1000).toFixed(0)}k</p>
             </div>
-            <div className="bg-white p-3 rounded-lg border border-green-200">
-              <p className="text-xs text-gray-500">% of Total</p>
-              <p className="text-2xl font-bold text-green-600">{abpfPercentOfVolume}%</p>
+            <div className="bg-slate-950/50 p-3 rounded-lg border border-emerald-700">
+              <p className="text-xs text-emerald-400">% of Total</p>
+              <p className="text-2xl font-bold text-emerald-300">{abpfPercentOfVolume}%</p>
             </div>
           </div>
-          <p className="text-sm text-green-700">💰 Most invested stock - super profitable!</p>
+          <p className="text-sm text-emerald-300">💰 Most invested stock - super profitable!</p>
         </CardContent>
       </Card>
 
       {/* Charts and Stock Economics */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <Card className="border-0 shadow-lg">
+        <Card className="bg-slate-800 border-slate-700 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-lg">Trading Activity</CardTitle>
+            <CardTitle className="text-lg text-white">Trading Activity</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
@@ -495,9 +495,9 @@ export default function Admin() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg">
+        <Card className="bg-slate-800 border-slate-700 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-lg">Trading Volume</CardTitle>
+            <CardTitle className="text-lg text-white">Trading Volume</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
@@ -512,26 +512,26 @@ export default function Admin() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-lg">
+        <Card className="bg-slate-800 border-slate-700 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-lg">App Economics</CardTitle>
+            <CardTitle className="text-lg text-white">App Economics</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-600">Avg Trade Size</span>
-              <span className="font-bold text-gray-900">£{avgTradeSize.toLocaleString('en-GB', { maximumFractionDigits: 0 })}</span>
+            <div className="flex justify-between items-center p-3 bg-slate-900/50 rounded-lg">
+              <span className="text-sm text-slate-400">Avg Trade Size</span>
+              <span className="font-bold text-white">£{avgTradeSize.toLocaleString('en-GB', { maximumFractionDigits: 0 })}</span>
             </div>
-            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-600">Active Rate</span>
-              <span className="font-bold text-gray-900">{totalUsers > 0 ? ((activeUsers / totalUsers) * 100).toFixed(1) : 0}%</span>
+            <div className="flex justify-between items-center p-3 bg-slate-900/50 rounded-lg">
+              <span className="text-sm text-slate-400">Active Rate</span>
+              <span className="font-bold text-white">{totalUsers > 0 ? ((activeUsers / totalUsers) * 100).toFixed(1) : 0}%</span>
             </div>
-            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-600">Trades per User</span>
-              <span className="font-bold text-gray-900">{activeUsers > 0 ? (totalTrades / activeUsers).toFixed(1) : 0}</span>
+            <div className="flex justify-between items-center p-3 bg-slate-900/50 rounded-lg">
+              <span className="text-sm text-slate-400">Trades per User</span>
+              <span className="font-bold text-white">{activeUsers > 0 ? (totalTrades / activeUsers).toFixed(1) : 0}</span>
             </div>
-            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <span className="text-sm text-gray-600">Volume per User</span>
-              <span className="font-bold text-gray-900">£{activeUsers > 0 ? (totalVolume / activeUsers).toLocaleString('en-GB', { maximumFractionDigits: 0 }) : 0}</span>
+            <div className="flex justify-between items-center p-3 bg-slate-900/50 rounded-lg">
+              <span className="text-sm text-slate-400">Volume per User</span>
+              <span className="font-bold text-white">£{activeUsers > 0 ? (totalVolume / activeUsers).toLocaleString('en-GB', { maximumFractionDigits: 0 }) : 0}</span>
             </div>
           </CardContent>
         </Card>
