@@ -1,48 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import PortfolioSummary from '../components/trading/PortfolioSummary';
-import StockSearch from '../components/trading/StockSearch';
-import BuyStockPanel from '../components/trading/BuyStockPanel';
-import HoldingsList from '../components/trading/HoldingsList';
-import TopStocks from '../components/trading/TopStocks';
-import AlertsPanel from '../components/alerts/AlertsPanel';
-import StockNews from '../components/news/StockNews';
-import FreeStockSelector from '../components/trading/FreeStockSelector';
-import BuyAnalysis from '../components/trading/BuyAnalysis';
-import MoneyReceivedNotification from '../components/MoneyReceivedNotification';
-import StatsCard from '../components/competitive/StatsCard';
-import PerformanceHeatmap from '../components/competitive/PerformanceHeatmap';
-import RankBadge from '../components/competitive/RankBadge';
-import RivalTracker from '../components/competitive/RivalTracker';
-import MissionTracker from '../components/competitive/MissionTracker';
-import ABPFDetailedChart from '../components/trading/ABPFDetailedChart';
-import { Loader2, RefreshCw, Trophy, Zap, Target, DollarSign, TrendingUp } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Loader2, TrendingUp, TrendingDown, Wallet, DollarSign, Search, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Home() {
-  const [selectedStock, setSelectedStock] = useState(null);
-  const [currentPrices, setCurrentPrices] = useState({});
   const [currentUser, setCurrentUser] = useState(null);
-  const [showFreeStockModal, setShowFreeStockModal] = useState(false);
-  const [displayPrices, setDisplayPrices] = useState({});
-  const [momentum, setMomentum] = useState({});
-  const [lastSeenTransactionId, setLastSeenTransactionId] = useState(null); // Added
-  const [newTransaction, setNewTransaction] = useState(null); // Added
-  const buyPanelRef = React.useRef(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStock, setSelectedStock] = useState(null);
+  const [shares, setShares] = useState('');
   const queryClient = useQueryClient();
 
   useEffect(() => {
     base44.auth.me()
       .then(user => {
-        if (!user) {
-          base44.auth.redirectToLogin();
-        }
+        if (!user) base44.auth.redirectToLogin();
         setCurrentUser(user);
       })
       .catch(() => base44.auth.redirectToLogin());
   }, []);
+
+  const { data: accounts, isLoading: accountLoading } = useQuery({
+    queryKey: ['userAccount', currentUser?.email],
+    queryFn: () => base44.entities.UserAccount.filter({ created_by: currentUser?.email }),
+    enabled: !!currentUser?.email,
+  });
+
+  const { data: portfolio = [], isLoading: portfolioLoading } = useQuery({
+    queryKey: ['portfolio', currentUser?.email],
+    queryFn: () => base44.entities.Portfolio.filter({ created_by: currentUser?.email }),
+    enabled: !!currentUser?.email,
+  });
 
   const { data: stockPrices = [] } = useQuery({
     queryKey: ['stockPrices'],
@@ -57,275 +48,77 @@ export default function Home() {
     refetchInterval: 5000,
   });
 
-  const { data: accounts, isLoading: accountLoading } = useQuery({
-    queryKey: ['userAccount', currentUser?.email],
-    queryFn: () => base44.entities.UserAccount.filter({ created_by: currentUser?.email }),
-    enabled: !!currentUser?.email,
-    refetchInterval: 10000,
-  });
-
-  const { data: portfolio = [], isLoading: portfolioLoading } = useQuery({
-    queryKey: ['portfolio', currentUser?.email],
-    queryFn: () => base44.entities.Portfolio.filter({ created_by: currentUser?.email }),
-    enabled: !!currentUser?.email,
-    refetchInterval: 10000,
-  });
-
-  const { data: myCopyTrades = [] } = useQuery({
-    queryKey: ['myCopyTrades', currentUser?.email],
-    queryFn: () => base44.entities.CopyTrade.filter({ follower_email: currentUser?.email, is_active: true }),
-    enabled: !!currentUser?.email,
-    refetchInterval: 15000,
-  });
-
-  const { data: leaderboard = [] } = useQuery({
-    queryKey: ['leaderboard'],
-    queryFn: async () => {
-      const response = await base44.functions.invoke('getLeaderboard', {});
-      return response.data.leaderboard || [];
-    },
-    refetchInterval: 5000,
-  });
-
-  // Added: New useQuery for transactions
   const { data: transactions = [] } = useQuery({
-    queryKey: ['homeTransactions', currentUser?.email],
-    queryFn: async () => {
-      if (!currentUser?.email) return [];
-      const userTxns = await base44.entities.Transaction.filter({ created_by: currentUser?.email }, '-created_date', 10);
-      const receivedTxns = await base44.asServiceRole.entities.Transaction.filter({ created_by: currentUser?.email }, '-created_date', 10);
-      const combined = [...userTxns, ...receivedTxns];
-      return combined.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)).slice(0, 10);
-    },
+    queryKey: ['transactions', currentUser?.email],
+    queryFn: () => base44.entities.Transaction.filter({ created_by: currentUser?.email }, '-created_date', 10),
     enabled: !!currentUser?.email,
-    refetchInterval: 20000,
   });
-  // End Added
-
-  useEffect(() => {
-    if (!currentUser?.email) return;
-    
-    const unsubscribePortfolio = base44.entities.Portfolio.subscribe((event) => {
-      if (event.data?.created_by === currentUser?.email) {
-        queryClient.invalidateQueries({ queryKey: ['portfolio', currentUser?.email] });
-      }
-    });
-
-    const unsubscribeAccount = base44.entities.UserAccount.subscribe((event) => {
-      if (event.data?.created_by === currentUser?.email) {
-        queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] });
-      }
-    });
-
-    return () => {
-      unsubscribePortfolio();
-      unsubscribeAccount();
-    };
-  }, [currentUser?.email, queryClient]);
-
-  const createAccountMutation = useMutation({
-    mutationFn: async (userEmail) => {
-      const initialAmount = 10000;
-      return base44.entities.UserAccount.create({ 
-        cash_balance: initialAmount, 
-        initial_balance: initialAmount,
-        free_stocks_available: 3
-      });
-    },
-    onSuccess: (data, userEmail) => {
-      queryClient.invalidateQueries({ queryKey: ['userAccount', userEmail] });
-    },
-  });
-
-  useEffect(() => {
-    if (currentUser?.email && accounts?.length === 0) {
-      createAccountMutation.mutate(currentUser.email);
-    }
-  }, [accounts, currentUser?.email]);
-
-  // Added: Effect for monitoring new transactions and showing notifications
-  useEffect(() => {
-    if (transactions.length > 0) {
-      const latestTransaction = transactions[0];
-      if (lastSeenTransactionId === null) {
-        // Initialize lastSeenId on first load to prevent showing notifications for existing transactions
-        setLastSeenTransactionId(latestTransaction.id);
-      } else if (latestTransaction.id !== lastSeenTransactionId) {
-        // A new transaction has appeared
-        if (latestTransaction.type === 'buy' && latestTransaction.symbol === 'TRANSFER') {
-          // If it's a money transfer, set it for notification
-          setNewTransaction(latestTransaction);
-        }
-        // Always update lastSeenTransactionId to the truly latest one
-        setLastSeenTransactionId(latestTransaction.id);
-      }
-    }
-  }, [transactions, lastSeenTransactionId]);
-  // End Added
 
   const account = accounts?.[0];
 
-  // Check if user has free stocks available
-  useEffect(() => {
-    if (account?.free_stocks_available > 0) {
-      setShowFreeStockModal(true);
-    }
-  }, [account?.free_stocks_available]);
+  const portfolioValue = portfolio.reduce((sum, holding) => {
+    const stockPrice = stockPrices.find(s => s.symbol === holding.symbol);
+    const currentPrice = stockPrice?.price_gbp || holding.average_buy_price;
+    return sum + (holding.shares * currentPrice);
+  }, 0);
+
+  const totalValue = (account?.cash_balance || 0) + portfolioValue;
+  const profitLoss = totalValue - (account?.initial_balance || 10000);
+  const profitPercent = ((profitLoss / (account?.initial_balance || 10000)) * 100);
 
   const buyMutation = useMutation({
     mutationFn: async ({ stock, shares }) => {
       const response = await base44.functions.invoke('buyStock', { stock, shares });
-      
-      if (!response.data.success) {
-        throw new Error(response.data.error || 'Transaction failed');
-      }
-      
+      if (!response.data.success) throw new Error(response.data.error || 'Transaction failed');
       return response.data;
     },
-    onSuccess: async (data) => {
-      // Update queries with fresh data from server
-      queryClient.setQueryData(['userAccount', currentUser?.email], [data.data.account]);
-      queryClient.setQueryData(['portfolio', currentUser?.email], data.data.portfolio);
-      
-      // Invalidate to ensure consistency and trigger new transaction checks
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['stockPrices'] }),
-        queryClient.invalidateQueries({ queryKey: ['transactions'] }), // Also invalidate general transactions
-        queryClient.invalidateQueries({ queryKey: ['homeTransactions', currentUser?.email] }) // Invalidate specific transactions for notification
-      ]);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userAccount'] });
+      queryClient.invalidateQueries({ queryKey: ['portfolio'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      setSelectedStock(null);
+      setShares('');
     },
-    onError: (error) => {
-      alert(error.message || 'Transaction failed. Please try again.');
-    }
   });
 
-  const handleBuy = (stock, shares) => {
-    buyMutation.mutate({ stock, shares });
-  };
+  const sellMutation = useMutation({
+    mutationFn: async ({ holdingId, shares }) => {
+      const holding = portfolio.find(h => h.id === holdingId);
+      const stockPrice = stockPrices.find(s => s.symbol === holding.symbol);
+      const currentPrice = stockPrice?.price_gbp || holding.average_buy_price;
+      const totalAmount = shares * currentPrice;
 
-  // Update base prices from backend
-  useEffect(() => {
-    if (stockPrices.length > 0) {
-      setDisplayPrices(prev => {
-        const updated = {};
-        stockPrices.forEach(stock => {
-          updated[stock.symbol] = prev[stock.symbol] || {
-            price: stock.price_gbp,
-            change: stock.daily_change_percent,
-            basePrice: stock.price_gbp,
-            baseChange: stock.daily_change_percent
-          };
-          updated[stock.symbol].basePrice = stock.price_gbp;
-          updated[stock.symbol].baseChange = stock.daily_change_percent;
+      await base44.entities.UserAccount.update(account.id, {
+        cash_balance: account.cash_balance + totalAmount
+      });
+
+      if (shares >= holding.shares) {
+        await base44.entities.Portfolio.delete(holdingId);
+      } else {
+        await base44.entities.Portfolio.update(holdingId, {
+          shares: holding.shares - shares
         });
-        return updated;
-      });
-      
-      setMomentum(prev => {
-        const updated = { ...prev };
-        stockPrices.forEach(stock => {
-          if (!updated[stock.symbol]) {
-            updated[stock.symbol] = 0;
-          }
-        });
-        return updated;
-      });
-    }
-  }, [stockPrices]);
-
-  // Animate prices smoothly between backend updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setMomentum(m => {
-        const updated = { ...m };
-        for (const symbol in updated) {
-          const trendAdjustment = (Math.random() * 1.6 - 0.8);
-          updated[symbol] = Math.max(-8, Math.min(8, updated[symbol] + trendAdjustment));
-        }
-        return updated;
-      });
-
-      setDisplayPrices(prev => {
-        const updated = {};
-        for (const symbol in prev) {
-          const current = prev[symbol];
-          const movementPercent = momentum[symbol] || 0;
-          const newPrice = current.basePrice * (1 + movementPercent / 100);
-          const newChange = current.baseChange + movementPercent;
-
-          updated[symbol] = {
-            price: parseFloat(newPrice.toFixed(2)),
-            change: parseFloat(newChange.toFixed(2)),
-            basePrice: current.basePrice,
-            baseChange: current.baseChange
-          };
-        }
-        return updated;
-      });
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [momentum]);
-
-  // Update currentPrices from displayPrices
-  useEffect(() => {
-    const pricesMap = {};
-    for (const symbol in displayPrices) {
-      pricesMap[symbol] = displayPrices[symbol].price;
-    }
-    setCurrentPrices(pricesMap);
-  }, [displayPrices]);
-
-  const handleSelectStock = async (stock) => {
-    if (!stock.price_gbp) {
-      try {
-        const response = await base44.functions.invoke('getStockPrice', { symbol: stock.symbol });
-        const stockData = {
-          ...response.data,
-          company_name: response.data.name
-        };
-        setSelectedStock(stockData);
-        setCurrentPrices(prev => ({
-          ...prev,
-          [stock.symbol]: stockData.price_gbp
-        }));
-      } catch (error) {
-        console.error('Failed to fetch stock:', error);
       }
-    } else {
-      setSelectedStock(stock);
-      setCurrentPrices(prev => ({
-        ...prev,
-        [stock.symbol]: stock.price_gbp
-      }));
-    }
-    
-    // Scroll to buy panel
-    setTimeout(() => {
-      buyPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-  };
 
-  const portfolioValue = portfolio.reduce((sum, holding) => {
-    const price = currentPrices[holding.symbol] || holding.average_buy_price;
-    return sum + (holding.shares * price);
-  }, 0);
+      await base44.entities.Transaction.create({
+        symbol: holding.symbol,
+        company_name: holding.company_name,
+        type: 'sell',
+        shares: shares,
+        price_per_share: currentPrice,
+        total_amount: totalAmount
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userAccount'] });
+      queryClient.invalidateQueries({ queryKey: ['portfolio'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
+  });
 
-  // Calculate copy trade value
-  const copyTradeValue = myCopyTrades.reduce((sum, ct) => {
-    const leaderData = leaderboard.find(l => l.email === ct.leader_email);
-    const currentValue = ct.investment_amount * (1 + ((leaderData?.percentageReturn || 0) / 100));
-    return sum + currentValue;
-  }, 0);
-
-  // Calculate hourly dividends
-  const hourlyDividends = portfolio.reduce((sum, holding) => {
-    const stockPrice = stockPrices.find(s => s.symbol === holding.symbol);
-    const dividendYield = stockPrice?.dividend_yield_hourly || 0;
-    const currentPrice = currentPrices[holding.symbol] || holding.average_buy_price;
-    const holdingValue = holding.shares * currentPrice;
-    return sum + (holdingValue * (dividendYield / 100));
-  }, 0);
+  const filteredStocks = stockPrices.filter(stock =>
+    stock.symbol.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (accountLoading || portfolioLoading) {
     return (
@@ -335,197 +128,217 @@ export default function Home() {
     );
   }
 
-  const handleFreeStockClose = async () => {
-    setShowFreeStockModal(false);
-    // Update account to remove free stock flag
-    if (account?.id) {
-      await base44.entities.UserAccount.update(account.id, { free_stocks_available: 0 });
-      queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] }); // Invalidate to refetch updated account
-    }
-  };
-
   return (
-    <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6 pb-20 min-h-screen">
-      <MoneyReceivedNotification // Added
-        transaction={newTransaction} // Added
-        onClose={() => setNewTransaction(null)} // Added
-      /> {/* Added */}
-      <FreeStockSelector 
-        open={showFreeStockModal} 
-        onClose={handleFreeStockClose}
-      />
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-4"
-      >
-        {/* Elite Status Bar */}
-        <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-4 md:p-6 border border-slate-700/30 shadow-2xl mb-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <RankBadge tier="Gold" size="lg" showLabel={false} animate />
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl md:text-2xl font-black text-white tracking-tight">
-                    VTM ARENA
-                  </h1>
-                  <div className="px-2 py-0.5 bg-red-900/40 rounded-md border border-red-600/50">
-                    <span className="text-xs font-bold text-red-400">LIVE</span>
-                  </div>
+    <div className="min-h-screen bg-slate-900 px-4 py-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+        >
+          <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-slate-400 font-medium">Total Value</span>
+                <Wallet className="w-5 h-5 text-amber-500" />
+              </div>
+              <div className="text-3xl font-black text-white mb-1">
+                £{totalValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div className={`text-sm font-semibold flex items-center gap-1 ${profitLoss >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                {profitLoss >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                {profitLoss >= 0 ? '+' : ''}£{Math.abs(profitLoss).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(2)}%)
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-slate-400 font-medium">Cash Balance</span>
+                <DollarSign className="w-5 h-5 text-emerald-500" />
+              </div>
+              <div className="text-3xl font-black text-white">
+                £{(account?.cash_balance || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div className="text-sm text-slate-400">Available to trade</div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-slate-400 font-medium">Portfolio Value</span>
+                <TrendingUp className="w-5 h-5 text-blue-500" />
+              </div>
+              <div className="text-3xl font-black text-white">
+                £{portfolioValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div className="text-sm text-slate-400">{portfolio.length} holdings</div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Trading Panel */}
+          <div className="space-y-6">
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Search className="w-5 h-5 text-amber-500" />
+                  Trade Stocks
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Input
+                  placeholder="Search stocks..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-slate-900 border-slate-700 text-white"
+                />
+
+                <div className="max-h-[300px] overflow-y-auto space-y-2">
+                  {filteredStocks.slice(0, 10).map(stock => (
+                    <div
+                      key={stock.symbol}
+                      onClick={() => setSelectedStock(stock)}
+                      className={`p-3 rounded-lg cursor-pointer transition-all ${
+                        selectedStock?.symbol === stock.symbol
+                          ? 'bg-amber-500/20 border border-amber-500'
+                          : 'bg-slate-900/50 border border-slate-700 hover:border-slate-600'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-bold text-white">{stock.symbol}</div>
+                          <div className="text-xs text-slate-400">£{stock.price_gbp?.toFixed(2)}</div>
+                        </div>
+                        <div className={`text-sm font-semibold ${(stock.daily_change_percent || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                          {(stock.daily_change_percent || 0) >= 0 ? '+' : ''}{(stock.daily_change_percent || 0).toFixed(2)}%
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <p className="text-xs text-slate-400 font-medium">COMPETITIVE TRADING ARENA</p>
+
+                {selectedStock && (
+                  <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-white font-bold">{selectedStock.symbol}</span>
+                      <span className="text-slate-300">£{selectedStock.price_gbp?.toFixed(2)}</span>
+                    </div>
+                    <Input
+                      type="number"
+                      placeholder="Number of shares"
+                      value={shares}
+                      onChange={(e) => setShares(e.target.value)}
+                      className="bg-slate-900 border-slate-700 text-white"
+                    />
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-400">Total Cost:</span>
+                      <span className="text-white font-bold">
+                        £{(selectedStock.price_gbp * (parseInt(shares) || 0)).toFixed(2)}
+                      </span>
+                    </div>
+                    <Button
+                      onClick={() => buyMutation.mutate({ stock: selectedStock, shares: parseInt(shares) })}
+                      disabled={!shares || buyMutation.isPending || (selectedStock.price_gbp * parseInt(shares)) > (account?.cash_balance || 0)}
+                      className="w-full bg-amber-600 hover:bg-amber-700 text-white"
+                    >
+                      {buyMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Buy Shares'}
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Recent Activity */}
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-white">Recent Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {transactions.length === 0 && (
+                    <p className="text-slate-400 text-center py-4">No transactions yet</p>
+                  )}
+                  {transactions.map(tx => (
+                    <div key={tx.id} className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${tx.type === 'buy' ? 'bg-green-500' : 'bg-red-500'}`} />
+                        <div>
+                          <div className="text-white font-medium">{tx.symbol}</div>
+                          <div className="text-xs text-slate-400">{tx.shares} shares</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className={`font-bold ${tx.type === 'buy' ? 'text-red-500' : 'text-green-500'}`}>
+                          {tx.type === 'buy' ? '-' : '+'}£{tx.total_amount.toFixed(2)}
+                        </div>
+                        <div className="text-xs text-slate-400">£{tx.price_per_share.toFixed(2)}/share</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Holdings */}
+          <Card className="bg-slate-800 border-slate-700">
+            <CardHeader>
+              <CardTitle className="text-white">Your Holdings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 max-h-[700px] overflow-y-auto">
+                {portfolio.length === 0 && (
+                  <p className="text-slate-400 text-center py-8">No holdings yet. Start trading!</p>
+                )}
+                {portfolio.map(holding => {
+                  const stockPrice = stockPrices.find(s => s.symbol === holding.symbol);
+                  const currentPrice = stockPrice?.price_gbp || holding.average_buy_price;
+                  const value = holding.shares * currentPrice;
+                  const invested = holding.shares * holding.average_buy_price;
+                  const profit = value - invested;
+                  const profitPercent = ((profit / invested) * 100);
+
+                  return (
+                    <div key={holding.id} className="p-4 bg-slate-900/50 rounded-lg border border-slate-700">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <div className="text-lg font-bold text-white">{holding.symbol}</div>
+                          <div className="text-sm text-slate-400">{holding.shares} shares</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg font-bold text-white">£{value.toFixed(2)}</div>
+                          <div className={`text-sm font-semibold ${profit >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                            {profit >= 0 ? '+' : ''}£{profit.toFixed(2)} ({profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(2)}%)
+                          </div>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+                        <div className="text-slate-400">
+                          Avg Buy: <span className="text-white">£{holding.average_buy_price.toFixed(2)}</span>
+                        </div>
+                        <div className="text-slate-400">
+                          Current: <span className="text-white">£{currentPrice.toFixed(2)}</span>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => sellMutation.mutate({ holdingId: holding.id, shares: holding.shares })}
+                        disabled={sellMutation.isPending}
+                        variant="outline"
+                        className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
+                      >
+                        {sellMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sell All'}
+                      </Button>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => queryClient.invalidateQueries()}
-              className="gap-2 h-8 text-slate-400 hover:text-white hover:bg-slate-800/50"
-            >
-              <RefreshCw className="w-3 h-3" />
-            </Button>
-          </div>
-
-          {/* Competitive Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
-            <div className="bg-slate-950/60 backdrop-blur-sm rounded-xl p-3 border border-slate-700/40">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Portfolio</span>
-                <Trophy className="w-3.5 h-3.5 text-amber-500" />
-              </div>
-              <div className="text-xl md:text-2xl font-black text-white">
-                £{(portfolioValue + copyTradeValue + (account?.cash_balance || 0)).toLocaleString('en-GB', { maximumFractionDigits: 0 })}
-              </div>
-              <div className={`text-xs font-bold ${((portfolioValue + copyTradeValue + (account?.cash_balance || 0) - 10000) / 10000 * 100) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {((portfolioValue + copyTradeValue + (account?.cash_balance || 0) - 10000) / 10000 * 100) >= 0 ? '↗' : '↘'} {Math.abs(((portfolioValue + copyTradeValue + (account?.cash_balance || 0) - 10000) / 10000 * 100)).toFixed(1)}%
-              </div>
-            </div>
-
-            <div className="bg-slate-950/60 backdrop-blur-sm rounded-xl p-3 border border-slate-700/40">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Win Rate</span>
-                <Target className="w-3.5 h-3.5 text-blue-500" />
-              </div>
-              <div className="text-xl md:text-2xl font-black text-white">0%</div>
-              <div className="text-xs font-bold text-slate-500">0/0 Trades</div>
-            </div>
-
-            <div className="bg-slate-950/60 backdrop-blur-sm rounded-xl p-3 border border-slate-700/40">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Rank</span>
-                <Zap className="w-3.5 h-3.5 text-amber-500" />
-              </div>
-              <div className="text-xl md:text-2xl font-black bg-gradient-to-r from-amber-400 to-amber-200 bg-clip-text text-transparent">
-                Gold
-              </div>
-              <div className="text-xs font-bold text-amber-300">Top 40%</div>
-            </div>
-
-            <div className="bg-slate-950/60 backdrop-blur-sm rounded-xl p-3 border border-slate-700/40">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Streak</span>
-                <Zap className="w-3.5 h-3.5 text-orange-500" />
-              </div>
-              <div className="text-xl md:text-2xl font-black text-white">0</div>
-              <div className="text-xs font-bold text-slate-500">No streak</div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Performance Dashboard */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-xl p-5 text-white shadow-lg border border-emerald-700/40"
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-5 h-5" />
-            </div>
-            <span className="text-sm font-semibold opacity-90">Cash Balance</span>
-          </div>
-          <div className="text-3xl font-black">
-            £{(account?.cash_balance || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </div>
-          <div className="text-xs font-medium opacity-80 mt-1">Available to trade</div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl p-5 text-white shadow-lg border border-blue-700/40"
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-5 h-5" />
-            </div>
-            <span className="text-sm font-semibold opacity-90">Portfolio Value</span>
-          </div>
-          <div className="text-3xl font-black">
-            £{(portfolioValue + copyTradeValue).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </div>
-          <div className="text-xs font-medium opacity-80 mt-1">
-            {((portfolioValue + copyTradeValue - (10000 - (account?.cash_balance || 0))) / (10000 - (account?.cash_balance || 0)) * 100).toFixed(1)}% Returns
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-gradient-to-br from-amber-600 to-amber-800 rounded-xl p-5 text-white shadow-lg border border-amber-700/40"
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-              <Zap className="w-5 h-5" />
-            </div>
-            <span className="text-sm font-semibold opacity-90">Hourly Dividends</span>
-          </div>
-          <div className="text-3xl font-black">
-            £{hourlyDividends.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/hr
-          </div>
-          <div className="text-xs font-medium opacity-80 mt-1">
-            £{(hourlyDividends * 24 * 365).toLocaleString('en-GB', { maximumFractionDigits: 0 })}/year potential
-          </div>
-        </motion.div>
-      </div>
-
-      <ABPFDetailedChart />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
-         <div className="lg:col-span-2 space-y-4">
-           <div ref={buyPanelRef}>
-             <BuyStockPanel
-               selectedStock={selectedStock}
-               cashBalance={account?.cash_balance || 0}
-               onBuy={handleBuy}
-               isLoading={buyMutation.isPending}
-             />
-           </div>
-          <StockSearch 
-            onSelectStock={handleSelectStock} 
-            selectedStock={selectedStock}
-          />
-          <TopStocks onSelectStock={handleSelectStock} />
-          <HoldingsList 
-            portfolio={portfolio} 
-            currentPrices={currentPrices}
-          />
-        </div>
-
-        <div className="space-y-4">
-          <RivalTracker leaderboard={leaderboard} currentUser={currentUser} />
-          <MissionTracker transactions={transactions} rank={{}} />
-          <PerformanceHeatmap transactions={transactions} />
-          <BuyAnalysis 
-            stockPrices={stockPrices} 
-            displayPrices={displayPrices} 
-            cashBalance={account?.cash_balance || 0} 
-            totalPortfolioValue={portfolioValue + copyTradeValue} 
-          />
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
