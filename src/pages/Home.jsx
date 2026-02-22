@@ -329,8 +329,8 @@ export default function Home() {
 
   if (accountLoading || portfolioLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-violet-600" />
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+        <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
       </div>
     );
   }
@@ -345,7 +345,7 @@ export default function Home() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6 pb-20">
+    <div className="max-w-7xl mx-auto px-3 md:px-6 py-4 md:py-6 pb-20 min-h-screen">
       <MoneyReceivedNotification // Added
         transaction={newTransaction} // Added
         onClose={() => setNewTransaction(null)} // Added
