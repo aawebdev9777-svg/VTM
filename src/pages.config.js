@@ -52,11 +52,11 @@ import Home from './pages/Home';
 import Impersonate from './pages/Impersonate';
 import Leaderboard from './pages/Leaderboard';
 import Portfolio from './pages/Portfolio';
+import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import Sheet from './pages/Sheet';
 import Transactions from './pages/Transactions';
 import Wallet from './pages/Wallet';
-import Profile from './pages/Profile';
 import __Layout from './Layout.jsx';
 
 
@@ -66,11 +66,11 @@ export const PAGES = {
     "Impersonate": Impersonate,
     "Leaderboard": Leaderboard,
     "Portfolio": Portfolio,
+    "Profile": Profile,
     "Settings": Settings,
     "Sheet": Sheet,
     "Transactions": Transactions,
     "Wallet": Wallet,
-    "Profile": Profile,
 }
 
 export const pagesConfig = {

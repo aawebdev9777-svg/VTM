@@ -357,66 +357,140 @@ export default function Home() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-6"
+        className="mb-4"
       >
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-violet-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                VTM Arena
-              </h1>
-              <p className="text-xs md:text-sm text-gray-500 mt-1">Compete. Dominate. Win.</p>
+        {/* Elite Status Bar */}
+        <div className="bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 rounded-2xl p-4 md:p-6 border border-purple-500/20 shadow-2xl mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <RankBadge tier="Gold" size="lg" showLabel={false} animate />
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl md:text-2xl font-black text-white tracking-tight">
+                    VTM ARENA
+                  </h1>
+                  <div className="px-2 py-0.5 bg-purple-600/30 rounded-md border border-purple-400/50">
+                    <span className="text-xs font-bold text-purple-200">LIVE</span>
+                  </div>
+                </div>
+                <p className="text-xs text-purple-300 font-medium">PROVE YOUR DOMINANCE</p>
+              </div>
             </div>
-            <RankBadge tier="Gold" size="md" showLabel={false} />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => queryClient.invalidateQueries()}
+              className="gap-2 h-8 text-purple-200 hover:text-white hover:bg-purple-800/30"
+            >
+              <RefreshCw className="w-3 h-3" />
+            </Button>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => queryClient.invalidateQueries()}
-            className="gap-2 h-8"
-          >
-            <RefreshCw className="w-3 h-3" />
-          </Button>
-        </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-          <StatsCard 
-            label="Portfolio Value" 
-            value={`£${(portfolioValue + copyTradeValue + (account?.cash_balance || 0)).toLocaleString('en-GB', { maximumFractionDigits: 0 })}`}
-            change={((portfolioValue + copyTradeValue + (account?.cash_balance || 0) - 10000) / 10000 * 100).toFixed(1)}
-            icon={Trophy}
-            delay={0}
-          />
-          <StatsCard 
-            label="Win Rate" 
-            value="0%"
-            change={0}
-            icon={Target}
-            delay={0.1}
-          />
-          <StatsCard 
-            label="Rank" 
-            value="Gold"
-            icon={Zap}
-            delay={0.2}
-          />
-          <StatsCard 
-            label="Streak" 
-            value="0"
-            change={0}
-            icon={Zap}
-            delay={0.3}
-          />
+          {/* Competitive Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+            <div className="bg-black/40 backdrop-blur-sm rounded-xl p-3 border border-purple-500/20">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-purple-300 uppercase tracking-wider">Portfolio</span>
+                <Trophy className="w-3.5 h-3.5 text-purple-400" />
+              </div>
+              <div className="text-xl md:text-2xl font-black text-white">
+                £{(portfolioValue + copyTradeValue + (account?.cash_balance || 0)).toLocaleString('en-GB', { maximumFractionDigits: 0 })}
+              </div>
+              <div className={`text-xs font-bold ${((portfolioValue + copyTradeValue + (account?.cash_balance || 0) - 10000) / 10000 * 100) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                {((portfolioValue + copyTradeValue + (account?.cash_balance || 0) - 10000) / 10000 * 100) >= 0 ? '↗' : '↘'} {Math.abs(((portfolioValue + copyTradeValue + (account?.cash_balance || 0) - 10000) / 10000 * 100)).toFixed(1)}%
+              </div>
+            </div>
+
+            <div className="bg-black/40 backdrop-blur-sm rounded-xl p-3 border border-purple-500/20">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-purple-300 uppercase tracking-wider">Win Rate</span>
+                <Target className="w-3.5 h-3.5 text-purple-400" />
+              </div>
+              <div className="text-xl md:text-2xl font-black text-white">0%</div>
+              <div className="text-xs font-bold text-gray-400">0/0 Trades</div>
+            </div>
+
+            <div className="bg-black/40 backdrop-blur-sm rounded-xl p-3 border border-purple-500/20">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-purple-300 uppercase tracking-wider">Rank</span>
+                <Zap className="w-3.5 h-3.5 text-amber-400" />
+              </div>
+              <div className="text-xl md:text-2xl font-black bg-gradient-to-r from-amber-400 to-amber-200 bg-clip-text text-transparent">
+                Gold
+              </div>
+              <div className="text-xs font-bold text-amber-300">Top 40%</div>
+            </div>
+
+            <div className="bg-black/40 backdrop-blur-sm rounded-xl p-3 border border-purple-500/20">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-purple-300 uppercase tracking-wider">Streak</span>
+                <Zap className="w-3.5 h-3.5 text-orange-400" />
+              </div>
+              <div className="text-xl md:text-2xl font-black text-white">0</div>
+              <div className="text-xs font-bold text-gray-400">No streak</div>
+            </div>
+          </div>
         </div>
       </motion.div>
 
-      <div className="mb-4">
-        <PortfolioSummary
-          cashBalance={account?.cash_balance || 0}
-          portfolioValue={portfolioValue + copyTradeValue}
-          initialBalance={account?.initial_balance || account?.cash_balance || 10000}
-          hourlyDividends={hourlyDividends}
-        />
+      {/* Performance Dashboard */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 text-white shadow-xl border border-emerald-400/30"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+              <DollarSign className="w-5 h-5" />
+            </div>
+            <span className="text-sm font-semibold opacity-90">Cash Balance</span>
+          </div>
+          <div className="text-3xl font-black">
+            £{(account?.cash_balance || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+          <div className="text-xs font-medium opacity-80 mt-1">Available to trade</div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl p-5 text-white shadow-xl border border-violet-400/30"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <span className="text-sm font-semibold opacity-90">Portfolio Value</span>
+          </div>
+          <div className="text-3xl font-black">
+            £{(portfolioValue + copyTradeValue).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+          <div className="text-xs font-medium opacity-80 mt-1">
+            {((portfolioValue + copyTradeValue - (10000 - (account?.cash_balance || 0))) / (10000 - (account?.cash_balance || 0)) * 100).toFixed(1)}% Returns
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-5 text-white shadow-xl border border-amber-400/30"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+              <Zap className="w-5 h-5" />
+            </div>
+            <span className="text-sm font-semibold opacity-90">Hourly Dividends</span>
+          </div>
+          <div className="text-3xl font-black">
+            £{hourlyDividends.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/hr
+          </div>
+          <div className="text-xs font-medium opacity-80 mt-1">
+            £{(hourlyDividends * 24 * 365).toLocaleString('en-GB', { maximumFractionDigits: 0 })}/year potential
+          </div>
+        </motion.div>
       </div>
 
       <ABPFDetailedChart />
