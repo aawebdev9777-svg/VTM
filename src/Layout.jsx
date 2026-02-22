@@ -111,7 +111,7 @@ export default function Layout({ children, currentPageName }) {
                 variant="ghost"
                 size="icon"
                 onClick={handleLogout}
-                className="hidden md:flex"
+                className="hidden md:flex text-slate-300 hover:text-white"
               >
                 <LogOut className="w-4 h-4" />
               </Button>
@@ -121,12 +121,12 @@ export default function Layout({ children, currentPageName }) {
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden"
+                className="md:hidden text-white"
               >
                 {isMenuOpen ? (
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5 text-white" />
                 ) : (
-                  <Menu className="w-5 h-5" />
+                  <Menu className="w-5 h-5 text-white" />
                 )}
               </Button>
             </div>
