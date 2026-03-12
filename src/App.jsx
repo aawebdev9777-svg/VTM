@@ -59,6 +59,7 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      <Route path="/Presentw" element={<Presentw />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
