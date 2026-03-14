@@ -109,7 +109,7 @@ function SlideHero() {
       </motion.p>
 
       <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }}
-        className="mt-10 text-slate-600 text-sm relative z-10">10-Minute Pitch Deck · 2026</motion.p>
+        className="mt-10 text-slate-600 text-sm relative z-10">~10 Minute Pitch · 2026</motion.p>
     </SlideWrap>
   );
 }
