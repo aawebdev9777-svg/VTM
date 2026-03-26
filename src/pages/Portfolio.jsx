@@ -49,18 +49,7 @@ export default function Portfolio() {
     refetchInterval: 5000,
   });
 
-  // When real data arrives, update display prices and base values
-  // Load from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('portfolioDisplayPrices');
-    const savedMomentum = localStorage.getItem('portfolioMomentum');
-    if (saved) {
-      setDisplayPrices(JSON.parse(saved));
-    }
-    if (savedMomentum) {
-      setMomentum(JSON.parse(savedMomentum));
-    }
-  }, []);
+  // Initialize display prices from stock prices (no localStorage)
 
   // Update from backend, preserving existing momentum
   useEffect(() => {
@@ -68,21 +57,16 @@ export default function Portfolio() {
       setDisplayPrices(prev => {
         const updated = {};
         stockPrices.forEach(stock => {
-          updated[stock.symbol] = prev[stock.symbol] || {
+          updated[stock.symbol] = {
             price: stock.price_gbp,
             change: stock.daily_change_percent,
             basePrice: stock.price_gbp,
             baseChange: stock.daily_change_percent
           };
-          // Update basePrice and baseChange from backend
-          updated[stock.symbol].basePrice = stock.price_gbp;
-          updated[stock.symbol].baseChange = stock.daily_change_percent;
         });
-        localStorage.setItem('portfolioDisplayPrices', JSON.stringify(updated));
         return updated;
       });
       
-      // Initialize momentum for new stocks only
       setMomentum(prev => {
         const updated = { ...prev };
         stockPrices.forEach(stock => {
@@ -90,7 +74,6 @@ export default function Portfolio() {
             updated[stock.symbol] = 0;
           }
         });
-        localStorage.setItem('portfolioMomentum', JSON.stringify(updated));
         return updated;
       });
     }
@@ -105,7 +88,6 @@ export default function Portfolio() {
           const trendAdjustment = (Math.random() * 0.1 - 0.05);
           updated[symbol] = Math.max(-0.5, Math.min(0.5, updated[symbol] + trendAdjustment));
         }
-        localStorage.setItem('portfolioMomentum', JSON.stringify(updated));
         return updated;
       });
 
@@ -124,7 +106,6 @@ export default function Portfolio() {
             baseChange: current.baseChange
           };
         }
-        localStorage.setItem('portfolioDisplayPrices', JSON.stringify(updated));
         return updated;
       });
     }, 2000);

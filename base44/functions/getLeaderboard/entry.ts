@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
     const allCopyTrades = await base44.asServiceRole.entities.CopyTrade.list();
 
     const adminEmail = 'aa.web.dev9777@gmail.com';
-    const excludedEmails = ['aa.web.dev9777@gmail.com', 'ahmetzhan.aldiyar'];
+    const excludedEmails = ['aa.web.dev9777@gmail.com'];
     const nonAdminUsers = allUsers.filter(u => !excludedEmails.includes(u.email));
 
     // Create a map of stock prices for quick lookup
@@ -57,9 +57,10 @@ Deno.serve(async (req) => {
         const leaderBase = userBaseValues[ct.leader_email];
         if (leaderBase) {
           const leaderTotalValue = leaderBase.cash + leaderBase.portfolio;
-          const leaderReturn = (leaderTotalValue - leaderBase.initial) / leaderBase.initial;
+          const leaderInitial = leaderBase.initial || 10000;
+          const leaderReturn = (leaderTotalValue - leaderInitial) / leaderInitial;
           const currentValue = ct.investment_amount * (1 + leaderReturn);
-          copyTradeValue += currentValue;
+          copyTradeValue += Math.max(currentValue, 0);
         } else {
           copyTradeValue += ct.investment_amount;
         }

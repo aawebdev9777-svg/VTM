@@ -160,10 +160,10 @@ export default function Leaderboard() {
   };
 
   const getRankClass = (rank) => {
-    if (rank === 1) return "bg-gradient-to-r from-yellow-100 to-yellow-50 border-yellow-300";
-    if (rank === 2) return "bg-gradient-to-r from-gray-100 to-gray-50 border-gray-300";
-    if (rank === 3) return "bg-gradient-to-r from-orange-100 to-orange-50 border-orange-300";
-    return "border-gray-200";
+    if (rank === 1) return 'bg-gradient-to-r from-amber-900/40 to-amber-800/20 border-amber-600/40';
+    if (rank === 2) return 'bg-gradient-to-r from-slate-600/40 to-slate-700/20 border-slate-500/40';
+    if (rank === 3) return 'bg-gradient-to-r from-orange-900/40 to-orange-800/20 border-orange-600/40';
+    return 'border-slate-700';
   };
 
   const isCopying = (leaderEmail) => {

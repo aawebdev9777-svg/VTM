@@ -88,6 +88,21 @@ Deno.serve(async (req) => {
       await new Promise(resolve => setTimeout(resolve, 200));
     }
     
+    // Create dividend transaction records for meaningful payouts
+    for (const [accountId, { account, total }] of accountEntries) {
+      if (total > 0.01) {
+        await base44.asServiceRole.entities.Transaction.create({
+          created_by: account.created_by,
+          symbol: 'DIVIDEND',
+          company_name: 'Hourly Dividend Payout',
+          type: 'dividend',
+          shares: 0,
+          price_per_share: 0,
+          total_amount: parseFloat(total.toFixed(4))
+        });
+      }
+    }
+    
     return Response.json({ 
       success: true, 
       totalPayouts: totalPayouts.toFixed(2),

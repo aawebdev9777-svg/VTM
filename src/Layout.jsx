@@ -10,10 +10,8 @@ import {
   Menu, 
   X, 
   Home, 
-  History, 
   TrendingUp, 
   LogOut,
-  LogIn,
   User,
   Wallet,
   Shield,
@@ -116,19 +114,7 @@ export default function Layout({ children, currentPageName }) {
                 <LogOut className="w-4 h-4" />
               </Button>
 
-              {/* Mobile menu button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden text-white"
-              >
-                {isMenuOpen ? (
-                  <X className="w-5 h-5 text-white" />
-                ) : (
-                  <Menu className="w-5 h-5 text-white" />
-                )}
-              </Button>
+        
             </div>
           </div>
         </div>
@@ -179,7 +165,29 @@ export default function Layout({ children, currentPageName }) {
       </header>
 
       {/* Main Content */}
-      <main>{children}</main>
+      <main className="pb-20 md:pb-0">{children}</main>
+
+      {/* Mobile Bottom Tab Bar */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-700 z-50">
+        <div className="flex items-center justify-around py-2 px-2">
+          {navigation.map(item => {
+            const Icon = item.icon;
+            const active = isActive(item.name);
+            return (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all ${
+                  active ? 'text-amber-400' : 'text-slate-500'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="text-[10px] font-medium">{item.name}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
 
       {/* AI Widget */}
       <AIWidget />

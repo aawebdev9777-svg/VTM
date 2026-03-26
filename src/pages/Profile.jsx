@@ -25,7 +25,7 @@ export default function Profile() {
       try {
         const authUser = await base44.auth.me();
         if (authUser) {
-          const vtmUsers = await base44.entities.VTMUser.filter({ id: authUser.email });
+          const vtmUsers = await base44.entities.VTMUser.filter({ created_by: authUser.email });
           setCurrentUser(vtmUsers[0] || null);
         }
       } catch (error) {
