@@ -93,21 +93,23 @@ export default function Portfolio() {
 
   const portfolioWithMetrics = portfolio.map(h => {
     const sp = stockPrices.find(p => p.symbol === h.symbol);
-    const price = sp?.price_gbp || h.average_buy_price;
-    const value = h.shares * price;
-    const cost = h.shares * h.average_buy_price;
+    const price = Number(sp?.price_gbp) || Number(h.average_buy_price) || 0;
+    const shares = Number(h.shares) || 0;
+    const avgBuy = Number(h.average_buy_price) || 0;
+    const value = shares * price;
+    const cost = shares * avgBuy;
     const pnl = value - cost;
     const pnlPct = cost > 0 ? (pnl / cost) * 100 : 0;
-    const dividendYield = sp?.dividend_yield_hourly || 0;
+    const dividendYield = Number(sp?.dividend_yield_hourly) || 0;
     const hourlyDiv = value * (dividendYield / 100);
     return { ...h, price, value, cost, pnl, pnlPct, hourlyDiv };
   });
 
-  const totalValue = portfolioWithMetrics.reduce((s, h) => s + h.value, 0);
-  const totalCost = portfolioWithMetrics.reduce((s, h) => s + h.cost, 0);
+  const totalValue = portfolioWithMetrics.reduce((s, h) => s + (h.value || 0), 0);
+  const totalCost = portfolioWithMetrics.reduce((s, h) => s + (h.cost || 0), 0);
   const totalPnl = totalValue - totalCost;
   const totalPnlPct = totalCost > 0 ? (totalPnl / totalCost) * 100 : 0;
-  const totalHourlyDiv = portfolioWithMetrics.reduce((s, h) => s + h.hourlyDiv, 0);
+  const totalHourlyDiv = portfolioWithMetrics.reduce((s, h) => s + (h.hourlyDiv || 0), 0);
 
   if (!user) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="w-8 h-8 animate-spin text-amber-500" /></div>;
 
@@ -121,10 +123,10 @@ export default function Portfolio() {
       {/* Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[
-          { label: 'Holdings Value', value: `£${totalValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
-          { label: 'Total P/L', value: `${totalPnl >= 0 ? '+' : ''}£${Math.abs(totalPnl).toFixed(2)}`, color: totalPnl >= 0 ? 'text-green-400' : 'text-red-400' },
-          { label: 'Return', value: `${totalPnlPct >= 0 ? '+' : ''}${totalPnlPct.toFixed(2)}%`, color: totalPnlPct >= 0 ? 'text-green-400' : 'text-red-400' },
-          { label: 'Hourly Dividends', value: `£${totalHourlyDiv.toFixed(4)}/hr`, color: 'text-amber-400' },
+          { label: 'Holdings Value', value: `£${(totalValue || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+          { label: 'Total P/L', value: `${totalPnl >= 0 ? '+' : ''}£${(Math.abs(totalPnl) || 0).toFixed(2)}`, color: totalPnl >= 0 ? 'text-green-400' : 'text-red-400' },
+          { label: 'Return', value: `${totalPnlPct >= 0 ? '+' : ''}${(totalPnlPct || 0).toFixed(2)}%`, color: totalPnlPct >= 0 ? 'text-green-400' : 'text-red-400' },
+          { label: 'Hourly Dividends', value: `£${(totalHourlyDiv || 0).toFixed(4)}/hr`, color: 'text-amber-400' },
         ].map((s, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
             className="bg-[#141925] border border-white/5 rounded-2xl p-4">
@@ -141,8 +143,10 @@ export default function Portfolio() {
           <div className="space-y-2">
             {copyTrades.map(ct => {
               const leader = leaderboard.find(l => l.email === ct.leader_email);
-              const val = ct.investment_amount * (1 + ((leader?.percentageReturn || 0) / 100));
-              const pnl = val - ct.investment_amount;
+              const invested = Number(ct.investment_amount) || 0;
+              const leaderReturn = Number(leader?.percentageReturn) || 0;
+              const val = invested * (1 + leaderReturn / 100);
+              const pnl = val - invested;
               return (
                 <div key={ct.id} className="flex items-center justify-between p-3 bg-[#0d1220] rounded-xl border border-white/5">
                   <div>
@@ -151,8 +155,8 @@ export default function Portfolio() {
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <p className="text-sm font-bold text-white">£{val.toFixed(2)}</p>
-                      <p className={`text-xs font-bold ${pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>{pnl >= 0 ? '+' : ''}£{pnl.toFixed(2)}</p>
+                      <p className="text-sm font-bold text-white">£{(val || 0).toFixed(2)}</p>
+                      <p className={`text-xs font-bold ${pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>{pnl >= 0 ? '+' : ''}£{(pnl || 0).toFixed(2)}</p>
                     </div>
                     <button onClick={() => stopCopyMutation.mutate(ct)} disabled={stopCopyMutation.isPending}
                       className="text-xs text-red-400 hover:text-red-300 border border-red-400/30 px-2 py-1 rounded-lg transition-colors">
@@ -197,15 +201,15 @@ export default function Portfolio() {
                       <p className="font-bold text-white">{h.symbol}</p>
                       <p className="text-xs text-slate-500">{h.company_name}</p>
                     </td>
-                    <td className="py-3 text-right text-slate-300">{h.shares.toLocaleString()}</td>
-                    <td className="py-3 text-right text-slate-300">£{h.average_buy_price.toFixed(2)}</td>
-                    <td className="py-3 text-right text-slate-300">£{h.price.toFixed(2)}</td>
-                    <td className="py-3 text-right font-bold text-white">£{h.value.toFixed(2)}</td>
+                    <td className="py-3 text-right text-slate-300">{(h.shares || 0).toLocaleString()}</td>
+                    <td className="py-3 text-right text-slate-300">£{(Number(h.average_buy_price) || 0).toFixed(2)}</td>
+                    <td className="py-3 text-right text-slate-300">£{(h.price || 0).toFixed(2)}</td>
+                    <td className="py-3 text-right font-bold text-white">£{(h.value || 0).toFixed(2)}</td>
                     <td className="py-3 text-right">
-                      <p className={`font-bold ${h.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>{h.pnl >= 0 ? '+' : ''}£{h.pnl.toFixed(2)}</p>
-                      <p className={`text-xs ${h.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>{h.pnlPct >= 0 ? '+' : ''}{h.pnlPct.toFixed(2)}%</p>
+                      <p className={`font-bold ${h.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>{h.pnl >= 0 ? '+' : ''}£{(h.pnl || 0).toFixed(2)}</p>
+                      <p className={`text-xs ${h.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>{h.pnlPct >= 0 ? '+' : ''}{(h.pnlPct || 0).toFixed(2)}%</p>
                     </td>
-                    <td className="py-3 text-right text-amber-400 text-xs font-semibold">£{h.hourlyDiv.toFixed(4)}</td>
+                    <td className="py-3 text-right text-amber-400 text-xs font-semibold">£{(h.hourlyDiv || 0).toFixed(4)}</td>
                     <td className="py-3 text-right">
                       <button onClick={() => { setSellTarget(h); setSellShares(''); }}
                         className="text-xs text-red-400 hover:text-red-300 border border-red-400/30 px-2 py-1 rounded-lg transition-colors">

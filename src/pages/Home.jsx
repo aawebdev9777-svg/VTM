@@ -46,14 +46,16 @@ export default function Home() {
   });
 
   const account = accounts[0];
-  const cash = account?.cash_balance || 0;
+  const cash = Number(account?.cash_balance) || 0;
   const portfolioValue = portfolio.reduce((s, h) => {
     const sp = stockPrices.find(p => p.symbol === h.symbol);
-    return s + h.shares * (sp?.price_gbp || h.average_buy_price);
+    const price = Number(sp?.price_gbp) || Number(h.average_buy_price) || 0;
+    return s + (Number(h.shares) || 0) * price;
   }, 0);
   const total = cash + portfolioValue;
-  const pnl = total - (account?.initial_balance || 10000);
-  const pnlPct = (pnl / (account?.initial_balance || 10000)) * 100;
+  const initialBalance = Number(account?.initial_balance) || 10000;
+  const pnl = total - initialBalance;
+  const pnlPct = initialBalance > 0 ? (pnl / initialBalance) * 100 : 0;
 
   const buyMutation = useMutation({
     mutationFn: async ({ stock, shares }) => {
@@ -82,9 +84,9 @@ export default function Home() {
       {/* Stats Row */}
       <div className="grid grid-cols-3 gap-3 mb-6">
         {[
-          { label: 'Total Value', value: `£${total.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, sub: `${pnl >= 0 ? '+' : ''}${pnlPct.toFixed(2)}%`, positive: pnl >= 0 },
-          { label: 'Cash', value: `£${cash.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, sub: 'Available', positive: true },
-          { label: 'Invested', value: `£${portfolioValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, sub: `${portfolio.length} holdings`, positive: true },
+          { label: 'Total Value', value: `£${(total || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, sub: `${pnl >= 0 ? '+' : ''}${(pnlPct || 0).toFixed(2)}%`, positive: pnl >= 0 },
+          { label: 'Cash', value: `£${(cash || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, sub: 'Available', positive: true },
+          { label: 'Invested', value: `£${(portfolioValue || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, sub: `${portfolio.length} holdings`, positive: true },
         ].map((s, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
             className="bg-[#141925] border border-white/5 rounded-2xl p-4">
@@ -212,10 +214,13 @@ export default function Home() {
               <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
                 {portfolio.map(h => {
                   const sp = stockPrices.find(p => p.symbol === h.symbol);
-                  const price = sp?.price_gbp || h.average_buy_price;
-                  const value = h.shares * price;
-                  const pnl = value - h.shares * h.average_buy_price;
-                  const pnlPct = (pnl / (h.shares * h.average_buy_price)) * 100;
+                  const price = Number(sp?.price_gbp) || Number(h.average_buy_price) || 0;
+                  const shares = Number(h.shares) || 0;
+                  const avgBuy = Number(h.average_buy_price) || 0;
+                  const value = shares * price;
+                  const cost = shares * avgBuy;
+                  const pnl = value - cost;
+                  const pnlPct = cost > 0 ? (pnl / cost) * 100 : 0;
                   return (
                     <div key={h.id} className="flex items-center justify-between p-3 bg-[#0d1220] rounded-xl border border-white/5">
                       <div>
@@ -223,9 +228,9 @@ export default function Home() {
                         <p className="text-xs text-slate-500">{h.shares} shares</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-white text-sm">£{value.toFixed(2)}</p>
+                        <p className="font-bold text-white text-sm">£{(value || 0).toFixed(2)}</p>
                         <p className={`text-xs font-semibold ${pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          {pnl >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%
+                          {pnl >= 0 ? '+' : ''}{(pnlPct || 0).toFixed(2)}%
                         </p>
                       </div>
                     </div>

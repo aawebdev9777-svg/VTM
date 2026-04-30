@@ -70,11 +70,13 @@ export default function Profile() {
   const account = accounts[0];
   const portfolioValue = portfolio.reduce((s, h) => {
     const sp = stockPrices.find(p => p.symbol === h.symbol);
-    return s + h.shares * (sp?.price_gbp || h.average_buy_price);
+    const price = Number(sp?.price_gbp) || Number(h.average_buy_price) || 0;
+    return s + (Number(h.shares) || 0) * price;
   }, 0);
-  const total = (account?.cash_balance || 0) + portfolioValue;
-  const pnl = total - (account?.initial_balance || 10000);
-  const pnlPct = (pnl / (account?.initial_balance || 10000)) * 100;
+  const total = (Number(account?.cash_balance) || 0) + portfolioValue;
+  const initialBalance = Number(account?.initial_balance) || 10000;
+  const pnl = total - initialBalance;
+  const pnlPct = initialBalance > 0 ? (pnl / initialBalance) * 100 : 0;
 
   const BADGE_INFO = {
     first_trade: { label: 'First Trade', icon: '🚀' },
@@ -149,8 +151,8 @@ export default function Profile() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[
-          { label: 'Portfolio', value: `£${total.toLocaleString('en-GB', { maximumFractionDigits: 0 })}` },
-          { label: 'Return', value: `${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(1)}%`, color: pnlPct >= 0 ? 'text-green-400' : 'text-red-400' },
+          { label: 'Portfolio', value: `£${(total || 0).toLocaleString('en-GB', { maximumFractionDigits: 0 })}` },
+          { label: 'Return', value: `${pnlPct >= 0 ? '+' : ''}${(pnlPct || 0).toFixed(1)}%`, color: pnlPct >= 0 ? 'text-green-400' : 'text-red-400' },
           { label: 'Trades', value: transactions.length },
           { label: 'Holdings', value: portfolio.length },
         ].map((s, i) => (
@@ -196,7 +198,7 @@ export default function Profile() {
                   </div>
                 </div>
                 <p className={`text-sm font-bold ${tx.type === 'buy' ? 'text-red-400' : 'text-green-400'}`}>
-                  {tx.type === 'buy' ? '-' : '+'}£{tx.total_amount?.toFixed(2)}
+                  {tx.type === 'buy' ? '-' : '+'}£{(Number(tx.total_amount) || 0).toFixed(2)}
                 </p>
               </div>
             ))}

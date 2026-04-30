@@ -67,15 +67,17 @@ export default function Wallet() {
   });
 
   const account = accounts[0];
-  const cash = account?.cash_balance || 0;
+  const cash = Number(account?.cash_balance) || 0;
   const portfolioValue = portfolio.reduce((s, h) => {
     const sp = stockPrices.find(p => p.symbol === h.symbol);
-    return s + h.shares * (sp?.price_gbp || h.average_buy_price);
+    const price = Number(sp?.price_gbp) || Number(h.average_buy_price) || 0;
+    return s + (Number(h.shares) || 0) * price;
   }, 0);
-  const copyTradeValue = copyTrades.reduce((s, ct) => s + (ct.investment_amount || 0), 0);
+  const copyTradeValue = copyTrades.reduce((s, ct) => s + (Number(ct.investment_amount) || 0), 0);
   const total = cash + portfolioValue + copyTradeValue;
-  const pnl = total - (account?.initial_balance || 10000);
-  const pnlPct = (pnl / (account?.initial_balance || 10000)) * 100;
+  const initialBalance = Number(account?.initial_balance) || 10000;
+  const pnl = total - initialBalance;
+  const pnlPct = initialBalance > 0 ? (pnl / initialBalance) * 100 : 0;
 
   if (!user) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="w-8 h-8 animate-spin text-amber-500" /></div>;
 
@@ -91,16 +93,16 @@ export default function Wallet() {
         className="relative bg-gradient-to-br from-amber-500/20 via-[#141925] to-[#141925] border border-amber-500/20 rounded-2xl p-6 mb-6 overflow-hidden">
         <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/5 rounded-full -translate-y-1/2 translate-x-1/2" />
         <p className="text-slate-400 text-sm mb-2">Total Net Worth</p>
-        <p className="text-4xl font-black text-white mb-1">£{total.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+        <p className="text-4xl font-black text-white mb-1">£{(total || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
         <p className={`text-sm font-semibold ${pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-          {pnl >= 0 ? '+' : ''}£{Math.abs(pnl).toFixed(2)} ({pnl >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%) from start
+          {pnl >= 0 ? '+' : ''}£{(Math.abs(pnl) || 0).toFixed(2)} ({pnl >= 0 ? '+' : ''}{(pnlPct || 0).toFixed(2)}%) from start
         </p>
 
         <div className="grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-white/5">
           {[
-            { label: 'Cash', value: `£${cash.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
-            { label: 'Stocks', value: `£${portfolioValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
-            { label: 'Copy Trades', value: `£${copyTradeValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+            { label: 'Cash', value: `£${(cash || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+            { label: 'Stocks', value: `£${(portfolioValue || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+            { label: 'Copy Trades', value: `£${(copyTradeValue || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
           ].map(s => (
             <div key={s.label}>
               <p className="text-xs text-slate-500">{s.label}</p>
@@ -149,11 +151,11 @@ export default function Wallet() {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-white">{tx.symbol} <span className="text-slate-500 font-normal text-xs">· {tx.type.toUpperCase()}</span></p>
-                    <p className="text-xs text-slate-500">{tx.shares} shares @ £{tx.price_per_share?.toFixed(2)}</p>
+                    <p className="text-xs text-slate-500">{tx.shares || 0} shares @ £{(Number(tx.price_per_share) || 0).toFixed(2)}</p>
                   </div>
                 </div>
                 <p className={`text-sm font-black ${tx.type === 'buy' ? 'text-red-400' : 'text-green-400'}`}>
-                  {tx.type === 'buy' ? '-' : '+'}£{tx.total_amount?.toFixed(2)}
+                  {tx.type === 'buy' ? '-' : '+'}£{(Number(tx.total_amount) || 0).toFixed(2)}
                 </p>
               </div>
             ))}
