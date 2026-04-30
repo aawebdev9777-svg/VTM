@@ -58,17 +58,20 @@ export default function Portfolio() {
   const sellMutation = useMutation({
     mutationFn: async ({ holding, shares }) => {
       const sp = stockPrices.find(p => p.symbol === holding.symbol);
-      const price = sp?.price_gbp || holding.average_buy_price;
-      const total = shares * price;
-      await base44.entities.UserAccount.update(account.id, { cash_balance: account.cash_balance + total });
-      if (shares >= holding.shares) {
+      const price = Number(sp?.price_gbp) || Number(holding.average_buy_price) || 0;
+      const sharesNum = Number(shares) || 0;
+      const total = sharesNum * price;
+      const currentCash = Number(account.cash_balance) || 0;
+      const currentShares = Number(holding.shares) || 0;
+      await base44.entities.UserAccount.update(account.id, { cash_balance: currentCash + total });
+      if (sharesNum >= currentShares) {
         await base44.entities.Portfolio.delete(holding.id);
       } else {
-        await base44.entities.Portfolio.update(holding.id, { shares: holding.shares - shares });
+        await base44.entities.Portfolio.update(holding.id, { shares: currentShares - sharesNum });
       }
       await base44.entities.Transaction.create({
         symbol: holding.symbol, company_name: holding.company_name,
-        type: 'sell', shares, price_per_share: price, total_amount: total
+        type: 'sell', shares: sharesNum, price_per_share: price, total_amount: total
       });
     },
     onSuccess: () => {
@@ -81,9 +84,12 @@ export default function Portfolio() {
   const stopCopyMutation = useMutation({
     mutationFn: async (ct) => {
       const leader = leaderboard.find(l => l.email === ct.leader_email);
-      const val = ct.investment_amount * (1 + ((leader?.percentageReturn || 0) / 100));
+      const invested = Number(ct.investment_amount) || 0;
+      const leaderReturn = Number(leader?.percentageReturn) || 0;
+      const val = invested * (1 + leaderReturn / 100);
+      const currentCash = Number(account.cash_balance) || 0;
       await base44.entities.CopyTrade.update(ct.id, { is_active: false });
-      await base44.entities.UserAccount.update(account.id, { cash_balance: account.cash_balance + val });
+      await base44.entities.UserAccount.update(account.id, { cash_balance: currentCash + val });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['copyTrades'] });
@@ -151,7 +157,7 @@ export default function Portfolio() {
                 <div key={ct.id} className="flex items-center justify-between p-3 bg-[#0d1220] rounded-xl border border-white/5">
                   <div>
                     <p className="font-bold text-white text-sm">Copying {ct.leader_email.split('@')[0]}</p>
-                    <p className="text-xs text-slate-500">Invested: £{ct.investment_amount.toFixed(2)}</p>
+                    <p className="text-xs text-slate-500">Invested: £{(Number(ct.investment_amount) || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
@@ -237,7 +243,7 @@ export default function Portfolio() {
                 <button onClick={() => setSellTarget(null)} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
               </div>
               <p className="text-slate-400 text-sm mb-1">Owned: {sellTarget.shares} shares</p>
-              <p className="text-slate-400 text-sm mb-4">Price: £{sellTarget.price?.toFixed(2)}</p>
+              <p className="text-slate-400 text-sm mb-4">Price: £{(Number(sellTarget.price) || 0).toFixed(2)}</p>
               <input
                 type="number" value={sellShares} onChange={e => setSellShares(e.target.value)}
                 placeholder="Shares to sell" min="1" max={sellTarget.shares}
