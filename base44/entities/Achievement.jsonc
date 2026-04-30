@@ -1,0 +1,40 @@
+{
+  "name": "Achievement",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "VTMUser ID"
+    },
+    "badge_type": {
+      "type": "string",
+      "enum": [
+        "first_trade",
+        "risk_master",
+        "dip_hunter",
+        "dividend_king",
+        "streak_5",
+        "streak_10",
+        "profit_1k",
+        "profit_5k",
+        "portfolio_titan",
+        "social_star",
+        "diamond_hands"
+      ],
+      "description": "Achievement badge"
+    },
+    "earned_date": {
+      "type": "string",
+      "description": "When earned"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional notes about this achievement"
+    }
+  },
+  "required": [
+    "user_id",
+    "badge_type"
+  ]
+}

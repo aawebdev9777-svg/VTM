@@ -1,0 +1,38 @@
+{
+  "name": "Portfolio",
+  "type": "object",
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "description": "Stock ticker symbol"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "shares": {
+      "type": "number",
+      "description": "Number of shares owned"
+    },
+    "average_buy_price": {
+      "type": "number",
+      "description": "Average price paid per share in GBP"
+    },
+    "total_dividends_earned": {
+      "type": "number",
+      "default": 0,
+      "description": "Total dividends earned from this holding in GBP"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional notes about this holding"
+    }
+  },
+  "required": [
+    "symbol",
+    "company_name",
+    "shares",
+    "average_buy_price"
+  ]
+}

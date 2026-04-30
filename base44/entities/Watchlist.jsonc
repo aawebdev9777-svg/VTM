@@ -1,0 +1,27 @@
+{
+  "name": "Watchlist",
+  "type": "object",
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "description": "Stock ticker symbol"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "added_price": {
+      "type": "number",
+      "description": "Price when added to watchlist in GBP"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional notes about this watchlist entry"
+    }
+  },
+  "required": [
+    "symbol",
+    "company_name"
+  ]
+}

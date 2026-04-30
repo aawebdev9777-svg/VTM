@@ -1,0 +1,66 @@
+{
+  "name": "TraderRank",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "VTMUser ID"
+    },
+    "elo_rating": {
+      "type": "number",
+      "default": 1000,
+      "description": "ELO rating"
+    },
+    "tier": {
+      "type": "string",
+      "enum": [
+        "Bronze",
+        "Silver",
+        "Gold",
+        "Platinum",
+        "Diamond",
+        "Titan"
+      ],
+      "default": "Bronze",
+      "description": "Current tier"
+    },
+    "season_trades": {
+      "type": "number",
+      "default": 0,
+      "description": "Trades this season"
+    },
+    "season_profit": {
+      "type": "number",
+      "default": 0,
+      "description": "Profit this season"
+    },
+    "win_streak": {
+      "type": "number",
+      "default": 0,
+      "description": "Current winning streak"
+    },
+    "best_streak": {
+      "type": "number",
+      "default": 0,
+      "description": "Best streak ever"
+    },
+    "total_wins": {
+      "type": "number",
+      "default": 0,
+      "description": "Total winning trades"
+    },
+    "total_losses": {
+      "type": "number",
+      "default": 0,
+      "description": "Total losing trades"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional notes about this rank record"
+    }
+  },
+  "required": [
+    "user_id"
+  ]
+}

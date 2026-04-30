@@ -1,0 +1,38 @@
+{
+  "name": "CopyTrade",
+  "type": "object",
+  "properties": {
+    "follower_email": {
+      "type": "string",
+      "description": "Email of the user copying trades"
+    },
+    "leader_email": {
+      "type": "string",
+      "description": "Email of the user being copied"
+    },
+    "investment_amount": {
+      "type": "number",
+      "description": "Amount allocated for copy trading in GBP"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether copy trading is active"
+    },
+    "total_profit_loss": {
+      "type": "number",
+      "default": 0,
+      "description": "Total profit/loss from copy trading"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional notes about this copy trade"
+    }
+  },
+  "required": [
+    "follower_email",
+    "leader_email",
+    "investment_amount"
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "name": "PortfolioHistory",
+  "type": "object",
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "description": "Stock ticker symbol"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "buy",
+        "sell",
+        "dividend"
+      ],
+      "description": "Action type"
+    },
+    "shares": {
+      "type": "number",
+      "description": "Number of shares"
+    },
+    "price_per_share": {
+      "type": "number",
+      "description": "Price per share in GBP"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Total amount in GBP"
+    },
+    "cash_balance_after": {
+      "type": "number",
+      "description": "Cash balance after transaction"
+    },
+    "portfolio_value_after": {
+      "type": "number",
+      "description": "Portfolio value after transaction"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional notes about this history entry"
+    }
+  },
+  "required": [
+    "symbol",
+    "company_name",
+    "action",
+    "shares",
+    "price_per_share",
+    "total_amount"
+  ]
+}

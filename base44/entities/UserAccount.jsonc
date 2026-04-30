@@ -1,0 +1,28 @@
+{
+  "name": "UserAccount",
+  "type": "object",
+  "properties": {
+    "cash_balance": {
+      "type": "number",
+      "description": "Available cash balance in GBP"
+    },
+    "initial_balance": {
+      "type": "number",
+      "description": "Starting balance in GBP",
+      "default": 10000
+    },
+    "free_stocks_available": {
+      "type": "number",
+      "description": "Number of free stock selections available",
+      "default": 0
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional notes about this account"
+    }
+  },
+  "required": [
+    "cash_balance"
+  ]
+}

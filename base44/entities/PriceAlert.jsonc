@@ -1,0 +1,46 @@
+{
+  "name": "PriceAlert",
+  "type": "object",
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "description": "Stock ticker symbol"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "target_price": {
+      "type": "number",
+      "description": "Alert when price reaches this level in GBP"
+    },
+    "condition": {
+      "type": "string",
+      "enum": [
+        "above",
+        "below"
+      ],
+      "description": "Alert when price goes above or below target"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether alert is active"
+    },
+    "triggered_at": {
+      "type": "string",
+      "description": "When alert was triggered"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional notes about this alert"
+    }
+  },
+  "required": [
+    "symbol",
+    "company_name",
+    "target_price",
+    "condition"
+  ]
+}

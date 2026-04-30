@@ -1,0 +1,47 @@
+{
+  "name": "Transaction",
+  "type": "object",
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "description": "Stock ticker symbol"
+    },
+    "company_name": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "buy",
+        "sell"
+      ],
+      "description": "Transaction type"
+    },
+    "shares": {
+      "type": "number",
+      "description": "Number of shares"
+    },
+    "price_per_share": {
+      "type": "number",
+      "description": "Price per share at time of transaction in GBP"
+    },
+    "total_amount": {
+      "type": "number",
+      "description": "Total transaction amount in GBP"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional notes about this transaction"
+    }
+  },
+  "required": [
+    "symbol",
+    "company_name",
+    "type",
+    "shares",
+    "price_per_share",
+    "total_amount"
+  ]
+}

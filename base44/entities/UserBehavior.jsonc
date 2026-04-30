@@ -1,0 +1,79 @@
+{
+  "name": "UserBehavior",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "VTMUser ID"
+    },
+    "engagement_score": {
+      "type": "number",
+      "default": 0,
+      "description": "User Engagement Score (0-100)"
+    },
+    "streak_strength_index": {
+      "type": "number",
+      "default": 0,
+      "description": "Streak Strength Index"
+    },
+    "status_visibility_rating": {
+      "type": "number",
+      "default": 0,
+      "description": "Status Visibility Rating"
+    },
+    "upgrade_probability_score": {
+      "type": "number",
+      "default": 0,
+      "description": "Upgrade Probability Score (0-1)"
+    },
+    "churn_risk_score": {
+      "type": "number",
+      "default": 0,
+      "description": "Churn Risk Score (0-1)"
+    },
+    "competitive_drive_index": {
+      "type": "number",
+      "default": 0,
+      "description": "Competitive Drive Index"
+    },
+    "behavioral_state": {
+      "type": "string",
+      "enum": [
+        "dominating",
+        "stable",
+        "struggling",
+        "dormant",
+        "high_potential"
+      ],
+      "default": "stable",
+      "description": "Current behavioral state"
+    },
+    "last_active": {
+      "type": "string",
+      "description": "Last activity timestamp"
+    },
+    "ai_panel_checks": {
+      "type": "number",
+      "default": 0,
+      "description": "AI panel checks today"
+    },
+    "session_count_7d": {
+      "type": "number",
+      "default": 0,
+      "description": "Sessions in last 7 days"
+    },
+    "avg_session_duration": {
+      "type": "number",
+      "default": 0,
+      "description": "Average session duration (minutes)"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional notes about this user behavior record"
+    }
+  },
+  "required": [
+    "user_id"
+  ]
+}

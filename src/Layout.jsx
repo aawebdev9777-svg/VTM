@@ -189,6 +189,17 @@ export default function Layout({ children, currentPageName }) {
         </div>
       </nav>
 
+      {/* Footer */}
+      <footer className="bg-slate-800/60 border-t border-slate-700 py-6 px-4">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-slate-400">
+          <span>© 2026 VStock — Virtual Trading. Real Skills.</span>
+          <div className="flex items-center gap-6">
+            <Link to="/About" className="hover:text-amber-400 transition-colors">About</Link>
+            <Link to="/Contact" className="hover:text-amber-400 transition-colors">Contact</Link>
+          </div>
+        </div>
+      </footer>
+
       {/* AI Widget */}
       <AIWidget />
     </div>

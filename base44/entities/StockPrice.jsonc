@@ -1,0 +1,40 @@
+{
+  "name": "StockPrice",
+  "type": "object",
+  "properties": {
+    "symbol": {
+      "type": "string",
+      "description": "Stock ticker symbol"
+    },
+    "price_gbp": {
+      "type": "number",
+      "description": "Current price in GBP"
+    },
+    "price_usd": {
+      "type": "number",
+      "description": "Current price in USD"
+    },
+    "daily_change_percent": {
+      "type": "number",
+      "description": "Daily percentage change"
+    },
+    "dividend_yield_hourly": {
+      "type": "number",
+      "default": 0,
+      "description": "Hourly dividend yield percentage (e.g., 0.05 = 0.05% per hour)"
+    },
+    "updated_at": {
+      "type": "string",
+      "description": "Last update timestamp"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional notes about this stock"
+    }
+  },
+  "required": [
+    "symbol",
+    "price_gbp"
+  ]
+}
