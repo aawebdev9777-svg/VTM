@@ -1,344 +1,239 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Loader2, TrendingUp, TrendingDown, Wallet, DollarSign, Search, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { TrendingUp, TrendingDown, Search, X, ArrowUpRight, ArrowDownRight, Loader2, Zap } from 'lucide-react';
 
 export default function Home() {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStock, setSelectedStock] = useState(null);
+  const [user, setUser] = useState(null);
+  const [search, setSearch] = useState('');
+  const [selected, setSelected] = useState(null);
   const [shares, setShares] = useState('');
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me()
-      .then(user => {
-        if (!user) base44.auth.redirectToLogin();
-        setCurrentUser(user);
-      })
-      .catch(() => base44.auth.redirectToLogin());
+    base44.auth.me().then(u => { if (!u) base44.auth.redirectToLogin(); else setUser(u); }).catch(() => base44.auth.redirectToLogin());
   }, []);
 
-  const { data: accounts, isLoading: accountLoading } = useQuery({
-    queryKey: ['userAccount', currentUser?.email],
-    queryFn: () => base44.entities.UserAccount.filter({ created_by: currentUser?.email }),
-    enabled: !!currentUser?.email,
+  const { data: accounts = [] } = useQuery({
+    queryKey: ['account', user?.email],
+    queryFn: () => base44.entities.UserAccount.filter({ created_by: user.email }),
+    enabled: !!user?.email,
+    refetchInterval: 5000,
   });
 
-  const { data: portfolio = [], isLoading: portfolioLoading } = useQuery({
-    queryKey: ['portfolio', currentUser?.email],
-    queryFn: () => base44.entities.Portfolio.filter({ created_by: currentUser?.email }),
-    enabled: !!currentUser?.email,
+  const { data: portfolio = [] } = useQuery({
+    queryKey: ['portfolio', user?.email],
+    queryFn: () => base44.entities.Portfolio.filter({ created_by: user.email }),
+    enabled: !!user?.email,
+    refetchInterval: 5000,
   });
 
   const { data: stockPrices = [] } = useQuery({
     queryKey: ['stockPrices'],
     queryFn: async () => {
-      try {
-        const response = await base44.functions.invoke('getUpdatedPrices', {});
-        return response.data.prices || [];
-      } catch {
-        return base44.entities.StockPrice.list();
-      }
+      try { const r = await base44.functions.invoke('getUpdatedPrices', {}); return r.data.prices || []; }
+      catch { return base44.entities.StockPrice.list(); }
     },
-    refetchInterval: 5000,
+    refetchInterval: 6000,
   });
 
   const { data: transactions = [] } = useQuery({
-    queryKey: ['transactions', currentUser?.email],
-    queryFn: () => base44.entities.Transaction.filter({ created_by: currentUser?.email }, '-created_date', 10),
-    enabled: !!currentUser?.email,
+    queryKey: ['recentTx', user?.email],
+    queryFn: () => base44.entities.Transaction.filter({ created_by: user.email }, '-created_date', 8),
+    enabled: !!user?.email,
+    refetchInterval: 8000,
   });
 
-  const account = accounts?.[0];
-
-  const portfolioValue = portfolio.reduce((sum, holding) => {
-    const stockPrice = stockPrices.find(s => s.symbol === holding.symbol);
-    const currentPrice = stockPrice?.price_gbp || holding.average_buy_price;
-    return sum + (holding.shares * currentPrice);
+  const account = accounts[0];
+  const cash = account?.cash_balance || 0;
+  const portfolioValue = portfolio.reduce((s, h) => {
+    const sp = stockPrices.find(p => p.symbol === h.symbol);
+    return s + h.shares * (sp?.price_gbp || h.average_buy_price);
   }, 0);
-
-  const totalValue = (account?.cash_balance || 0) + portfolioValue;
-  const profitLoss = totalValue - (account?.initial_balance || 10000);
-  const profitPercent = ((profitLoss / (account?.initial_balance || 10000)) * 100);
+  const total = cash + portfolioValue;
+  const pnl = total - (account?.initial_balance || 10000);
+  const pnlPct = (pnl / (account?.initial_balance || 10000)) * 100;
 
   const buyMutation = useMutation({
     mutationFn: async ({ stock, shares }) => {
-      const response = await base44.functions.invoke('buyStock', { stock, shares });
-      if (!response.data.success) throw new Error(response.data.error || 'Transaction failed');
-      return response.data;
+      const r = await base44.functions.invoke('buyStock', { stock, shares });
+      if (!r.data.success) throw new Error(r.data.error || 'Failed');
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['userAccount'] });
-      queryClient.invalidateQueries({ queryKey: ['portfolio'] });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      setSelectedStock(null);
-      setShares('');
+      qc.invalidateQueries({ queryKey: ['account'] });
+      qc.invalidateQueries({ queryKey: ['portfolio'] });
+      qc.invalidateQueries({ queryKey: ['recentTx'] });
+      setSelected(null); setShares('');
     },
   });
 
-  const sellMutation = useMutation({
-    mutationFn: async ({ holdingId, shares }) => {
-      const holding = portfolio.find(h => h.id === holdingId);
-      const stockPrice = stockPrices.find(s => s.symbol === holding.symbol);
-      const currentPrice = stockPrice?.price_gbp || holding.average_buy_price;
-      const totalAmount = shares * currentPrice;
+  const filtered = stockPrices.filter(s =>
+    s.symbol.toLowerCase().includes(search.toLowerCase()) ||
+    (s.company_name || '').toLowerCase().includes(search.toLowerCase())
+  ).slice(0, 12);
 
-      await base44.entities.UserAccount.update(account.id, {
-        cash_balance: account.cash_balance + totalAmount
-      });
+  const topMovers = [...stockPrices].sort((a, b) => Math.abs(b.daily_change_percent || 0) - Math.abs(a.daily_change_percent || 0)).slice(0, 6);
 
-      if (shares >= holding.shares) {
-        await base44.entities.Portfolio.delete(holdingId);
-      } else {
-        await base44.entities.Portfolio.update(holdingId, {
-          shares: holding.shares - shares
-        });
-      }
-
-      await base44.entities.Transaction.create({
-        symbol: holding.symbol,
-        company_name: holding.company_name,
-        type: 'sell',
-        shares: shares,
-        price_per_share: currentPrice,
-        total_amount: totalAmount
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['userAccount'] });
-      queryClient.invalidateQueries({ queryKey: ['portfolio'] });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-    },
-  });
-
-  const filteredStocks = stockPrices.filter(stock =>
-    stock.symbol.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  if (accountLoading || portfolioLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
-        <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
-      </div>
-    );
-  }
+  if (!user) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="w-8 h-8 animate-spin text-amber-500" /></div>;
 
   return (
-    <div className="min-h-screen bg-slate-900 px-4 py-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
-        >
-          <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-slate-400 font-medium">Total Value</span>
-                <Wallet className="w-5 h-5 text-amber-500" />
-              </div>
-              <div className="text-3xl font-black text-white mb-1">
-                £{totalValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
-              <div className={`text-sm font-semibold flex items-center gap-1 ${profitLoss >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                {profitLoss >= 0 ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-                {profitLoss >= 0 ? '+' : ''}£{Math.abs(profitLoss).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(2)}%)
-              </div>
-            </CardContent>
-          </Card>
+    <div className="max-w-7xl mx-auto px-4 py-6">
+      {/* Stats Row */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        {[
+          { label: 'Total Value', value: `£${total.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, sub: `${pnl >= 0 ? '+' : ''}${pnlPct.toFixed(2)}%`, positive: pnl >= 0 },
+          { label: 'Cash', value: `£${cash.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, sub: 'Available', positive: true },
+          { label: 'Invested', value: `£${portfolioValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, sub: `${portfolio.length} holdings`, positive: true },
+        ].map((s, i) => (
+          <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
+            className="bg-[#141925] border border-white/5 rounded-2xl p-4">
+            <p className="text-xs text-slate-500 mb-1">{s.label}</p>
+            <p className="text-lg font-black text-white truncate">{s.value}</p>
+            <p className={`text-xs font-semibold mt-0.5 ${s.label === 'Total Value' ? (s.positive ? 'text-green-400' : 'text-red-400') : 'text-slate-400'}`}>{s.sub}</p>
+          </motion.div>
+        ))}
+      </div>
 
-          <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-slate-400 font-medium">Cash Balance</span>
-                <DollarSign className="w-5 h-5 text-emerald-500" />
-              </div>
-              <div className="text-3xl font-black text-white">
-                £{(account?.cash_balance || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
-              <div className="text-sm text-slate-400">Available to trade</div>
-            </CardContent>
-          </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Trade Panel */}
+        <div className="lg:col-span-3 space-y-4">
+          {/* Search */}
+          <div className="bg-[#141925] border border-white/5 rounded-2xl p-4">
+            <h2 className="text-sm font-bold text-slate-300 mb-3 flex items-center gap-2"><Zap className="w-4 h-4 text-amber-500" />Trade</h2>
+            <div className="relative mb-3">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search stocks..."
+                className="w-full bg-[#0d1220] border border-white/5 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-amber-500/40 transition-colors"
+              />
+              {search && <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"><X className="w-4 h-4" /></button>}
+            </div>
 
-          <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-slate-400 font-medium">Portfolio Value</span>
-                <TrendingUp className="w-5 h-5 text-blue-500" />
-              </div>
-              <div className="text-3xl font-black text-white">
-                £{portfolioValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
-              <div className="text-sm text-slate-400">{portfolio.length} holdings</div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Trading Panel */}
-          <div className="space-y-6">
-            <Card className="bg-slate-800 border-slate-700">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Search className="w-5 h-5 text-amber-500" />
-                  Trade Stocks
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Input
-                  placeholder="Search stocks..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-slate-900 border-slate-700 text-white"
-                />
-
-                <div className="max-h-[300px] overflow-y-auto space-y-2">
-                  {filteredStocks.slice(0, 10).map(stock => (
-                    <div
-                      key={stock.symbol}
-                      onClick={() => setSelectedStock(stock)}
-                      className={`p-3 rounded-lg cursor-pointer transition-all ${
-                        selectedStock?.symbol === stock.symbol
-                          ? 'bg-amber-500/20 border border-amber-500'
-                          : 'bg-slate-900/50 border border-slate-700 hover:border-slate-600'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-bold text-white">{stock.symbol}</div>
-                          <div className="text-xs text-slate-400">£{stock.price_gbp?.toFixed(2)}</div>
-                        </div>
-                        <div className={`text-sm font-semibold ${(stock.daily_change_percent || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                          {(stock.daily_change_percent || 0) >= 0 ? '+' : ''}{(stock.daily_change_percent || 0).toFixed(2)}%
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {selectedStock && (
-                  <div className="p-4 bg-slate-900/50 rounded-lg border border-slate-700 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-white font-bold">{selectedStock.symbol}</span>
-                      <span className="text-slate-300">£{selectedStock.price_gbp?.toFixed(2)}</span>
-                    </div>
-                    <Input
-                      type="number"
-                      placeholder="Number of shares"
-                      value={shares}
-                      onChange={(e) => setShares(e.target.value)}
-                      className="bg-slate-900 border-slate-700 text-white"
-                    />
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-slate-400">Total Cost:</span>
-                      <span className="text-white font-bold">
-                        £{(selectedStock.price_gbp * (parseInt(shares) || 0)).toFixed(2)}
-                      </span>
-                    </div>
-                    <Button
-                      onClick={() => buyMutation.mutate({ stock: selectedStock, shares: parseInt(shares) })}
-                      disabled={!shares || buyMutation.isPending || (selectedStock.price_gbp * parseInt(shares)) > (account?.cash_balance || 0)}
-                      className="w-full bg-amber-600 hover:bg-amber-700 text-white"
-                    >
-                      {buyMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Buy Shares'}
-                    </Button>
+            <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+              {(search ? filtered : topMovers).map(stock => (
+                <button
+                  key={stock.symbol}
+                  onClick={() => { setSelected(stock); setShares(''); }}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all ${
+                    selected?.symbol === stock.symbol
+                      ? 'bg-amber-500/15 border border-amber-500/30'
+                      : 'hover:bg-white/5 border border-transparent'
+                  }`}
+                >
+                  <div>
+                    <p className="font-bold text-white text-sm">{stock.symbol}</p>
+                    <p className="text-xs text-slate-500">£{stock.price_gbp?.toFixed(2)}</p>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                  <div className={`text-sm font-bold flex items-center gap-0.5 ${(stock.daily_change_percent || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {(stock.daily_change_percent || 0) >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
+                    {Math.abs(stock.daily_change_percent || 0).toFixed(2)}%
+                  </div>
+                </button>
+              ))}
+            </div>
 
-            {/* Recent Activity */}
-            <Card className="bg-slate-800 border-slate-700">
-              <CardHeader>
-                <CardTitle className="text-white">Recent Activity</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                  {transactions.length === 0 && (
-                    <p className="text-slate-400 text-center py-4">No transactions yet</p>
-                  )}
-                  {transactions.map(tx => (
-                    <div key={tx.id} className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-2 h-2 rounded-full ${tx.type === 'buy' ? 'bg-green-500' : 'bg-red-500'}`} />
-                        <div>
-                          <div className="text-white font-medium">{tx.symbol}</div>
-                          <div className="text-xs text-slate-400">{tx.shares} shares</div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className={`font-bold ${tx.type === 'buy' ? 'text-red-500' : 'text-green-500'}`}>
-                          {tx.type === 'buy' ? '-' : '+'}£{tx.total_amount.toFixed(2)}
-                        </div>
-                        <div className="text-xs text-slate-400">£{tx.price_per_share.toFixed(2)}/share</div>
-                      </div>
+            {/* Buy form */}
+            <AnimatePresence>
+              {selected && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                  className="mt-3 pt-3 border-t border-white/5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <p className="font-black text-white">{selected.symbol}</p>
+                      <p className="text-xs text-slate-400">£{selected.price_gbp?.toFixed(2)} per share</p>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    <button onClick={() => setSelected(null)} className="text-slate-500 hover:text-white"><X className="w-4 h-4" /></button>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      value={shares}
+                      onChange={e => setShares(e.target.value)}
+                      placeholder="Shares"
+                      min="1"
+                      className="flex-1 bg-[#0d1220] border border-white/5 rounded-xl px-3 py-2.5 text-sm text-white placeholder-slate-500 outline-none focus:border-amber-500/40"
+                    />
+                    <button
+                      onClick={() => buyMutation.mutate({ stock: selected, shares: parseInt(shares) })}
+                      disabled={!shares || buyMutation.isPending || (selected.price_gbp * parseInt(shares)) > cash}
+                      className="bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold px-5 py-2.5 rounded-xl text-sm transition-colors"
+                    >
+                      {buyMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : `Buy · £${(selected.price_gbp * (parseInt(shares) || 0)).toFixed(2)}`}
+                    </button>
+                  </div>
+                  {shares && (selected.price_gbp * parseInt(shares)) > cash && (
+                    <p className="text-xs text-red-400 mt-2">Insufficient funds</p>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Holdings */}
-          <Card className="bg-slate-800 border-slate-700">
-            <CardHeader>
-              <CardTitle className="text-white">Your Holdings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 max-h-[700px] overflow-y-auto">
-                {portfolio.length === 0 && (
-                  <p className="text-slate-400 text-center py-8">No holdings yet. Start trading!</p>
-                )}
-                {portfolio.map(holding => {
-                  const stockPrice = stockPrices.find(s => s.symbol === holding.symbol);
-                  const currentPrice = stockPrice?.price_gbp || holding.average_buy_price;
-                  const value = holding.shares * currentPrice;
-                  const invested = holding.shares * holding.average_buy_price;
-                  const profit = value - invested;
-                  const profitPercent = ((profit / invested) * 100);
+          {/* Recent Transactions */}
+          <div className="bg-[#141925] border border-white/5 rounded-2xl p-4">
+            <h2 className="text-sm font-bold text-slate-300 mb-3">Recent Activity</h2>
+            {transactions.length === 0 ? (
+              <p className="text-slate-500 text-sm text-center py-4">No transactions yet</p>
+            ) : (
+              <div className="space-y-1.5">
+                {transactions.map(tx => (
+                  <div key={tx.id} className="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-white/5 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-2 h-2 rounded-full ${tx.type === 'buy' ? 'bg-green-400' : 'bg-red-400'}`} />
+                      <div>
+                        <p className="text-sm font-semibold text-white">{tx.symbol}</p>
+                        <p className="text-xs text-slate-500">{tx.shares} shares · {tx.type.toUpperCase()}</p>
+                      </div>
+                    </div>
+                    <p className={`text-sm font-bold ${tx.type === 'buy' ? 'text-red-400' : 'text-green-400'}`}>
+                      {tx.type === 'buy' ? '-' : '+'}£{tx.total_amount?.toFixed(2)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
 
+        {/* Holdings */}
+        <div className="lg:col-span-2">
+          <div className="bg-[#141925] border border-white/5 rounded-2xl p-4 sticky top-20">
+            <h2 className="text-sm font-bold text-slate-300 mb-3">Holdings</h2>
+            {portfolio.length === 0 ? (
+              <div className="text-center py-10">
+                <TrendingUp className="w-10 h-10 mx-auto text-slate-700 mb-3" />
+                <p className="text-slate-500 text-sm">No holdings yet</p>
+                <p className="text-slate-600 text-xs mt-1">Search and buy your first stock</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+                {portfolio.map(h => {
+                  const sp = stockPrices.find(p => p.symbol === h.symbol);
+                  const price = sp?.price_gbp || h.average_buy_price;
+                  const value = h.shares * price;
+                  const pnl = value - h.shares * h.average_buy_price;
+                  const pnlPct = (pnl / (h.shares * h.average_buy_price)) * 100;
                   return (
-                    <div key={holding.id} className="p-4 bg-slate-900/50 rounded-lg border border-slate-700">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <div className="text-lg font-bold text-white">{holding.symbol}</div>
-                          <div className="text-sm text-slate-400">{holding.shares} shares</div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-white">£{value.toFixed(2)}</div>
-                          <div className={`text-sm font-semibold ${profit >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                            {profit >= 0 ? '+' : ''}£{profit.toFixed(2)} ({profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(2)}%)
-                          </div>
-                        </div>
+                    <div key={h.id} className="flex items-center justify-between p-3 bg-[#0d1220] rounded-xl border border-white/5">
+                      <div>
+                        <p className="font-bold text-white text-sm">{h.symbol}</p>
+                        <p className="text-xs text-slate-500">{h.shares} shares</p>
                       </div>
-                      <div className="grid grid-cols-2 gap-2 text-xs mb-3">
-                        <div className="text-slate-400">
-                          Avg Buy: <span className="text-white">£{holding.average_buy_price.toFixed(2)}</span>
-                        </div>
-                        <div className="text-slate-400">
-                          Current: <span className="text-white">£{currentPrice.toFixed(2)}</span>
-                        </div>
+                      <div className="text-right">
+                        <p className="font-bold text-white text-sm">£{value.toFixed(2)}</p>
+                        <p className={`text-xs font-semibold ${pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {pnl >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%
+                        </p>
                       </div>
-                      <Button
-                        onClick={() => sellMutation.mutate({ holdingId: holding.id, shares: holding.shares })}
-                        disabled={sellMutation.isPending}
-                        variant="outline"
-                        className="w-full border-slate-600 text-slate-300 hover:bg-slate-700"
-                      >
-                        {sellMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Sell All'}
-                      </Button>
                     </div>
                   );
                 })}
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
         </div>
       </div>
     </div>

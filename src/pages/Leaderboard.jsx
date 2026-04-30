@@ -1,568 +1,214 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Trophy, Crown, Medal, Award, Copy, Loader2, MessageSquare, Heart, Send, Lightbulb, TrendingUp as TrendingUpIcon } from 'lucide-react';
-import { createPageUrl } from '../utils';
-import { motion, AnimatePresence } from 'framer-motion';
-import moment from 'moment';
+import { motion } from 'framer-motion';
+import { Trophy, TrendingUp, Copy, Users, Loader2 } from 'lucide-react';
+
+const TIER_CONFIG = {
+  Titan:    { color: 'text-purple-400', bg: 'bg-purple-400/10', border: 'border-purple-400/20', icon: '🏆' },
+  Diamond:  { color: 'text-cyan-400',   bg: 'bg-cyan-400/10',   border: 'border-cyan-400/20',   icon: '💎' },
+  Platinum: { color: 'text-slate-300',  bg: 'bg-slate-300/10',  border: 'border-slate-300/20',  icon: '⚡' },
+  Gold:     { color: 'text-amber-400',  bg: 'bg-amber-400/10',  border: 'border-amber-400/20',  icon: '🥇' },
+  Silver:   { color: 'text-slate-400',  bg: 'bg-slate-400/10',  border: 'border-slate-400/20',  icon: '🥈' },
+  Bronze:   { color: 'text-orange-400', bg: 'bg-orange-400/10', border: 'border-orange-400/20', icon: '🥉' },
+};
 
 export default function Leaderboard() {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState('leaderboard');
   const [copyAmount, setCopyAmount] = useState('');
-  const [selectedLeader, setSelectedLeader] = useState(null);
-  const [newPost, setNewPost] = useState('');
-  const [selectedType, setSelectedType] = useState('insight');
-  const [userBalance, setUserBalance] = useState(0);
-  const queryClient = useQueryClient();
+  const [copyTarget, setCopyTarget] = useState(null);
+  const [postContent, setPostContent] = useState('');
+  const qc = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setCurrentUser);
+    base44.auth.me().then(u => { if (!u) base44.auth.redirectToLogin(); else setUser(u); }).catch(() => base44.auth.redirectToLogin());
   }, []);
 
-  const { data: userAccount } = useQuery({
-    queryKey: ['userAccount', currentUser?.email],
-    queryFn: () => base44.entities.UserAccount.filter({ created_by: currentUser?.email }),
-    enabled: !!currentUser?.email,
-  });
-
-  useEffect(() => {
-    if (userAccount && userAccount[0]) {
-      setUserBalance(userAccount[0].cash_balance || 0);
-    }
-  }, [userAccount]);
-
-  const { data: leaderboard = [] } = useQuery({
+  const { data: leaderboard = [], isLoading } = useQuery({
     queryKey: ['leaderboard'],
     queryFn: async () => {
-      const response = await base44.functions.invoke('getLeaderboard', {});
-      return response.data.leaderboard || [];
+      const r = await base44.functions.invoke('getLeaderboard', {});
+      return r.data.leaderboard || [];
     },
-    refetchInterval: 2000,
-    staleTime: 0,
-  });
-
-  const { data: myCopyTrades = [] } = useQuery({
-    queryKey: ['myCopyTrades', currentUser?.email],
-    queryFn: () => base44.entities.CopyTrade.filter({ follower_email: currentUser?.email }),
-    enabled: !!currentUser?.email,
     refetchInterval: 15000,
-  });
-
-  const { data: copiers = [] } = useQuery({
-    queryKey: ['copiers', currentUser?.email],
-    queryFn: () => base44.entities.CopyTrade.filter({ leader_email: currentUser?.email, is_active: true }),
-    enabled: !!currentUser?.email,
-    refetchInterval: 15000,
-  });
-
-  const startCopyTradeMutation = useMutation({
-    mutationFn: async ({ leaderEmail, amount }) => {
-      const response = await base44.functions.invoke('startCopyTrade', {
-        leaderEmail,
-        amount: parseFloat(amount)
-      });
-      return response.data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myCopyTrades'] });
-      queryClient.invalidateQueries({ queryKey: ['userAccount'] });
-      queryClient.invalidateQueries({ queryKey: ['recentTransactions'] });
-      queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
-      setCopyAmount('');
-      setSelectedLeader(null);
-    },
-    onError: (error) => {
-      console.error('Copy trade failed:', error);
-      alert(`Failed to start copy trading: ${error.response?.data?.error || error.message}`);
-    },
   });
 
   const { data: posts = [] } = useQuery({
-    queryKey: ['socialPosts'],
-    queryFn: () => base44.entities.SocialPost.list('-created_date', 100),
-    refetchInterval: 15000,
+    queryKey: ['posts'],
+    queryFn: () => base44.entities.SocialPost.list('-created_date', 30),
+    refetchInterval: 10000,
   });
 
-  const { data: myLikes = [] } = useQuery({
-    queryKey: ['myLikes', currentUser?.email],
-    queryFn: () => base44.entities.PostLike.filter({ user_email: currentUser?.email }),
-    enabled: !!currentUser?.email,
+  const { data: myAccount = [] } = useQuery({
+    queryKey: ['account', user?.email],
+    queryFn: () => base44.entities.UserAccount.filter({ created_by: user.email }),
+    enabled: !!user?.email,
   });
 
-  const createPostMutation = useMutation({
-    mutationFn: (postData) => base44.entities.SocialPost.create(postData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['socialPosts'] });
-      setNewPost('');
-    },
+  const { data: activeCopyTrades = [] } = useQuery({
+    queryKey: ['copyTrades', user?.email],
+    queryFn: () => base44.entities.CopyTrade.filter({ follower_email: user.email, is_active: true }),
+    enabled: !!user?.email,
+    refetchInterval: 10000,
   });
 
-  const toggleLikeMutation = useMutation({
-    mutationFn: async ({ post, isLiked }) => {
-      if (isLiked) {
-        const like = myLikes.find(l => l.post_id === post.id);
-        if (like) {
-          await base44.entities.PostLike.delete(like.id);
-          await base44.asServiceRole.entities.SocialPost.update(post.id, {
-            likes: Math.max(0, post.likes - 1)
-          });
-        }
-      } else {
-        await base44.entities.PostLike.create({
-          post_id: post.id,
-          user_email: currentUser.email
-        });
-        await base44.asServiceRole.entities.SocialPost.update(post.id, {
-          likes: post.likes + 1
-        });
-      }
+  const startCopyMutation = useMutation({
+    mutationFn: async ({ leaderEmail, amount }) => {
+      const r = await base44.functions.invoke('startCopyTrade', { leader_email: leaderEmail, investment_amount: amount });
+      if (!r.data.success) throw new Error(r.data.error);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['socialPosts'] });
-      queryClient.invalidateQueries({ queryKey: ['myLikes'] });
+      qc.invalidateQueries({ queryKey: ['copyTrades'] });
+      qc.invalidateQueries({ queryKey: ['account'] });
+      setCopyTarget(null); setCopyAmount('');
     },
   });
 
-  const handleCreatePost = () => {
-    if (!newPost.trim()) return;
-    createPostMutation.mutate({
-      content: newPost,
-      post_type: selectedType,
-    });
-  };
+  const postMutation = useMutation({
+    mutationFn: () => base44.entities.SocialPost.create({ content: postContent, post_type: 'insight', likes: 0 }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['posts'] }); setPostContent(''); },
+  });
 
-  const getPostIcon = (type) => {
-    if (type === 'achievement') return <Award className="w-4 h-4 text-yellow-600" />;
-    if (type === 'trade') return <TrendingUpIcon className="w-4 h-4 text-green-600" />;
-    return <Lightbulb className="w-4 h-4 text-blue-600" />;
-  };
+  const likeMutation = useMutation({
+    mutationFn: async (post) => base44.entities.SocialPost.update(post.id, { likes: (post.likes || 0) + 1 }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['posts'] }),
+  });
 
-  const getPostBadge = (type) => {
-    if (type === 'achievement') return 'bg-yellow-100 text-yellow-700 border-yellow-300';
-    if (type === 'trade') return 'bg-green-100 text-green-700 border-green-300';
-    return 'bg-blue-100 text-blue-700 border-blue-300';
-  };
-
-  const likedPostIds = myLikes.map(l => l.post_id);
-
-  const getMedalIcon = (rank) => {
-    if (rank === 1) return <Crown className="w-5 h-5 text-yellow-500" />;
-    if (rank === 2) return <Medal className="w-5 h-5 text-gray-400" />;
-    if (rank === 3) return <Award className="w-5 h-5 text-orange-500" />;
-    return null;
-  };
-
-  const getRankClass = (rank) => {
-    if (rank === 1) return 'bg-gradient-to-r from-amber-900/40 to-amber-800/20 border-amber-600/40';
-    if (rank === 2) return 'bg-gradient-to-r from-slate-600/40 to-slate-700/20 border-slate-500/40';
-    if (rank === 3) return 'bg-gradient-to-r from-orange-900/40 to-orange-800/20 border-orange-600/40';
-    return 'border-slate-700';
-  };
-
-  const isCopying = (leaderEmail) => {
-    return myCopyTrades.some(ct => ct.leader_email === leaderEmail && ct.is_active);
-  };
+  const account = myAccount[0];
+  const isAlreadyCopying = (email) => activeCopyTrades.some(ct => ct.leader_email === email);
+  const medals = ['🥇', '🥈', '🥉'];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6 min-h-screen">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-6"
-      >
-        <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-          <Trophy className="w-8 h-8 text-amber-500" />
-          Community
-        </h1>
-        <p className="text-sm text-slate-400 mt-1">Top traders, social feed & copy trading</p>
-      </motion.div>
+    <div className="max-w-5xl mx-auto px-4 py-6">
+      <motion.h1 initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+        className="text-2xl font-black text-white mb-6 flex items-center gap-2">
+        <Trophy className="w-6 h-6 text-amber-500" /> Community
+      </motion.h1>
 
-      <Tabs defaultValue="leaderboard" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="leaderboard">
-            <Trophy className="w-4 h-4 mr-2" />
-            Leaderboard
-          </TabsTrigger>
-          <TabsTrigger value="social">
-            <MessageSquare className="w-4 h-4 mr-2" />
-            Social Feed
-          </TabsTrigger>
-        </TabsList>
+      {/* Tabs */}
+      <div className="flex gap-1 bg-[#141925] border border-white/5 rounded-xl p-1 mb-6 w-fit">
+        {['leaderboard', 'social'].map(tab => (
+          <button key={tab} onClick={() => setActiveTab(tab)}
+            className={`px-5 py-2 rounded-lg text-sm font-semibold capitalize transition-all ${
+              activeTab === tab ? 'bg-amber-500 text-black' : 'text-slate-400 hover:text-white'
+            }`}>
+            {tab}
+          </button>
+        ))}
+      </div>
 
-        <TabsContent value="leaderboard">
-      {copiers.length > 0 && (
-        <Card className="bg-slate-800 border-slate-700 shadow-lg mb-6">
-          <CardContent className="p-4">
-            <p className="text-sm font-semibold text-green-400 mb-2">People Copying You ({copiers.length})</p>
+      {activeTab === 'leaderboard' && (
+        <div>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-amber-500" /></div>
+          ) : (
             <div className="space-y-2">
-              {copiers.map(ct => {
-                const leaderData = leaderboard.find(l => l.email === currentUser?.email);
-                const currentValue = ct.investment_amount * (1 + ((leaderData?.percentageReturn || 0) / 100));
-                const profitLoss = currentValue - ct.investment_amount;
-                
+              {leaderboard.map((trader, i) => {
+                const tier = TIER_CONFIG[trader.tier] || TIER_CONFIG.Bronze;
+                const isMe = trader.email === user?.email;
+                const alreadyCopying = isAlreadyCopying(trader.email);
                 return (
-                  <div key={ct.id} className="flex items-center justify-between text-sm">
-                    <span className="text-slate-300">{ct.follower_email.split('@')[0]}</span>
-                    <div className="text-right">
-                      <span className="font-bold text-white">£{currentValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                      <span className={`text-xs ml-2 ${profitLoss >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        ({profitLoss >= 0 ? '+' : ''}£{profitLoss.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {myCopyTrades.filter(ct => ct.is_active).length > 0 && (
-        <Card className="bg-slate-800 border-slate-700 shadow-lg mb-6">
-          <CardContent className="p-4">
-            <p className="text-sm font-semibold text-amber-400 mb-2">Your Copy Trades</p>
-            <div className="space-y-2">
-              {myCopyTrades.filter(ct => ct.is_active).map(ct => {
-                const leaderData = leaderboard.find(l => l.email === ct.leader_email);
-                const currentValue = ct.investment_amount * (1 + ((leaderData?.percentageReturn || 0) / 100));
-                const profitLoss = currentValue - ct.investment_amount;
-                
-                return (
-                  <div key={ct.id} className="flex items-center justify-between text-sm">
-                    <span className="text-slate-300">Copying {ct.leader_email.split('@')[0]}</span>
-                    <div className="text-right">
-                      <span className="font-bold text-white">£{currentValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                      <span className={`text-xs ml-2 ${profitLoss >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                        ({profitLoss >= 0 ? '+' : ''}£{profitLoss.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <Card className="bg-slate-800 border-slate-700 shadow-lg">
-        <CardContent className="p-0">
-          <div className="divide-y divide-slate-700">
-            {leaderboard.map((trader, index) => {
-              const rank = index + 1;
-              const isCurrentUser = trader.email === currentUser?.email;
-              const copying = isCopying(trader.email);
-
-              return (
-                <motion.div
-                  key={trader.email}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.03 }}
-                  className={`p-4 bg-slate-900/30 ${
-                    isCurrentUser ? 'ring-2 ring-amber-500' : ''
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-950 shadow-sm font-bold text-white">
-                      {getMedalIcon(rank) || `#${rank}`}
-                    </div>
-
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <a 
-                          href={createPageUrl('Profile') + '?user=' + trader.email.split('@')[0]}
-                          className="font-semibold text-white hover:text-amber-400 transition-colors"
-                        >
-                          {trader.name}
-                        </a>
-                        {isCurrentUser && (
-                          <span className="text-xs bg-amber-600 text-white px-2 py-0.5 rounded-full">
-                            You
-                          </span>
-                        )}
-                        {copying && (
-                          <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
-                            Copying
-                          </span>
-                        )}
+                  <motion.div key={trader.email} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
+                    className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${
+                      isMe ? 'bg-amber-500/10 border-amber-500/30' : 'bg-[#141925] border-white/5 hover:border-white/10'
+                    }`}>
+                    <div className="w-8 text-center font-black text-lg">{i < 3 ? medals[i] : <span className="text-slate-500 text-sm">#{i + 1}</span>}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className={`font-black text-sm ${isMe ? 'text-amber-400' : 'text-white'}`}>{trader.displayName || trader.email.split('@')[0]}{isMe && ' (You)'}</p>
+                        <span className={`text-xs px-2 py-0.5 rounded-full border ${tier.bg} ${tier.color} ${tier.border}`}>{tier.icon} {trader.tier}</span>
                       </div>
-                      <p className="text-xs text-slate-400">
-                        Balance: £{(trader.balance || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
+                      <p className="text-xs text-slate-500 mt-0.5">£{(trader.totalValue || 0).toLocaleString('en-GB', { maximumFractionDigits: 0 })}</p>
                     </div>
-
                     <div className="text-right">
-                      <p className="text-xs text-slate-400 mb-1">Total Value</p>
-                      <p className="text-lg font-bold text-white">
-                        £{(trader.totalValue || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </p>
-                      <p className={`text-xs font-semibold ${
-                        (trader.percentageReturn || 0) >= 0 ? 'text-green-500' : 'text-red-500'
-                      }`}>
+                      <p className={`font-black text-base ${(trader.percentageReturn || 0) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                         {(trader.percentageReturn || 0) >= 0 ? '+' : ''}{(trader.percentageReturn || 0).toFixed(2)}%
                       </p>
-                      <div className="flex items-center justify-end gap-1 mt-1">
-                        <p className="text-xs font-bold text-amber-500">
-                          💰 £{(trader.hourlyDividends || 0).toFixed(2)}/hr
-                        </p>
-                      </div>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Cash: £{(trader.balance || 0).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} • 
-                        Stocks: £{(trader.portfolioValue || 0).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} • 
-                        Copy: £{(trader.copyTradeValue || 0).toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                      </p>
+                      {!isMe && !alreadyCopying && (
+                        <button onClick={() => setCopyTarget(trader)}
+                          className="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 mt-1 ml-auto transition-colors">
+                          <Copy className="w-3 h-3" /> Copy
+                        </button>
+                      )}
+                      {alreadyCopying && <p className="text-xs text-green-400 mt-1">Copying ✓</p>}
                     </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
-                    {!isCurrentUser && (
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant={copying ? "outline" : "default"}
-                            size="sm"
-                            disabled={copying}
-                            className="gap-2"
-                            onClick={() => setSelectedLeader(trader)}
-                          >
-                            <Copy className="w-4 h-4" />
-                            {copying ? 'Copying' : 'Copy'}
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Copy {trader.name}'s Trades</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4 py-4">
-                            <div>
-                              <p className="text-sm text-gray-600 mb-4">
-                                Allocate funds to automatically copy all future trades made by this trader.
-                              </p>
-                              <div className="bg-violet-50 p-4 rounded-lg mb-4">
-                                <p className="text-sm font-semibold text-violet-900">
-                                  {trader.name}
-                                </p>
-                                <p className="text-xs text-gray-600">
-                                  Performance: {(trader.percentageReturn || 0) >= 0 ? '+' : ''}{(trader.percentageReturn || 0).toFixed(2)}%
-                                </p>
-                              </div>
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium mb-2 block">
-                                Investment Amount (£) - Available: £{userBalance.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                              </label>
-                              <Input
-                                type="number"
-                                placeholder="Enter amount"
-                                value={copyAmount}
-                                onChange={(e) => setCopyAmount(e.target.value)}
-                                min="1"
-                              />
-                              <div className="flex gap-2 mt-2">
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setCopyAmount((userBalance * 0.25).toFixed(2))}
-                                  className="flex-1 text-xs"
-                                >
-                                  25%
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setCopyAmount((userBalance * 0.5).toFixed(2))}
-                                  className="flex-1 text-xs"
-                                >
-                                  50%
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setCopyAmount((userBalance * 0.75).toFixed(2))}
-                                  className="flex-1 text-xs"
-                                >
-                                  75%
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setCopyAmount(userBalance.toFixed(2))}
-                                  className="flex-1 text-xs font-semibold"
-                                >
-                                  MAX
-                                </Button>
-                              </div>
-                            </div>
-                            <Button
-                              onClick={() => startCopyTradeMutation.mutate({ 
-                                leaderEmail: trader.email, 
-                                amount: parseFloat(copyAmount) 
-                              })}
-                              disabled={!copyAmount || parseFloat(copyAmount) <= 0 || startCopyTradeMutation.isPending}
-                              className="w-full bg-violet-600 hover:bg-violet-700"
-                            >
-                              {startCopyTradeMutation.isPending ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                  Starting...
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="w-4 h-4 mr-2" />
-                                  Start Copy Trading
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    )}
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-        </TabsContent>
-
-        <TabsContent value="social">
-          <div className="space-y-4">
-            <Card className="bg-slate-800 border-slate-700 shadow-md">
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  <Textarea
-                    placeholder="Share your trading insights, achievements, or market analysis..."
-                    value={newPost}
-                    onChange={(e) => setNewPost(e.target.value)}
-                    className="min-h-[100px] resize-none"
-                  />
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex gap-2">
-                      <Button
-                        variant={selectedType === 'insight' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setSelectedType('insight')}
-                        className="gap-2"
-                      >
-                        <Lightbulb className="w-4 h-4" />
-                        Insight
-                      </Button>
-                      <Button
-                        variant={selectedType === 'achievement' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setSelectedType('achievement')}
-                        className="gap-2"
-                      >
-                        <Award className="w-4 h-4" />
-                        Win
-                      </Button>
-                      <Button
-                        variant={selectedType === 'trade' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setSelectedType('trade')}
-                        className="gap-2"
-                      >
-                        <TrendingUpIcon className="w-4 h-4" />
-                        Trade
-                      </Button>
-                    </div>
-
-                    <Button
-                      onClick={handleCreatePost}
-                      disabled={!newPost.trim() || createPostMutation.isPending}
-                      className="bg-violet-600 hover:bg-violet-700"
-                    >
-                      <Send className="w-4 h-4 mr-2" />
-                      Post
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="space-y-4">
-              <AnimatePresence>
-                {posts.map((post, index) => {
-                  const isLiked = likedPostIds.includes(post.id);
-                  
-                  return (
-                    <motion.div
-                      key={post.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ delay: index * 0.05 }}
-                    >
-                      <Card className="bg-slate-800 border-slate-700 shadow-md hover:shadow-lg transition-all">
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <a 
-                                href={createPageUrl('Profile') + '?user=' + post.created_by?.split('@')[0]}
-                                className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white font-bold hover:ring-2 hover:ring-amber-400 transition-all"
-                              >
-                                {post.created_by?.charAt(0).toUpperCase()}
-                              </a>
-                              <div>
-                                <a 
-                                  href={createPageUrl('Profile') + '?user=' + post.created_by?.split('@')[0]}
-                                  className="font-semibold text-sm text-white hover:text-amber-400 transition-colors"
-                                >
-                                  {post.created_by?.split('@')[0]}
-                                </a>
-                                <p className="text-xs text-slate-400">{moment(post.created_date).fromNow()}</p>
-                              </div>
-                            </div>
-                            <Badge variant="outline" className={getPostBadge(post.post_type)}>
-                              {getPostIcon(post.post_type)}
-                              <span className="ml-1 capitalize">{post.post_type}</span>
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-slate-300 whitespace-pre-wrap">{post.content}</p>
-                          
-                          <div className="flex items-center gap-4 mt-4 pt-3 border-t">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleLikeMutation.mutate({ post, isLiked })}
-                              className={`gap-2 ${isLiked ? 'text-red-500' : 'text-slate-400'}`}
-                            >
-                              <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
-                              {post.likes || 0}
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
-
-              {posts.length === 0 && (
-                <Card className="bg-slate-800 border-slate-700 shadow-md">
-                  <CardContent className="py-12 text-center">
-                    <MessageSquare className="w-12 h-12 mx-auto text-slate-600 mb-3" />
-                    <p className="text-slate-400">No posts yet. Be the first to share!</p>
-                  </CardContent>
-                </Card>
-              )}
+      {activeTab === 'social' && (
+        <div className="space-y-4">
+          {/* Post box */}
+          <div className="bg-[#141925] border border-white/5 rounded-2xl p-4">
+            <textarea
+              value={postContent}
+              onChange={e => setPostContent(e.target.value)}
+              placeholder="Share a trade insight, achievement, or market thought..."
+              rows={3}
+              className="w-full bg-[#0d1220] border border-white/5 rounded-xl px-4 py-3 text-white text-sm placeholder-slate-500 outline-none focus:border-amber-500/40 resize-none mb-3"
+            />
+            <div className="flex justify-end">
+              <button onClick={() => postMutation.mutate()} disabled={!postContent.trim() || postMutation.isPending}
+                className="bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-black font-bold px-5 py-2 rounded-xl text-sm transition-colors">
+                {postMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Post'}
+              </button>
             </div>
           </div>
-        </TabsContent>
-      </Tabs>
+
+          {posts.map((post, i) => (
+            <motion.div key={post.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+              className="bg-[#141925] border border-white/5 rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center text-sm font-bold text-amber-400">
+                    {(post.created_by || 'A').charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white">{(post.created_by || 'anon').split('@')[0]}</p>
+                    <p className="text-xs text-slate-500">{post.post_type}</p>
+                  </div>
+                </div>
+                <button onClick={() => likeMutation.mutate(post)}
+                  className="flex items-center gap-1.5 text-slate-400 hover:text-red-400 text-sm transition-colors">
+                  ❤️ <span>{post.likes || 0}</span>
+                </button>
+              </div>
+              <p className="text-sm text-slate-300 leading-relaxed">{post.content}</p>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {/* Copy Trade Modal */}
+      {copyTarget && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+          onClick={e => { if (e.target === e.currentTarget) setCopyTarget(null); }}>
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            className="bg-[#141925] border border-white/10 rounded-2xl p-6 w-full max-w-sm">
+            <h3 className="font-black text-white text-lg mb-1">Copy {copyTarget.displayName || copyTarget.email.split('@')[0]}</h3>
+            <p className="text-slate-400 text-sm mb-4">Return: <span className="text-green-400 font-bold">{(copyTarget.percentageReturn || 0).toFixed(2)}%</span></p>
+            <p className="text-slate-400 text-xs mb-1">Available: £{(account?.cash_balance || 0).toFixed(2)}</p>
+            <input type="number" value={copyAmount} onChange={e => setCopyAmount(e.target.value)}
+              placeholder="Amount to allocate (GBP)" min="100"
+              className="w-full bg-[#0d1220] border border-white/5 rounded-xl px-4 py-3 text-white text-sm placeholder-slate-500 outline-none focus:border-amber-500/40 mb-4"
+            />
+            <div className="flex gap-2">
+              <button onClick={() => setCopyTarget(null)} className="flex-1 border border-white/10 text-slate-400 py-2.5 rounded-xl text-sm font-semibold hover:bg-white/5 transition-colors">Cancel</button>
+              <button
+                onClick={() => startCopyMutation.mutate({ leaderEmail: copyTarget.email, amount: parseFloat(copyAmount) })}
+                disabled={!copyAmount || parseFloat(copyAmount) <= 0 || startCopyMutation.isPending}
+                className="flex-1 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-black font-bold py-2.5 rounded-xl text-sm transition-colors">
+                {startCopyMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Start Copying'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

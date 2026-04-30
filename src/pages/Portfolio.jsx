@@ -1,707 +1,263 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Briefcase, TrendingUp, TrendingDown, DollarSign, Percent, Loader2, Coins } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { motion, AnimatePresence } from 'framer-motion';
+import { BarChart2, TrendingUp, TrendingDown, Loader2, X } from 'lucide-react';
 
 export default function Portfolio() {
-  const queryClient = useQueryClient();
-  const [currentUser, setCurrentUser] = useState(null);
-  const [sellDialogOpen, setSellDialogOpen] = useState(false);
-  const [selectedHolding, setSelectedHolding] = useState(null);
+  const [user, setUser] = useState(null);
+  const [sellTarget, setSellTarget] = useState(null);
   const [sellShares, setSellShares] = useState('');
-  const [displayPrices, setDisplayPrices] = useState({});
-  const [momentum, setMomentum] = useState({});
+  const qc = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me()
-      .then(user => {
-        if (!user) {
-          base44.auth.redirectToLogin();
-        }
-        setCurrentUser(user);
-      })
-      .catch(() => base44.auth.redirectToLogin());
+    base44.auth.me().then(u => { if (!u) base44.auth.redirectToLogin(); else setUser(u); }).catch(() => base44.auth.redirectToLogin());
   }, []);
 
+  const { data: accounts = [] } = useQuery({
+    queryKey: ['account', user?.email],
+    queryFn: () => base44.entities.UserAccount.filter({ created_by: user.email }),
+    enabled: !!user?.email,
+    refetchInterval: 5000,
+  });
+
   const { data: portfolio = [] } = useQuery({
-    queryKey: ['portfolio', currentUser?.email],
-    queryFn: () => base44.entities.Portfolio.filter({ created_by: currentUser?.email }),
-    enabled: !!currentUser?.email,
-    refetchInterval: 10000,
+    queryKey: ['portfolio', user?.email],
+    queryFn: () => base44.entities.Portfolio.filter({ created_by: user.email }),
+    enabled: !!user?.email,
+    refetchInterval: 5000,
   });
 
   const { data: stockPrices = [] } = useQuery({
     queryKey: ['stockPrices'],
     queryFn: async () => {
-      try {
-        const response = await base44.functions.invoke('getUpdatedPrices', {});
-        return response.data.prices || [];
-      } catch {
-        return base44.entities.StockPrice.list();
-      }
+      try { const r = await base44.functions.invoke('getUpdatedPrices', {}); return r.data.prices || []; }
+      catch { return base44.entities.StockPrice.list(); }
     },
-    refetchInterval: 5000,
+    refetchInterval: 6000,
   });
 
-  // Initialize display prices from stock prices (no localStorage)
-
-  // Update from backend, preserving existing momentum
-  useEffect(() => {
-    if (stockPrices.length > 0) {
-      setDisplayPrices(prev => {
-        const updated = {};
-        stockPrices.forEach(stock => {
-          updated[stock.symbol] = {
-            price: stock.price_gbp,
-            change: stock.daily_change_percent,
-            basePrice: stock.price_gbp,
-            baseChange: stock.daily_change_percent
-          };
-        });
-        return updated;
-      });
-      
-      setMomentum(prev => {
-        const updated = { ...prev };
-        stockPrices.forEach(stock => {
-          if (!updated[stock.symbol]) {
-            updated[stock.symbol] = 0;
-          }
-        });
-        return updated;
-      });
-    }
-  }, [stockPrices]);
-
-  // Animate prices smoothly between backend updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setMomentum(m => {
-        const updated = { ...m };
-        for (const symbol in updated) {
-          const trendAdjustment = (Math.random() * 0.1 - 0.05);
-          updated[symbol] = Math.max(-0.5, Math.min(0.5, updated[symbol] + trendAdjustment));
-        }
-        return updated;
-      });
-
-      setDisplayPrices(prev => {
-        const updated = {};
-        for (const symbol in prev) {
-          const current = prev[symbol];
-          const movementPercent = momentum[symbol] || 0;
-          const newPrice = current.basePrice * (1 + movementPercent / 100);
-          const newChange = current.baseChange + movementPercent;
-
-          updated[symbol] = {
-            price: parseFloat(newPrice.toFixed(2)),
-            change: parseFloat(newChange.toFixed(2)),
-            basePrice: current.basePrice,
-            baseChange: current.baseChange
-          };
-        }
-        return updated;
-      });
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [momentum]);
-
-  const { data: accounts } = useQuery({
-    queryKey: ['userAccount', currentUser?.email],
-    queryFn: () => base44.entities.UserAccount.filter({ created_by: currentUser?.email }),
-    enabled: !!currentUser?.email,
+  const { data: copyTrades = [] } = useQuery({
+    queryKey: ['copyTrades', user?.email],
+    queryFn: () => base44.entities.CopyTrade.filter({ follower_email: user.email, is_active: true }),
+    enabled: !!user?.email,
     refetchInterval: 10000,
-  });
-
-  const { data: myCopyTrades = [] } = useQuery({
-    queryKey: ['myCopyTrades', currentUser?.email],
-    queryFn: () => base44.entities.CopyTrade.filter({ follower_email: currentUser?.email, is_active: true }),
-    enabled: !!currentUser?.email,
-    refetchInterval: 15000,
   });
 
   const { data: leaderboard = [] } = useQuery({
     queryKey: ['leaderboard'],
     queryFn: async () => {
-      const response = await base44.functions.invoke('getLeaderboard', {});
-      return response.data.leaderboard || [];
+      const r = await base44.functions.invoke('getLeaderboard', {});
+      return r.data.leaderboard || [];
     },
-    refetchInterval: 5000,
+    refetchInterval: 15000,
   });
 
-  // Subscribe to real-time updates for user-specific data only
-  useEffect(() => {
-    if (!currentUser?.email) return;
-
-    const unsubscribePortfolio = base44.entities.Portfolio.subscribe((event) => {
-      if (event.data?.created_by === currentUser?.email) {
-        queryClient.invalidateQueries({ queryKey: ['portfolio', currentUser?.email] });
-      }
-    });
-
-    const unsubscribeAccount = base44.entities.UserAccount.subscribe((event) => {
-      if (event.data?.created_by === currentUser?.email) {
-        queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] });
-      }
-    });
-
-    return () => {
-      unsubscribePortfolio();
-      unsubscribeAccount();
-    };
-  }, [queryClient, currentUser?.email]);
-
-  const account = accounts?.[0];
-  const cashBalance = account?.cash_balance || 10000;
+  const account = accounts[0];
 
   const sellMutation = useMutation({
     mutationFn: async ({ holding, shares }) => {
-      const totalAmount = shares * holding.currentPrice;
-      const costBasis = shares * holding.average_buy_price;
-      const profitLoss = totalAmount - costBasis;
-      const newShares = holding.shares - shares;
-
-      // Update cash balance
-      await base44.entities.UserAccount.update(account.id, {
-        cash_balance: account.cash_balance + totalAmount
-      });
-
-      // Update or delete holding
-      if (newShares === 0) {
+      const sp = stockPrices.find(p => p.symbol === holding.symbol);
+      const price = sp?.price_gbp || holding.average_buy_price;
+      const total = shares * price;
+      await base44.entities.UserAccount.update(account.id, { cash_balance: account.cash_balance + total });
+      if (shares >= holding.shares) {
         await base44.entities.Portfolio.delete(holding.id);
       } else {
-        await base44.entities.Portfolio.update(holding.id, {
-          shares: newShares
-        });
+        await base44.entities.Portfolio.update(holding.id, { shares: holding.shares - shares });
       }
-
-      // Record transaction
       await base44.entities.Transaction.create({
-        symbol: holding.symbol,
-        company_name: holding.company_name,
-        type: 'sell',
-        shares: shares,
-        price_per_share: holding.currentPrice,
-        total_amount: totalAmount
-      });
-
-      // Track event for analytics
-      base44.analytics.track({
-        eventName: 'stock_sell',
-        properties: {
-          symbol: holding.symbol,
-          shares: shares,
-          price_per_share: holding.currentPrice,
-          total_amount: totalAmount,
-          profit_loss: profitLoss
-        }
-      });
-
-      // Track profit/loss as separate event
-      if (profitLoss > 0) {
-        base44.analytics.track({
-          eventName: 'profit_realized',
-          properties: {
-            symbol: holding.symbol,
-            amount: profitLoss,
-            roi_percent: (profitLoss / costBasis) * 100
-          }
-        });
-      } else if (profitLoss < 0) {
-        base44.analytics.track({
-          eventName: 'loss_realized',
-          properties: {
-            symbol: holding.symbol,
-            amount: Math.abs(profitLoss),
-            loss_percent: (Math.abs(profitLoss) / costBasis) * 100
-          }
-        });
-      }
-
-      // Send sell confirmation email
-      try {
-        await base44.asServiceRole.functions.invoke('sendSellConfirmationEmail', {
-          symbol: holding.symbol,
-          company_name: holding.company_name,
-          shares: shares,
-          price_per_share: holding.currentPrice,
-          total_amount: totalAmount,
-          profit_loss: profitLoss
-        });
-      } catch (emailError) {
-        console.error('Failed to send sell confirmation email:', emailError.message);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['portfolio', currentUser?.email] });
-      queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] });
-      setSellDialogOpen(false);
-      setSelectedHolding(null);
-      setSellShares('');
-    },
-  });
-
-  const stopCopyTradeMutation = useMutation({
-    mutationFn: async (copyTrade) => {
-      // Calculate current value
-      const leaderData = leaderboard.find(l => l.email === copyTrade.leader_email);
-      const currentValue = copyTrade.investment_amount * (1 + ((leaderData?.percentageReturn || 0) / 100));
-
-      // Stop copy trade
-      await base44.entities.CopyTrade.update(copyTrade.id, {
-        is_active: false
-      });
-
-      // Add value back to cash balance
-      await base44.entities.UserAccount.update(account.id, {
-        cash_balance: account.cash_balance + currentValue
-      });
-
-      // Record transaction
-      await base44.entities.Transaction.create({
-        symbol: 'COPY',
-        company_name: `Stop Copy Trading - ${copyTrade.leader_email.split('@')[0]}`,
-        type: 'sell',
-        shares: 0,
-        price_per_share: 0,
-        total_amount: currentValue
+        symbol: holding.symbol, company_name: holding.company_name,
+        type: 'sell', shares, price_per_share: price, total_amount: total
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myCopyTrades', currentUser?.email] });
-      queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] });
-      queryClient.invalidateQueries({ queryKey: ['recentTransactions'] });
+      qc.invalidateQueries({ queryKey: ['portfolio'] });
+      qc.invalidateQueries({ queryKey: ['account'] });
+      setSellTarget(null); setSellShares('');
     },
   });
 
-  const handleSell = () => {
-    const shares = parseFloat(sellShares);
-    if (shares > 0 && shares <= selectedHolding.shares) {
-      sellMutation.mutate({ holding: selectedHolding, shares });
-    }
-  };
+  const stopCopyMutation = useMutation({
+    mutationFn: async (ct) => {
+      const leader = leaderboard.find(l => l.email === ct.leader_email);
+      const val = ct.investment_amount * (1 + ((leader?.percentageReturn || 0) / 100));
+      await base44.entities.CopyTrade.update(ct.id, { is_active: false });
+      await base44.entities.UserAccount.update(account.id, { cash_balance: account.cash_balance + val });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['copyTrades'] });
+      qc.invalidateQueries({ queryKey: ['account'] });
+    },
+  });
 
-  const handleSellOut = () => {
-    if (selectedHolding && selectedHolding.shares > 0) {
-      sellMutation.mutate({ holding: selectedHolding, shares: selectedHolding.shares });
-    }
-  };
+  const portfolioWithMetrics = portfolio.map(h => {
+    const sp = stockPrices.find(p => p.symbol === h.symbol);
+    const price = sp?.price_gbp || h.average_buy_price;
+    const value = h.shares * price;
+    const cost = h.shares * h.average_buy_price;
+    const pnl = value - cost;
+    const pnlPct = cost > 0 ? (pnl / cost) * 100 : 0;
+    const dividendYield = sp?.dividend_yield_hourly || 0;
+    const hourlyDiv = value * (dividendYield / 100);
+    return { ...h, price, value, cost, pnl, pnlPct, hourlyDiv };
+  });
 
-  // Calculate portfolio metrics (memoized)
-  const portfolioWithMetrics = React.useMemo(() => 
-    portfolio.map(holding => {
-      const displayPrice = displayPrices[holding.symbol]?.price || holding.average_buy_price;
-      const currentValue = holding.shares * displayPrice;
-      const costBasis = holding.shares * holding.average_buy_price;
-      const profitLoss = currentValue - costBasis;
-      const profitLossPercent = ((displayPrice - holding.average_buy_price) / holding.average_buy_price) * 100;
+  const totalValue = portfolioWithMetrics.reduce((s, h) => s + h.value, 0);
+  const totalCost = portfolioWithMetrics.reduce((s, h) => s + h.cost, 0);
+  const totalPnl = totalValue - totalCost;
+  const totalPnlPct = totalCost > 0 ? (totalPnl / totalCost) * 100 : 0;
+  const totalHourlyDiv = portfolioWithMetrics.reduce((s, h) => s + h.hourlyDiv, 0);
 
-      return {
-        ...holding,
-        currentPrice: displayPrice,
-        currentValue,
-        costBasis,
-        profitLoss,
-        profitLossPercent
-      };
-    }), [portfolio, displayPrices]
-  );
-
-  // Calculate copy trade values (memoized)
-  const copyTradesWithMetrics = React.useMemo(() =>
-    myCopyTrades.map(ct => {
-      const leaderData = leaderboard.find(l => l.email === ct.leader_email);
-      const currentValue = ct.investment_amount * (1 + ((leaderData?.percentageReturn || 0) / 100));
-      const profitLoss = currentValue - ct.investment_amount;
-      return {
-        ...ct,
-        currentValue,
-        profitLoss,
-        leaderName: ct.leader_email.split('@')[0],
-        leaderReturn: leaderData?.percentageReturn || 0,
-      };
-    }), [myCopyTrades, leaderboard]
-  );
-
-  const totalCopyTradeValue = React.useMemo(() => copyTradesWithMetrics.reduce((sum, ct) => sum + ct.currentValue, 0), [copyTradesWithMetrics]);
-  const totalCopyTradeInvested = React.useMemo(() => myCopyTrades.reduce((sum, ct) => sum + ct.investment_amount, 0), [myCopyTrades]);
-  const totalCopyTradePL = React.useMemo(() => totalCopyTradeValue - totalCopyTradeInvested, [totalCopyTradeValue, totalCopyTradeInvested]);
-
-  const totalPortfolioValue = React.useMemo(() => portfolioWithMetrics.reduce((sum, h) => sum + h.currentValue, 0), [portfolioWithMetrics]);
-  const totalCostBasis = React.useMemo(() => portfolioWithMetrics.reduce((sum, h) => sum + h.costBasis, 0), [portfolioWithMetrics]);
-  
-  // Combined metrics (memoized)
-  const combinedInvested = React.useMemo(() => totalCostBasis + totalCopyTradeInvested, [totalCostBasis, totalCopyTradeInvested]);
-  const combinedCurrentValue = React.useMemo(() => totalPortfolioValue + totalCopyTradeValue, [totalPortfolioValue, totalCopyTradeValue]);
-  const combinedProfitLoss = React.useMemo(() => (totalPortfolioValue - totalCostBasis) + totalCopyTradePL, [totalPortfolioValue, totalCostBasis, totalCopyTradePL]);
-  const combinedProfitLossPercent = React.useMemo(() => combinedInvested > 0 ? (combinedProfitLoss / combinedInvested) * 100 : 0, [combinedProfitLoss, combinedInvested]);
-  const totalValue = React.useMemo(() => cashBalance + totalPortfolioValue + totalCopyTradeValue, [cashBalance, totalPortfolioValue, totalCopyTradeValue]);
-  
-  const hourlyDividends = React.useMemo(() => {
-    return portfolioWithMetrics.reduce((sum, h) => {
-      const stockPrice = stockPrices.find(s => s.symbol === h.symbol);
-      const dividendYield = stockPrice?.dividend_yield_hourly || 0;
-      const holdingValue = h.shares * h.currentPrice;
-      return sum + (holdingValue * (dividendYield / 100));
-    }, 0);
-  }, [portfolioWithMetrics, stockPrices]);
+  if (!user) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="w-8 h-8 animate-spin text-amber-500" /></div>;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 md:py-8 min-h-screen">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-6"
-      >
-        <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
-          <Briefcase className="w-6 h-6 text-amber-500" />
-          Portfolio Analysis
-        </h1>
-        <p className="text-sm text-slate-400 mt-1">
-          Detailed view of your holdings and performance
-        </p>
-      </motion.div>
+    <div className="max-w-6xl mx-auto px-4 py-6">
+      <motion.h1 initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+        className="text-2xl font-black text-white mb-6 flex items-center gap-2">
+        <BarChart2 className="w-6 h-6 text-amber-500" /> Portfolio
+      </motion.h1>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-          <Card className="bg-slate-800 border-slate-700 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-amber-500/20 rounded-xl flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-amber-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400">Total Value</p>
-                  <p className="text-lg font-bold text-white">£{totalValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <Card className="bg-slate-800 border-slate-700 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                  <Briefcase className="w-6 h-6 text-blue-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-400">Invested</p>
-                  <p className="text-lg font-bold text-white">£{combinedInvested.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-          <Card className="bg-slate-800 border-slate-700 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                combinedProfitLoss >= 0 ? 'bg-green-500/20' : 'bg-red-500/20'
-              }`}>
-                {combinedProfitLoss >= 0 ? (
-                  <TrendingUp className="w-6 h-6 text-green-600" />
-                ) : (
-                  <TrendingDown className="w-6 h-6 text-red-600" />
-                )}
-              </div>
-              <div>
-                <p className="text-xs text-slate-400">P/L Amount</p>
-                <p className={`text-lg font-bold ${combinedProfitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {combinedProfitLoss >= 0 ? '+' : ''}£{combinedProfitLoss.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </p>
-              </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-          <Card className="bg-slate-800 border-slate-700 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                combinedProfitLossPercent >= 0 ? 'bg-green-500/20' : 'bg-red-500/20'
-              }`}>
-                <Percent className={`w-6 h-6 ${combinedProfitLossPercent >= 0 ? 'text-green-500' : 'text-red-500'}`} />
-              </div>
-              <div>
-                <p className="text-xs text-slate-400">P/L Percent</p>
-                <p className={`text-lg font-bold ${combinedProfitLossPercent >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {combinedProfitLossPercent >= 0 ? '+' : ''}{combinedProfitLossPercent.toFixed(2)}%
-                </p>
-              </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-          <Card className="bg-gradient-to-br from-amber-900/40 to-amber-800/40 border-amber-700/50 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center shadow-md">
-                  <Coins className="w-6 h-6 text-slate-900" />
-                </div>
-                <div>
-                  <p className="text-xs text-amber-400 font-semibold">Hourly Dividends</p>
-                  <p className="text-xl font-bold text-amber-300">💰 £{hourlyDividends.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/hr</p>
-                  <p className="text-xs text-amber-400">Passive income stream</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+      {/* Summary */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        {[
+          { label: 'Holdings Value', value: `£${totalValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+          { label: 'Total P/L', value: `${totalPnl >= 0 ? '+' : ''}£${Math.abs(totalPnl).toFixed(2)}`, color: totalPnl >= 0 ? 'text-green-400' : 'text-red-400' },
+          { label: 'Return', value: `${totalPnlPct >= 0 ? '+' : ''}${totalPnlPct.toFixed(2)}%`, color: totalPnlPct >= 0 ? 'text-green-400' : 'text-red-400' },
+          { label: 'Hourly Dividends', value: `£${totalHourlyDiv.toFixed(4)}/hr`, color: 'text-amber-400' },
+        ].map((s, i) => (
+          <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+            className="bg-[#141925] border border-white/5 rounded-2xl p-4">
+            <p className="text-xs text-slate-500 mb-1">{s.label}</p>
+            <p className={`text-base font-black ${s.color || 'text-white'}`}>{s.value}</p>
+          </motion.div>
+        ))}
       </div>
 
-      {/* Copy Trading Holdings */}
-      {myCopyTrades.length > 0 && (
-        <Card className="bg-slate-800 border-slate-700 shadow-lg mb-6">
-          <CardHeader>
-            <CardTitle className="text-white">Copy Trading Positions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-700">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">Trader</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">Invested</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">Current Value</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">P/L</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {copyTradesWithMetrics.map((ct, index) => (
-                  <motion.tr
-                    key={ct.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="border-b border-slate-700 hover:bg-slate-700/30"
-                  >
-                      <td className="py-4 px-4">
-                        <div>
-                          <p className="font-bold text-white">Copying {ct.leaderName}</p>
-                          <p className="text-xs text-slate-400">Return: {ct.leaderReturn >= 0 ? '+' : ''}{ct.leaderReturn.toFixed(2)}%</p>
-                        </div>
-                      </td>
-                      <td className="text-right py-4 px-4 text-slate-300">
-                        £{ct.investment_amount.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                      <td className="text-right py-4 px-4 font-medium text-white">
-                        £{ct.currentValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                      <td className="text-right py-4 px-4">
-                        <div className="flex flex-col items-end gap-1">
-                          <p className={`font-bold ${ct.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {ct.profitLoss >= 0 ? '+' : ''}£{ct.profitLoss.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </p>
-                          <Badge variant={ct.profitLoss >= 0 ? 'default' : 'destructive'} className="text-xs">
-                            {ct.leaderReturn >= 0 ? '+' : ''}{ct.leaderReturn.toFixed(2)}%
-                          </Badge>
-                        </div>
-                      </td>
-                      <td className="text-right py-4 px-4">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => stopCopyTradeMutation.mutate(ct)}
-                          disabled={stopCopyTradeMutation.isPending}
-                          className="text-red-600 border-red-200 hover:bg-red-50"
-                        >
-                          {stopCopyTradeMutation.isPending ? (
-                            <>
-                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                              Stopping...
-                            </>
-                          ) : (
-                            'Stop'
-                          )}
-                        </Button>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Copy Trades */}
+      {copyTrades.length > 0 && (
+        <div className="bg-[#141925] border border-white/5 rounded-2xl p-4 mb-6">
+          <h2 className="text-sm font-bold text-slate-300 mb-3">Copy Trading Positions</h2>
+          <div className="space-y-2">
+            {copyTrades.map(ct => {
+              const leader = leaderboard.find(l => l.email === ct.leader_email);
+              const val = ct.investment_amount * (1 + ((leader?.percentageReturn || 0) / 100));
+              const pnl = val - ct.investment_amount;
+              return (
+                <div key={ct.id} className="flex items-center justify-between p-3 bg-[#0d1220] rounded-xl border border-white/5">
+                  <div>
+                    <p className="font-bold text-white text-sm">Copying {ct.leader_email.split('@')[0]}</p>
+                    <p className="text-xs text-slate-500">Invested: £{ct.investment_amount.toFixed(2)}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-white">£{val.toFixed(2)}</p>
+                      <p className={`text-xs font-bold ${pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>{pnl >= 0 ? '+' : ''}£{pnl.toFixed(2)}</p>
+                    </div>
+                    <button onClick={() => stopCopyMutation.mutate(ct)} disabled={stopCopyMutation.isPending}
+                      className="text-xs text-red-400 hover:text-red-300 border border-red-400/30 px-2 py-1 rounded-lg transition-colors">
+                      Stop
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       )}
 
       {/* Holdings Table */}
-      <Card className="bg-slate-800 border-slate-700 shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-white">Stock Holdings</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {portfolio.length === 0 ? (
-            <div className="text-center py-12">
-              <Briefcase className="w-16 h-16 mx-auto text-slate-600 mb-4" />
-              <p className="text-slate-400">No holdings yet</p>
-              <p className="text-sm text-slate-500 mt-1">Start trading to build your portfolio</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-700">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-slate-300">Stock</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">Shares</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">Avg Cost</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">Current</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">Value</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">Dividends</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">P/L</th>
-                    <th className="text-right py-3 px-4 text-sm font-semibold text-slate-300">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                  {portfolioWithMetrics.map((holding, index) => (
-                    <motion.tr
-                      key={holding.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="border-b border-slate-700 hover:bg-slate-700/30"
-                    >
-                      <td className="py-4 px-4">
-                        <div>
-                          <p className="font-bold text-white">{holding.symbol}</p>
-                          <p className="text-xs text-slate-400">{holding.company_name}</p>
-                        </div>
-                      </td>
-                      <td className="text-right py-4 px-4 text-slate-300">{holding.shares.toLocaleString()}</td>
-                      <td className="text-right py-4 px-4 text-slate-300">£{holding.average_buy_price?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td className="text-right py-4 px-4 text-slate-300">£{holding.currentPrice?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td className="text-right py-4 px-4 font-medium text-white">
-                        £{holding.currentValue?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                      <td className="text-right py-4 px-4">
-                        <div className="flex flex-col items-end">
-                          {(() => {
-                            const stockPrice = stockPrices.find(s => s.symbol === holding.symbol);
-                            const dividendYield = stockPrice?.dividend_yield_hourly || 0;
-                            const holdingValue = holding.shares * holding.currentPrice;
-                            const hourlyIncome = holdingValue * (dividendYield / 100);
-                            return (
-                              <>
-                                <p className="text-sm font-bold text-amber-600">
-                                  💰 £{hourlyIncome.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/hr
-                                </p>
-                                <p className="text-xs text-amber-500">{dividendYield.toFixed(1)}% yield</p>
-                              </>
-                            );
-                          })()}
-                        </div>
-                      </td>
-                      <td className="text-right py-4 px-4">
-                        <div className="flex flex-col items-end gap-1">
-                          <p className={`font-bold ${holding.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {holding.profitLoss >= 0 ? '+' : ''}£{holding.profitLoss?.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </p>
-                          <Badge variant={holding.profitLoss >= 0 ? 'default' : 'destructive'} className="text-xs">
-                            {holding.profitLossPercent >= 0 ? '+' : ''}{holding.profitLossPercent?.toFixed(2)}%
-                          </Badge>
-                        </div>
-                      </td>
-                      <td className="text-right py-4 px-4">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedHolding(holding);
-                            setSellDialogOpen(true);
-                          }}
-                          className="text-red-600 border-red-200 hover:bg-red-50"
-                        >
-                          Sell
-                        </Button>
-                      </td>
-                      </motion.tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Dialog open={sellDialogOpen} onOpenChange={(open) => {
-        setSellDialogOpen(open);
-        if (!open) {
-          setSelectedHolding(null);
-          setSellShares('');
-        }
-      }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Sell {selectedHolding?.symbol}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <p className="text-sm text-gray-600 mb-2">Shares owned: {selectedHolding?.shares}</p>
-              <p className="text-sm text-gray-600 mb-2">Current price: £{selectedHolding?.currentPrice?.toFixed(2)}</p>
-              <label className="text-sm text-gray-600 block mb-2">Shares to sell</label>
-              <Input
-                type="number"
-                placeholder="Enter shares"
-                value={sellShares}
-                onChange={(e) => setSellShares(e.target.value)}
-                min="0"
-                max={selectedHolding?.shares}
-                step="1"
-                className="h-10"
-              />
-              {sellShares && (
-                <p className="text-sm text-gray-600 mt-2">Total: £{(parseFloat(sellShares) * selectedHolding?.currentPrice).toFixed(2)}</p>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <Button
-                onClick={handleSell}
-                disabled={!sellShares || parseFloat(sellShares) <= 0 || parseFloat(sellShares) > (selectedHolding?.shares || 0) || sellMutation.isPending}
-                className="flex-1 bg-red-600 hover:bg-red-700"
-              >
-                {sellMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Selling...
-                  </>
-                ) : (
-                  'Sell'
-                )}
-              </Button>
-              <Button
-                onClick={handleSellOut}
-                disabled={sellMutation.isPending}
-                className="flex-1 bg-red-700 hover:bg-red-800"
-              >
-                {sellMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Out...
-                  </>
-                ) : (
-                  'Sell Out'
-                )}
-              </Button>
-            </div>
+      <div className="bg-[#141925] border border-white/5 rounded-2xl p-4">
+        <h2 className="text-sm font-bold text-slate-300 mb-3">Stock Holdings</h2>
+        {portfolioWithMetrics.length === 0 ? (
+          <div className="text-center py-12">
+            <BarChart2 className="w-12 h-12 mx-auto text-slate-700 mb-3" />
+            <p className="text-slate-500">No holdings yet — start trading on the Home page</p>
           </div>
-        </DialogContent>
-      </Dialog>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-slate-500 border-b border-white/5">
+                  <th className="pb-3 font-medium">Stock</th>
+                  <th className="pb-3 font-medium text-right">Shares</th>
+                  <th className="pb-3 font-medium text-right">Avg Cost</th>
+                  <th className="pb-3 font-medium text-right">Price</th>
+                  <th className="pb-3 font-medium text-right">Value</th>
+                  <th className="pb-3 font-medium text-right">P/L</th>
+                  <th className="pb-3 font-medium text-right">Div/hr</th>
+                  <th className="pb-3 font-medium text-right"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {portfolioWithMetrics.map((h, i) => (
+                  <motion.tr key={h.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }}
+                    className="border-b border-white/5 hover:bg-white/2 transition-colors">
+                    <td className="py-3">
+                      <p className="font-bold text-white">{h.symbol}</p>
+                      <p className="text-xs text-slate-500">{h.company_name}</p>
+                    </td>
+                    <td className="py-3 text-right text-slate-300">{h.shares.toLocaleString()}</td>
+                    <td className="py-3 text-right text-slate-300">£{h.average_buy_price.toFixed(2)}</td>
+                    <td className="py-3 text-right text-slate-300">£{h.price.toFixed(2)}</td>
+                    <td className="py-3 text-right font-bold text-white">£{h.value.toFixed(2)}</td>
+                    <td className="py-3 text-right">
+                      <p className={`font-bold ${h.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>{h.pnl >= 0 ? '+' : ''}£{h.pnl.toFixed(2)}</p>
+                      <p className={`text-xs ${h.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>{h.pnlPct >= 0 ? '+' : ''}{h.pnlPct.toFixed(2)}%</p>
+                    </td>
+                    <td className="py-3 text-right text-amber-400 text-xs font-semibold">£{h.hourlyDiv.toFixed(4)}</td>
+                    <td className="py-3 text-right">
+                      <button onClick={() => { setSellTarget(h); setSellShares(''); }}
+                        className="text-xs text-red-400 hover:text-red-300 border border-red-400/30 px-2 py-1 rounded-lg transition-colors">
+                        Sell
+                      </button>
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Sell Modal */}
+      <AnimatePresence>
+        {sellTarget && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
+            onClick={e => { if (e.target === e.currentTarget) { setSellTarget(null); setSellShares(''); } }}>
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#141925] border border-white/10 rounded-2xl p-6 w-full max-w-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-black text-white text-lg">Sell {sellTarget.symbol}</h3>
+                <button onClick={() => setSellTarget(null)} className="text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+              </div>
+              <p className="text-slate-400 text-sm mb-1">Owned: {sellTarget.shares} shares</p>
+              <p className="text-slate-400 text-sm mb-4">Price: £{sellTarget.price?.toFixed(2)}</p>
+              <input
+                type="number" value={sellShares} onChange={e => setSellShares(e.target.value)}
+                placeholder="Shares to sell" min="1" max={sellTarget.shares}
+                className="w-full bg-[#0d1220] border border-white/5 rounded-xl px-4 py-3 text-white text-sm placeholder-slate-500 outline-none focus:border-amber-500/40 mb-3"
+              />
+              {sellShares && <p className="text-slate-400 text-sm mb-3">Total: £{(parseFloat(sellShares) * (sellTarget.price || 0)).toFixed(2)}</p>}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => sellMutation.mutate({ holding: sellTarget, shares: parseFloat(sellShares) })}
+                  disabled={!sellShares || parseFloat(sellShares) <= 0 || parseFloat(sellShares) > sellTarget.shares || sellMutation.isPending}
+                  className="flex-1 bg-red-500 hover:bg-red-400 disabled:opacity-40 text-white font-bold py-2.5 rounded-xl text-sm transition-colors">
+                  {sellMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Sell'}
+                </button>
+                <button
+                  onClick={() => sellMutation.mutate({ holding: sellTarget, shares: sellTarget.shares })}
+                  disabled={sellMutation.isPending}
+                  className="flex-1 bg-red-700 hover:bg-red-600 disabled:opacity-40 text-white font-bold py-2.5 rounded-xl text-sm transition-colors">
+                  Sell All
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

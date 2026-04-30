@@ -1,557 +1,165 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Wallet as WalletIcon, CreditCard, TrendingUp, TrendingDown, DollarSign, Crown, Users, Search, Send, Award, Loader2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import confetti from 'canvas-confetti';
-
-const tierCards = {
-  Bronze: { gradient: 'from-amber-700 via-orange-800 to-amber-900', name: 'Bronze Tier', icon: '🥉' },
-  Silver: { gradient: 'from-slate-400 via-slate-500 to-slate-600', name: 'Silver Tier', icon: '🥈' },
-  Gold: { gradient: 'from-yellow-500 via-amber-500 to-yellow-600', name: 'Gold Tier', icon: '🥇' },
-  Platinum: { gradient: 'from-cyan-400 via-blue-500 to-indigo-600', name: 'Platinum Tier', icon: '💎' },
-  Diamond: { gradient: 'from-purple-500 via-fuchsia-600 to-pink-600', name: 'Diamond Tier', icon: '💠' },
-  Titan: { gradient: 'from-red-600 via-orange-600 to-yellow-500', name: 'Titan Tier', icon: '👑' },
-};
-
-const adminCard = { gradient: 'from-yellow-400 via-amber-500 to-orange-600', name: 'Super Admin', icon: '⚡' };
-
-const generateCardNumber = (email) => {
-  let hash = 0;
-  for (let i = 0; i < email.length; i++) {
-    hash = ((hash << 5) - hash) + email.charCodeAt(i);
-    hash = hash & hash;
-  }
-  const last4 = Math.abs(hash % 10000).toString().padStart(4, '0');
-  return `**** **** **** ${last4}`;
-};
+import { motion } from 'framer-motion';
+import { Wallet as WalletIcon, Send, TrendingUp, DollarSign, Loader2, Search } from 'lucide-react';
 
 export default function Wallet() {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [selectedCardIndex, setSelectedCardIndex] = useState(0);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedRecipient, setSelectedRecipient] = useState(null);
+  const [user, setUser] = useState(null);
+  const [transferEmail, setTransferEmail] = useState('');
   const [transferAmount, setTransferAmount] = useState('');
-  const queryClient = useQueryClient();
+  const [transferMsg, setTransferMsg] = useState('');
+  const qc = useQueryClient();
 
   useEffect(() => {
-    const getUser = async () => {
-      const user = await base44.auth.me();
-      setCurrentUser(user);
-    };
-    getUser();
+    base44.auth.me().then(u => { if (!u) base44.auth.redirectToLogin(); else setUser(u); }).catch(() => base44.auth.redirectToLogin());
   }, []);
 
-  const { data: accounts } = useQuery({
-    queryKey: ['userAccount', currentUser?.email],
-    queryFn: () => base44.entities.UserAccount.filter({ created_by: currentUser?.email }),
-    enabled: !!currentUser?.email,
-    refetchInterval: 2000,
+  const { data: accounts = [] } = useQuery({
+    queryKey: ['account', user?.email],
+    queryFn: () => base44.entities.UserAccount.filter({ created_by: user.email }),
+    enabled: !!user?.email,
+    refetchInterval: 5000,
   });
 
   const { data: portfolio = [] } = useQuery({
-    queryKey: ['portfolio', currentUser?.email],
-    queryFn: () => base44.entities.Portfolio.filter({ created_by: currentUser?.email }),
-    enabled: !!currentUser?.email,
-    refetchInterval: 2000,
+    queryKey: ['portfolio', user?.email],
+    queryFn: () => base44.entities.Portfolio.filter({ created_by: user.email }),
+    enabled: !!user?.email,
+    refetchInterval: 5000,
+  });
+
+  const { data: transactions = [] } = useQuery({
+    queryKey: ['allTx', user?.email],
+    queryFn: () => base44.entities.Transaction.filter({ created_by: user.email }, '-created_date', 20),
+    enabled: !!user?.email,
+    refetchInterval: 8000,
   });
 
   const { data: stockPrices = [] } = useQuery({
     queryKey: ['stockPrices'],
-    queryFn: () => base44.entities.StockPrice.list(),
-    refetchInterval: 2000,
-  });
-
-  const { data: myCopyTrades = [] } = useQuery({
-    queryKey: ['myCopyTrades', currentUser?.email],
-    queryFn: () => base44.entities.CopyTrade.filter({ follower_email: currentUser?.email, is_active: true }),
-    enabled: !!currentUser?.email,
-    refetchInterval: 2000,
-  });
-
-  const { data: leaderboard = [] } = useQuery({
-    queryKey: ['leaderboard'],
     queryFn: async () => {
-      const response = await base44.functions.invoke('getLeaderboard', {});
-      return response.data.leaderboard || [];
+      try { const r = await base44.functions.invoke('getUpdatedPrices', {}); return r.data.prices || []; }
+      catch { return base44.entities.StockPrice.list(); }
     },
-    refetchInterval: 5000,
+    refetchInterval: 10000,
   });
 
-  const { data: traderRank } = useQuery({
-    queryKey: ['traderRank', currentUser?.email],
-    queryFn: async () => {
-      const ranks = await base44.entities.TraderRank.filter({ user_id: currentUser?.email });
-      return ranks[0];
+  const { data: copyTrades = [] } = useQuery({
+    queryKey: ['copyTrades', user?.email],
+    queryFn: () => base44.entities.CopyTrade.filter({ follower_email: user?.email, is_active: true }),
+    enabled: !!user?.email,
+    refetchInterval: 10000,
+  });
+
+  const transferMutation = useMutation({
+    mutationFn: async ({ toEmail, amount }) => {
+      const r = await base44.functions.invoke('transferMoney', { to_email: toEmail, amount });
+      if (!r.data.success) throw new Error(r.data.error || 'Transfer failed');
     },
-    enabled: !!currentUser?.email,
-  });
-
-  const createAccountMutation = useMutation({
-      mutationFn: async () => {
-        return base44.entities.UserAccount.create({ 
-          cash_balance: 10000, 
-          initial_balance: 10000 
-        });
-      },
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] }),
-    });
-
-  useEffect(() => {
-    if (accounts && accounts.length === 0) {
-      createAccountMutation.mutate();
-    }
-  }, [accounts]);
-
-
-
-  const { data: allUsers = [] } = useQuery({
-    queryKey: ['allUsers'],
-    queryFn: async () => {
-      const response = await base44.functions.invoke('getAllUsers');
-      return response.data.users || [];
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['account'] });
+      setTransferMsg('Transfer successful!');
+      setTransferEmail(''); setTransferAmount('');
+      setTimeout(() => setTransferMsg(''), 3000);
     },
+    onError: (e) => { setTransferMsg(e.message); setTimeout(() => setTransferMsg(''), 3000); },
   });
 
-  const { data: transactions = [] } = useQuery({
-    queryKey: ['recentTransactions', currentUser?.email],
-    queryFn: async () => {
-      const allTransactions = await base44.entities.Transaction.list('-created_date', 20);
-      return allTransactions.filter(t => t.created_by === currentUser?.email);
-    },
-    enabled: !!currentUser?.email,
-    refetchInterval: 2000,
-  });
-
-  // Subscribe to transaction updates
-  useEffect(() => {
-    if (!currentUser?.email) return;
-    
-    const unsubscribe = base44.entities.Transaction.subscribe((event) => {
-      if (event.data?.created_by === currentUser?.email) {
-        queryClient.invalidateQueries({ queryKey: ['recentTransactions', currentUser?.email] });
-      }
-    });
-
-    return () => unsubscribe();
-  }, [currentUser?.email, queryClient]);
-
-  const account = accounts?.[0];
-  const isAdmin = currentUser?.email === 'aa.web.dev9777@gmail.com';
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-
-  useEffect(() => {
-    const savedMode = localStorage.getItem('superAdminMode');
-    setIsSuperAdmin(isAdmin && savedMode === 'true');
-  }, [isAdmin]);
-
-  // Calculate portfolio value with current prices
-  const priceMap = {};
-  stockPrices.forEach(sp => {
-    priceMap[sp.symbol] = sp.price_gbp;
-  });
-
-  const portfolioValue = portfolio.reduce((sum, holding) => {
-    const currentPrice = priceMap[holding.symbol] || holding.average_buy_price;
-    return sum + (holding.shares * currentPrice);
+  const account = accounts[0];
+  const cash = account?.cash_balance || 0;
+  const portfolioValue = portfolio.reduce((s, h) => {
+    const sp = stockPrices.find(p => p.symbol === h.symbol);
+    return s + h.shares * (sp?.price_gbp || h.average_buy_price);
   }, 0);
+  const copyTradeValue = copyTrades.reduce((s, ct) => s + (ct.investment_amount || 0), 0);
+  const total = cash + portfolioValue + copyTradeValue;
+  const pnl = total - (account?.initial_balance || 10000);
+  const pnlPct = (pnl / (account?.initial_balance || 10000)) * 100;
 
-  // Calculate copy trade value
-  const copyTradeValue = myCopyTrades.reduce((sum, ct) => {
-    const leaderData = leaderboard.find(l => l.email === ct.leader_email);
-    const currentValue = ct.investment_amount * (1 + ((leaderData?.percentageReturn || 0) / 100));
-    return sum + currentValue;
-  }, 0);
-
-  const cashBalance = isSuperAdmin ? 999999999 : (account?.cash_balance || 0);
-  const totalValue = isSuperAdmin ? 999999999 : (cashBalance + portfolioValue + copyTradeValue);
-  const initialBalance = isSuperAdmin ? 999999999 : (account?.initial_balance || 10000);
-
-  const totalSpent = transactions.filter(t => t.type === 'buy').reduce((sum, t) => sum + t.total_amount, 0);
-  const totalEarned = transactions.filter(t => t.type === 'sell').reduce((sum, t) => sum + t.total_amount, 0);
-
-  const userTier = traderRank?.tier || 'Bronze';
-  const currentCardDesign = (isAdmin && isSuperAdmin) ? adminCard : tierCards[userTier];
-  const cardNumber = currentUser ? generateCardNumber(currentUser.email) : '**** **** **** 0000';
-
-  // Search users - exclude admin from receiving money
-  const filteredUsers = allUsers.filter(user => 
-    user.email !== currentUser?.email && 
-    user.email !== 'aa.web.dev9777@gmail.com' &&
-    (user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-     user.email.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-
-  // Transfer mutation
-   const transferMutation = useMutation({
-     mutationFn: async ({ recipientEmail, amount }) => {
-       await base44.functions.invoke('transferMoney', { recipientEmail, amount });
-     },
-     onSuccess: () => {
-       confetti({
-         particleCount: 100,
-         spread: 70,
-         origin: { y: 0.6 }
-       });
-       queryClient.invalidateQueries({ queryKey: ['userAccount', currentUser?.email] });
-       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
-       queryClient.invalidateQueries({ queryKey: ['recentTransactions'] });
-       setTransferAmount('');
-       setSelectedRecipient(null);
-       setSearchQuery('');
-     },
-     });
-
-   const handleTransfer = () => {
-     const amount = parseFloat(transferAmount);
-     if (amount > 0 && amount <= cashBalance && selectedRecipient) {
-       transferMutation.mutate({ recipientEmail: selectedRecipient.email, amount });
-     }
-   };
+  if (!user) return <div className="flex items-center justify-center min-h-screen"><Loader2 className="w-8 h-8 animate-spin text-amber-500" /></div>;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6 md:py-8 min-h-screen">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-6"
-      >
-        <h1 className="text-2xl md:text-3xl font-bold text-white flex items-center gap-2">
-          <WalletIcon className="w-6 h-6 text-amber-500" />
-          Wallet
-          {isAdmin && <Crown className="w-6 h-6 text-amber-500" />}
-        </h1>
-        <p className="text-sm text-slate-400 mt-1">
-          Your virtual trading wallet
+    <div className="max-w-4xl mx-auto px-4 py-6">
+      <motion.h1 initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+        className="text-2xl font-black text-white mb-6 flex items-center gap-2">
+        <WalletIcon className="w-6 h-6 text-amber-500" /> Wallet
+      </motion.h1>
+
+      {/* Balance Card */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+        className="relative bg-gradient-to-br from-amber-500/20 via-[#141925] to-[#141925] border border-amber-500/20 rounded-2xl p-6 mb-6 overflow-hidden">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+        <p className="text-slate-400 text-sm mb-2">Total Net Worth</p>
+        <p className="text-4xl font-black text-white mb-1">£{total.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+        <p className={`text-sm font-semibold ${pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          {pnl >= 0 ? '+' : ''}£{Math.abs(pnl).toFixed(2)} ({pnl >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%) from start
         </p>
+
+        <div className="grid grid-cols-3 gap-3 mt-5 pt-5 border-t border-white/5">
+          {[
+            { label: 'Cash', value: `£${cash.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+            { label: 'Stocks', value: `£${portfolioValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+            { label: 'Copy Trades', value: `£${copyTradeValue.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+          ].map(s => (
+            <div key={s.label}>
+              <p className="text-xs text-slate-500">{s.label}</p>
+              <p className="text-base font-bold text-white">{s.value}</p>
+            </div>
+          ))}
+        </div>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Credit Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <div className="relative w-full">
-            <motion.div
-              whileHover={{ scale: 1.02, rotateY: 5 }}
-              transition={{ type: "spring", stiffness: 300 }}
-              className={`relative bg-gradient-to-br ${currentCardDesign.gradient} rounded-2xl p-6 md:p-8 text-white shadow-2xl overflow-hidden`}
-            >
-              <div className="absolute inset-0 opacity-10">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-32 translate-x-32"></div>
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-24 -translate-x-24"></div>
-              </div>
+      {/* Transfer */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+        className="bg-[#141925] border border-white/5 rounded-2xl p-4 mb-6">
+        <h2 className="text-sm font-bold text-slate-300 mb-3 flex items-center gap-2"><Send className="w-4 h-4 text-amber-500" />Send Cash</h2>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <input value={transferEmail} onChange={e => setTransferEmail(e.target.value)} placeholder="Recipient email"
+            className="flex-1 bg-[#0d1220] border border-white/5 rounded-xl px-4 py-2.5 text-white text-sm placeholder-slate-500 outline-none focus:border-amber-500/40" />
+          <input type="number" value={transferAmount} onChange={e => setTransferAmount(e.target.value)} placeholder="Amount (£)" min="1"
+            className="w-full sm:w-36 bg-[#0d1220] border border-white/5 rounded-xl px-4 py-2.5 text-white text-sm placeholder-slate-500 outline-none focus:border-amber-500/40" />
+          <button
+            onClick={() => transferMutation.mutate({ toEmail: transferEmail, amount: parseFloat(transferAmount) })}
+            disabled={!transferEmail || !transferAmount || transferMutation.isPending}
+            className="bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-black font-bold px-5 py-2.5 rounded-xl text-sm transition-colors whitespace-nowrap">
+            {transferMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send'}
+          </button>
+        </div>
+        {transferMsg && (
+          <p className={`text-xs mt-2 font-medium ${transferMsg.includes('success') ? 'text-green-400' : 'text-red-400'}`}>{transferMsg}</p>
+        )}
+      </motion.div>
 
-              <div className="relative z-10">
-                <div className="flex justify-between items-start mb-12">
-                  <div>
-                    <p className="text-xs opacity-75 mb-1">Trading Account</p>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">{currentCardDesign.name}</p>
-                      <span className="text-2xl">{currentCardDesign.icon}</span>
-                    </div>
-                    {isAdmin && isSuperAdmin && <Badge className="mt-1 bg-yellow-400 text-gray-900">SUPER ADMIN</Badge>}
-                    {!isAdmin && traderRank && <Badge className="mt-1 bg-white/20">ELO {traderRank.elo_rating}</Badge>}
-                    </div>
-                    {isAdmin && isSuperAdmin ? <Crown className="w-10 h-10" /> : <CreditCard className="w-10 h-10 opacity-75" />}
-                </div>
-
-                <div className="mb-6">
-                  <p className="text-xs opacity-75 mb-1">Available Cash</p>
-                  <p className="text-4xl md:text-5xl font-bold tracking-wide">
-                    £{cashBalance.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                  <p className="text-xs opacity-75 mt-2">
-                    Total Value: £{totalValue.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} • 
-                    Stocks: £{portfolioValue.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} • 
-                    Copy: £{copyTradeValue.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                  </p>
-                </div>
-
-                <div className="flex justify-between items-end">
-                  <div>
-                    <p className="text-xs opacity-75">Account Holder</p>
-                    <p className="text-sm font-medium">{currentUser?.full_name || 'Trader'}</p>
+      {/* Transaction History */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+        className="bg-[#141925] border border-white/5 rounded-2xl p-4">
+        <h2 className="text-sm font-bold text-slate-300 mb-3">Transaction History</h2>
+        {transactions.length === 0 ? (
+          <p className="text-slate-500 text-sm text-center py-8">No transactions yet</p>
+        ) : (
+          <div className="space-y-1.5">
+            {transactions.map(tx => (
+              <div key={tx.id} className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-white/5 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold ${
+                    tx.type === 'buy' ? 'bg-green-400/10 text-green-400' : 'bg-red-400/10 text-red-400'
+                  }`}>
+                    {tx.type === 'buy' ? '↓' : '↑'}
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs opacity-75">Card Number</p>
-                    <p className="text-sm font-mono">{cardNumber}</p>
+                  <div>
+                    <p className="text-sm font-semibold text-white">{tx.symbol} <span className="text-slate-500 font-normal text-xs">· {tx.type.toUpperCase()}</span></p>
+                    <p className="text-xs text-slate-500">{tx.shares} shares @ £{tx.price_per_share?.toFixed(2)}</p>
                   </div>
                 </div>
+                <p className={`text-sm font-black ${tx.type === 'buy' ? 'text-red-400' : 'text-green-400'}`}>
+                  {tx.type === 'buy' ? '-' : '+'}£{tx.total_amount?.toFixed(2)}
+                </p>
               </div>
-
-              <div className="absolute top-20 left-6 w-12 h-10 bg-gradient-to-br from-yellow-200 to-yellow-400 rounded-md opacity-80"></div>
-            </motion.div>
-
-            {!isAdmin && (
-              <div className="mt-4">
-                <p className="text-xs text-slate-400 mb-2">Your tier card is based on your trading rank</p>
-                <div className="flex gap-2 overflow-x-auto pb-2">
-                  {Object.entries(tierCards).map(([tier, design]) => (
-                    <div
-                      key={tier}
-                      className={`flex-shrink-0 w-20 h-12 rounded-lg bg-gradient-to-br ${design.gradient} transition-all flex items-center justify-center text-2xl ${
-                        userTier === tier ? 'ring-4 ring-amber-500 scale-110' : 'opacity-30'
-                      }`}
-                    >
-                      {design.icon}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            ))}
           </div>
-        </motion.div>
-
-        {/* Quick Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <Card className="bg-slate-800 border-slate-700 shadow-lg h-full">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-white">
-                <TrendingUp className="w-5 h-5 text-amber-500" />
-                Quick Stats
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-slate-900/50 rounded-lg">
-                  <span className="text-sm text-slate-400">Recent Trades</span>
-                  <span className="font-bold text-white">{transactions.length}</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-slate-900/50 rounded-lg">
-                  <span className="text-sm text-slate-400">Net Profit/Loss</span>
-                  <span className={`font-bold ${totalEarned - totalSpent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    £{(totalEarned - totalSpent).toFixed(2)}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-slate-900/50 rounded-lg">
-                  <span className="text-sm text-slate-400">Available Cash</span>
-                  <span className="font-bold text-amber-500">£{cashBalance.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <Card className="bg-slate-800 border-slate-700 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-blue-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-slate-400">Initial Balance</p>
-                  <p className="text-xl font-bold text-white">£{initialBalance.toLocaleString()}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <Card className="bg-slate-800 border-slate-700 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center">
-                  <TrendingDown className="w-6 h-6 text-red-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-slate-400">Total Spent</p>
-                  <p className="text-xl font-bold text-red-500">£{totalSpent.toLocaleString()}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <Card className="bg-slate-800 border-slate-700 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-sm text-slate-400">Total Earned</p>
-                  <p className="text-xl font-bold text-green-500">£{totalEarned.toLocaleString()}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6">
-         {/* Send Money */}
-         {(
-         <motion.div
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ delay: 0.6 }}
-         >
-           <Card className="bg-slate-800 border-slate-700 shadow-lg">
-             <CardHeader>
-               <CardTitle className="text-lg flex items-center gap-2 text-white">
-                 <Send className="w-5 h-5 text-amber-500" />
-                 Send Money
-               </CardTitle>
-             </CardHeader>
-             <CardContent>
-               <div className="space-y-4">
-                 <div className="relative">
-                   <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                   <Input
-                     placeholder="Search users by name or email..."
-                     value={searchQuery}
-                     onChange={(e) => setSearchQuery(e.target.value)}
-                     className="pl-10 text-base"
-                   />
-                 </div>
-
-                 {searchQuery && filteredUsers.length > 0 && (
-                    <div className="max-h-64 overflow-y-auto space-y-2 border border-gray-200 rounded-lg p-2">
-                      {filteredUsers.slice(0, 5).map((user) => (
-                        <button
-                          key={user.email}
-                          onClick={() => {
-                            setSelectedRecipient(user);
-                            setSearchQuery('');
-                          }}
-                          className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                            selectedRecipient?.email === user.email
-                              ? 'border-violet-600 bg-violet-50'
-                              : 'border-gray-200 hover:border-violet-300'
-                          }`}
-                        >
-                          <p className="font-medium text-base">{user.full_name}</p>
-                          <p className="text-sm text-gray-500">{user.email}</p>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {searchQuery && filteredUsers.length === 0 && (
-                    <p className="text-base text-gray-500 text-center py-4">No users found</p>
-                  )}
-
-                 {selectedRecipient && (
-                   <div className="space-y-4 pt-4 border-t">
-                     <div className="p-4 bg-violet-50 rounded-lg">
-                       <p className="text-sm text-gray-600">Sending to:</p>
-                       <p className="font-bold text-lg">{selectedRecipient.full_name}</p>
-                       <p className="text-sm text-gray-500">{selectedRecipient.email}</p>
-                     </div>
-                     <div>
-                       <label className="text-sm text-gray-600 block mb-2">Amount (£)</label>
-                       <Input
-                         type="number"
-                         placeholder="Enter amount"
-                         value={transferAmount}
-                         onChange={(e) => setTransferAmount(e.target.value)}
-                         min="0"
-                         step="0.01"
-                         className="text-base h-12"
-                       />
-                       <p className="text-xs text-gray-500 mt-1">Available: £{cashBalance.toLocaleString('en-GB', { minimumFractionDigits: 2 })}</p>
-                     </div>
-                     <Button
-                       onClick={handleTransfer}
-                       disabled={!transferAmount || parseFloat(transferAmount) <= 0 || parseFloat(transferAmount) > cashBalance || transferMutation.isPending}
-                       className="w-full bg-violet-600 hover:bg-violet-700 h-12 text-base"
-                     >
-                       {transferMutation.isPending ? (
-                         <>
-                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                           Sending...
-                         </>
-                       ) : (
-                         <>
-                           <Send className="w-4 h-4 mr-2" />
-                           Send £{transferAmount || '0'}
-                         </>
-                       )}
-                     </Button>
-                   </div>
-                 )}
-               </div>
-             </CardContent>
-           </Card>
-         </motion.div>
-         )}
-
-         {/* Recent Activity */}
-         <motion.div
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ delay: 0.7 }}
-         >
-           <Card className="bg-slate-800 border-slate-700 shadow-lg">
-             <CardHeader>
-               <CardTitle className="text-lg text-white">Recent Activity</CardTitle>
-             </CardHeader>
-             <CardContent>
-               {transactions.length === 0 ? (
-                 <p className="text-center py-8 text-slate-400 text-base">No transactions yet</p>
-               ) : (
-                 <div className="space-y-3">
-                   {transactions.map((transaction) => (
-                     <div key={transaction.id} className="flex items-center justify-between p-4 rounded-lg bg-slate-900/50">
-                       <div className="flex items-center gap-4 flex-1">
-                         <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${
-                           transaction.type === 'buy' ? 'bg-red-500/20' : 'bg-green-500/20'
-                         }`}>
-                           {transaction.type === 'buy' ? (
-                             <TrendingDown className="w-6 h-6 text-red-500" />
-                           ) : (
-                             <TrendingUp className="w-6 h-6 text-green-500" />
-                           )}
-                         </div>
-                         <div className="min-w-0">
-                           <p className="font-bold text-base text-white">{transaction.symbol}</p>
-                           <p className="text-sm text-slate-400">{transaction.shares} shares · {transaction.company_name}</p>
-                         </div>
-                       </div>
-                       <div className="text-right ml-2">
-                         <p className={`font-bold text-base ${
-                           transaction.type === 'buy' ? 'text-red-500' : 'text-green-500'
-                         }`}>
-                           {transaction.type === 'buy' ? '-' : '+'}£{transaction.total_amount?.toFixed(2)}
-                         </p>
-                       </div>
-                     </div>
-                   ))}
-                 </div>
-               )}
-             </CardContent>
-           </Card>
-         </motion.div>
-       </div>
+        )}
+      </motion.div>
     </div>
   );
 }
