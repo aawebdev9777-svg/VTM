@@ -465,7 +465,7 @@ function SlidePortfolio() {
                 { label: 'Today', val: '+£342', color: 'text-emerald-400' },
                 { label: 'All Time', val: '+48.3%', color: 'text-emerald-400' },
                 { label: 'Best Hold', val: 'AMZN', color: 'text-amber-400' },
-                { label: 'Dividends', val: '£96/day', color: 'text-blue-400' },
+                { label: 'Dividends', val: '£10/hr', color: 'text-blue-400' },
               ].map(s => (
                 <div key={s.label} className="rounded-xl border border-white/[0.035] bg-white/[0.03] p-3 text-center">
                   <div className="text-white/30 text-xs mb-1">{s.label}</div>
@@ -710,10 +710,10 @@ function SlideDividends() {
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               {[
-                { sym: 'ABPF', yield: '0.08%/hr', holding: '£5,000', hrly: '+£4.00', icon: '🏦' },
-                { sym: 'JNJ', yield: '0.04%/hr', holding: '£3,500', hrly: '+£1.40', icon: '💊' },
-                { sym: 'T', yield: '0.06%/hr', holding: '£2,800', hrly: '+£1.68', icon: '📡' },
-                { sym: 'VZ', yield: '0.05%/hr', holding: '£2,200', hrly: '+£1.10', icon: '📶' },
+                { sym: 'ABPF', yield: '0.10%/hr', holding: '£5,000', hrly: '+£5.00', icon: '🏦' },
+                { sym: 'JNJ', yield: '0.09%/hr', holding: '£3,500', hrly: '+£3.15', icon: '💊' },
+                { sym: 'T', yield: '0.10%/hr', holding: '£2,800', hrly: '+£2.80', icon: '📡' },
+                { sym: 'VZ', yield: '0.08%/hr', holding: '£2,200', hrly: '+£1.76', icon: '📶' },
               ].map((d, i) => (
                 <motion.div key={d.sym} initial={{ opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 + i * 0.08 }}
                   className="rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-4 text-center">
@@ -742,10 +742,10 @@ function SlideDividends() {
               <div className="text-emerald-400 font-bold text-sm mb-5 flex items-center gap-2"><DollarSign className="w-4 h-4" /> Dividend Income Tracker</div>
               <div className="space-y-4">
                 {[
-                  { label: 'Last Hour', val: '+£4.00' },
-                  { label: 'Today (24 hrs)', val: '+£96.00' },
-                  { label: 'This Week', val: '+£672.00' },
-                  { label: 'This Month', val: '+£2,880.00' },
+                  { label: 'Last Hour', val: '+£10.00' },
+                  { label: 'Today (24 hrs)', val: '+£240.00' },
+                  { label: 'This Week', val: '+£1,680.00' },
+                  { label: 'This Month', val: '+£7,200.00' },
                 ].map(r => (
                   <div key={r.label} className="flex justify-between items-baseline border-b border-emerald-400/10 pb-3">
                     <span className="text-white/35 text-sm">{r.label}</span>
@@ -756,7 +756,7 @@ function SlideDividends() {
             </div>
             <div className="mt-6 pt-5 border-t border-emerald-400/15">
               <div className="text-white/30 text-xs mb-1">Annual Projected</div>
-              <div className="text-emerald-300 font-black text-5xl leading-none">+£34,560</div>
+              <div className="text-emerald-300 font-black text-5xl leading-none">+£87,600</div>
               <div className="text-white/15 text-xs mt-1.5">based on current holdings & yields</div>
             </div>
           </motion.div>
