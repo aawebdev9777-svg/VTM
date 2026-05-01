@@ -35,21 +35,31 @@ export default function Present() {
         backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E")`,
       }} />
 
-      {/* Ambient grid */}
-      <div className="absolute inset-0 opacity-[0.025]" style={{
-        backgroundImage: 'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)',
-        backgroundSize: '80px 80px'
+      {/* Subtle ambient grid */}
+      <div className="absolute inset-0 opacity-[0.008]" style={{
+        backgroundImage: 'linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)',
+        backgroundSize: '100px 100px'
       }} />
 
+      {/* Liquid glass orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full opacity-20"
+          style={{ background: 'radial-gradient(circle, rgba(245,158,11,0.25) 0%, rgba(251,191,36,0.08) 40%, transparent 70%)', filter: 'blur(60px)' }} />
+        <div className="absolute bottom-[-15%] right-[-5%] w-[500px] h-[500px] rounded-full opacity-15"
+          style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.2) 0%, rgba(139,92,246,0.06) 45%, transparent 70%)', filter: 'blur(80px)' }} />
+        <div className="absolute top-[40%] right-[15%] w-[300px] h-[300px] rounded-full opacity-10"
+          style={{ background: 'radial-gradient(circle, rgba(34,211,238,0.18) 0%, transparent 65%)', filter: 'blur(50px)' }} />
+      </div>
+
       {/* Top progress bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 px-4 pt-3">
+      <div className="fixed top-0 left-0 right-0 z-50 px-4 pt-3" style={{ backdropFilter: 'blur(12px)' }}>
         <div className="flex gap-0.5">
           {Array.from({ length: TOTAL_SLIDES }).map((_, i) => (
             <button key={i} onClick={() => goTo(i)}
-              className="flex-1 h-0.5 rounded-full transition-all duration-500 overflow-hidden"
-              style={{ background: i < current ? 'rgba(245,158,11,0.45)' : i === current ? '' : 'rgba(255,255,255,0.07)' }}>
+              className="flex-1 h-[3px] rounded-full transition-all duration-500 overflow-hidden"
+              style={{ background: i < current ? 'rgba(245,158,11,0.35)' : i === current ? '' : 'rgba(255,255,255,0.05)' }}>
               {i === current && (
-                <div className="h-full bg-amber-400 rounded-full" style={{ width: '100%' }} />
+                <div className="h-full bg-amber-400/90 rounded-full" style={{ width: '100%' }} />
               )}
             </button>
           ))}
@@ -71,20 +81,23 @@ export default function Present() {
         </motion.div>
       </AnimatePresence>
 
-      {/* Bottom nav */}
+      {/* Bottom nav — liquid glass */}
       <div className="fixed bottom-5 left-0 right-0 flex items-center justify-center gap-4 z-50">
         <button onClick={prev} disabled={current === 0}
-          className="w-9 h-9 rounded-full flex items-center justify-center border border-white/10 bg-white/5 backdrop-blur hover:border-amber-500/60 hover:text-amber-400 transition-all disabled:opacity-20 text-white/50">
+          className="w-9 h-9 rounded-full flex items-center justify-center transition-all disabled:opacity-15 text-white/40 hover:text-amber-400"
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)' }}>
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <div className="flex gap-1">
+        <div className="flex gap-1.5 px-4 py-2 rounded-full" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(16px)' }}>
           {Array.from({ length: TOTAL_SLIDES }).map((_, i) => (
             <button key={i} onClick={() => goTo(i)}
-              className={`rounded-full transition-all duration-300 ${i === current ? 'bg-amber-400 w-4 h-1.5' : 'bg-white/15 w-1.5 h-1.5 hover:bg-white/30'}`} />
+              className={`rounded-full transition-all duration-400 ${i === current ? 'w-4 h-1.5' : 'w-1.5 h-1.5 hover:opacity-60'}`}
+              style={{ background: i === current ? 'rgba(245,158,11,0.85)' : 'rgba(255,255,255,0.18)' }} />
           ))}
         </div>
         <button onClick={next} disabled={current === TOTAL_SLIDES - 1}
-          className="w-9 h-9 rounded-full flex items-center justify-center border border-white/10 bg-white/5 backdrop-blur hover:border-amber-500/60 hover:text-amber-400 transition-all disabled:opacity-20 text-white/50">
+          className="w-9 h-9 rounded-full flex items-center justify-center transition-all disabled:opacity-15 text-white/40 hover:text-amber-400"
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', backdropFilter: 'blur(16px)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)' }}>
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>
@@ -109,10 +122,10 @@ const Red = ({ children }) => <span className="text-red-400">{children}</span>;
 const Green = ({ children }) => <span className="text-emerald-400">{children}</span>;
 
 const GlowCard = ({ children, className = '', color = 'white' }) => {
-  const border = color === 'amber' ? 'border-amber-500/20' : color === 'red' ? 'border-red-500/15' : color === 'green' ? 'border-emerald-500/20' : 'border-white/8';
-  const bg = color === 'amber' ? 'bg-amber-500/5' : color === 'red' ? 'bg-red-500/5' : color === 'green' ? 'bg-emerald-500/5' : 'bg-white/[0.03]';
+  const border = color === 'amber' ? 'border-amber-500/15' : color === 'red' ? 'border-red-500/10' : color === 'green' ? 'border-emerald-500/15' : 'border-white/5';
+  const bg = color === 'amber' ? 'bg-amber-500/[0.04]' : color === 'red' ? 'bg-red-500/[0.04]' : color === 'green' ? 'bg-emerald-500/[0.04]' : 'bg-white/[0.02]';
   return (
-    <div className={`rounded-2xl border ${border} ${bg} backdrop-blur-sm ${className}`}>
+    <div className={`rounded-2xl border ${border} ${bg} backdrop-blur-xl ${className}`} style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.3)' }}>
       {children}
     </div>
   );
