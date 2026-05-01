@@ -71,11 +71,11 @@ export default function Present() {
       </div>
 
       {/* Slide */}
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout">
         <motion.div key={current}
-          initial={{ opacity: 0, y: 40, filter: 'blur(8px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } }}
-          exit={{ opacity: 0, y: -24, filter: 'blur(6px)', transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } }}
+          initial={{ opacity: 0, y: 20, filter: 'blur(4px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }}
+          exit={{ opacity: 0.3, y: -10, filter: 'blur(3px)', transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } }}
           className="w-full h-full">
           <SlideComp />
         </motion.div>
