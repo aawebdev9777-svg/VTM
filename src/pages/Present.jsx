@@ -122,7 +122,7 @@ const Red = ({ children }) => <span className="text-red-400">{children}</span>;
 const Green = ({ children }) => <span className="text-emerald-400">{children}</span>;
 
 const GlowCard = ({ children, className = '', color = 'white' }) => {
-  const border = color === 'amber' ? 'border-amber-500/15' : color === 'red' ? 'border-red-500/10' : color === 'green' ? 'border-emerald-500/15' : 'border-white/5';
+  const border = color === 'amber' ? 'border-amber-500/15' : color === 'red' ? 'border-red-500/10' : color === 'green' ? 'border-emerald-500/15' : 'border-white/[0.03]';
   const bg = color === 'amber' ? 'bg-amber-500/[0.04]' : color === 'red' ? 'bg-red-500/[0.04]' : color === 'green' ? 'bg-emerald-500/[0.04]' : 'bg-white/[0.02]';
   return (
     <div className={`rounded-2xl border ${border} ${bg} backdrop-blur-xl ${className}`} style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 24px rgba(0,0,0,0.3)' }}>
@@ -140,7 +140,7 @@ const StatPill = ({ value, label, i = 0 }) => (
 );
 
 const Tag = ({ children }) => (
-  <span className="text-[10px] border border-white/10 text-white/35 rounded-full px-3 py-1 font-medium">{children}</span>
+  <span className="text-[10px] border border-white/[0.06] text-white/35 rounded-full px-3 py-1 font-medium">{children}</span>
 );
 
 /* ── SLIDE 1: HERO ─────────────────────────────────────── */
@@ -343,7 +343,7 @@ function SlideHowItWorks() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
           {steps.map((step, i) => (
             <motion.div key={step.n} initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 * i, duration: 0.6 }}
-              className="relative rounded-2xl border border-white/8 bg-white/[0.03] p-6 overflow-hidden group hover:border-amber-400/25 transition-colors">
+              className="relative rounded-2xl border border-white/[0.04] bg-white/[0.03] p-6 overflow-hidden group hover:border-amber-400/25 transition-colors">
               <div className="absolute top-3 right-4 text-6xl font-black text-white/[0.04] select-none leading-none">{step.n}</div>
               <div className="text-4xl mb-4">{step.icon}</div>
               <div className="text-white font-bold text-sm mb-2">{step.title}</div>
@@ -379,8 +379,8 @@ function SlideTrading() {
           Real-time <Gold>trading dashboard.</Gold>
         </H>
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-          className="rounded-2xl border border-white/10 overflow-hidden shadow-2xl shadow-black/60">
-          <div className="bg-white/[0.04] border-b border-white/8 px-5 py-3 flex items-center gap-3">
+          className="rounded-2xl border border-white/[0.06] overflow-hidden shadow-2xl shadow-black/60">
+          <div className="bg-white/[0.04] border-b border-white/[0.04] px-5 py-3 flex items-center gap-3">
             <div className="flex gap-1.5">
               <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
               <div className="w-2.5 h-2.5 rounded-full bg-amber-500/70" />
@@ -402,7 +402,7 @@ function SlideTrading() {
                 { sym: 'TSLA', shares: 5, price: '£214.80', chg: '-0.8%', pos: false },
                 { sym: 'AMZN', shares: 8, price: '£155.30', chg: '+2.1%', pos: true },
               ].map(s => (
-                <div key={s.sym} className="flex items-center justify-between rounded-xl bg-white/[0.03] border border-white/5 px-4 py-2.5">
+                <div key={s.sym} className="flex items-center justify-between rounded-xl bg-white/[0.03] border border-white/[0.03] px-4 py-2.5">
                   <div><p className="text-white font-bold text-sm">{s.sym}</p><p className="text-white/30 text-xs">{s.shares} shares @ {s.price}</p></div>
                   <div className={`text-sm font-black ${s.pos ? 'text-emerald-400' : 'text-red-400'}`}>{s.chg}</div>
                 </div>
@@ -422,16 +422,16 @@ function SlideTrading() {
                   { label: 'Cash', val: '£2,400' }, { label: 'Day P/L', val: '+£342' },
                   { label: 'Holdings', val: '28 stocks' }, { label: 'Win Rate', val: '71.4%' },
                 ].map(s => (
-                  <div key={s.label} className="rounded-lg bg-white/[0.03] border border-white/5 p-3 text-center">
+                  <div key={s.label} className="rounded-lg bg-white/[0.03] border border-white/[0.03] p-3 text-center">
                     <div className="text-white/30 text-xs">{s.label}</div>
                     <div className="text-white font-bold text-sm mt-0.5">{s.val}</div>
                   </div>
                 ))}
               </div>
-              <div className="rounded-xl bg-white/[0.03] border border-white/5 p-3">
+              <div className="rounded-xl bg-white/[0.03] border border-white/[0.03] p-3">
                 <div className="text-white/35 text-xs mb-2">Quick Trade</div>
                 <div className="flex gap-2">
-                  <div className="flex-1 rounded-lg bg-white/5 border border-white/8 px-3 py-2 text-white/35 text-xs">AAPL — £173.20</div>
+                  <div className="flex-1 rounded-lg bg-white/5 border border-white/[0.04] px-3 py-2 text-white/35 text-xs">AAPL — £173.20</div>
                   <div className="px-4 py-2 rounded-lg bg-amber-400 text-black text-xs font-black cursor-pointer">Buy</div>
                 </div>
               </div>
@@ -453,8 +453,8 @@ function SlidePortfolio() {
           Deep <Gold>performance tracking.</Gold>
         </H>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-          className="rounded-2xl border border-white/10 overflow-hidden shadow-2xl shadow-black/50">
-          <div className="bg-white/[0.04] border-b border-white/8 px-5 py-3 flex items-center justify-between">
+          className="rounded-2xl border border-white/[0.06] overflow-hidden shadow-2xl shadow-black/50">
+          <div className="bg-white/[0.04] border-b border-white/[0.04] px-5 py-3 flex items-center justify-between">
             <span className="text-white font-bold text-sm flex items-center gap-2"><BarChart2 className="w-4 h-4 text-amber-400" /> My Portfolio</span>
             <span className="text-[10px] border border-amber-400/20 text-amber-400/70 rounded-full px-2.5 py-0.5 font-bold">Season 4 · Apr 2026</span>
           </div>
@@ -467,7 +467,7 @@ function SlidePortfolio() {
                 { label: 'Best Hold', val: 'AMZN', color: 'text-amber-400' },
                 { label: 'Dividends', val: '£96/day', color: 'text-blue-400' },
               ].map(s => (
-                <div key={s.label} className="rounded-xl border border-white/6 bg-white/[0.03] p-3 text-center">
+                <div key={s.label} className="rounded-xl border border-white/[0.035] bg-white/[0.03] p-3 text-center">
                   <div className="text-white/30 text-xs mb-1">{s.label}</div>
                   <div className={`text-sm font-black ${s.color}`}>{s.val}</div>
                 </div>
@@ -481,7 +481,7 @@ function SlidePortfolio() {
                 { sym: 'AMZN', shares: 8, buy: '£128.00', curr: '£155.30', pct: '+21.3%', gain: '+£218', pos: true, bar: 100 },
               ].map((h, i) => (
                 <motion.div key={h.sym} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + i * 0.07 }}
-                  className="flex items-center gap-4 rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3">
+                  className="flex items-center gap-4 rounded-xl border border-white/[0.03] bg-white/[0.02] px-4 py-3">
                   <div className="w-16">
                     <div className="text-white font-bold text-sm">{h.sym}</div>
                     <div className="text-white/25 text-xs">{h.shares} sh</div>
@@ -516,8 +516,8 @@ function SlideLeaderboard() {
         </H>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}
-            className="rounded-2xl border border-white/10 overflow-hidden">
-            <div className="bg-white/[0.04] border-b border-white/8 px-5 py-3 flex items-center justify-between">
+            className="rounded-2xl border border-white/[0.06] overflow-hidden">
+            <div className="bg-white/[0.04] border-b border-white/[0.04] px-5 py-3 flex items-center justify-between">
               <span className="text-white font-bold text-sm flex items-center gap-2"><Trophy className="w-4 h-4 text-amber-400" /> Global Rankings</span>
               <span className="text-white/25 text-xs">Season 4 · Live</span>
             </div>
@@ -529,7 +529,7 @@ function SlideLeaderboard() {
                 { rank: 4, medal: '4', name: 'DipHunter', tier: 'Gold', val: '£18,350', pct: '+83%', me: false },
                 { rank: 5, medal: '5', name: 'You', tier: 'Silver', val: '£14,832', pct: '+48%', me: true },
               ].map((t) => (
-                <div key={t.rank} className={`flex items-center justify-between rounded-xl px-4 py-3 ${t.me ? 'border border-amber-400/40 bg-amber-400/10' : 'border border-white/5 bg-white/[0.02]'}`}>
+                <div key={t.rank} className={`flex items-center justify-between rounded-xl px-4 py-3 ${t.me ? 'border border-amber-400/40 bg-amber-400/10' : 'border border-white/[0.03] bg-white/[0.02]'}`}>
                   <div className="flex items-center gap-3">
                     <span className="text-base w-6 text-center font-bold">{t.medal}</span>
                     <div>
@@ -585,8 +585,8 @@ function SlideCopyTrading() {
         </H>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-            className="rounded-2xl border border-white/10 overflow-hidden">
-            <div className="bg-white/[0.04] border-b border-white/8 px-5 py-3 flex items-center gap-2">
+            className="rounded-2xl border border-white/[0.06] overflow-hidden">
+            <div className="bg-white/[0.04] border-b border-white/[0.04] px-5 py-3 flex items-center gap-2">
               <Copy className="w-4 h-4 text-amber-400" />
               <span className="text-white font-bold text-sm">Active Copy Positions</span>
             </div>
@@ -609,7 +609,7 @@ function SlideCopyTrading() {
                   </div>
                 </div>
               ))}
-              <div className="text-white/20 text-xs border-t border-white/5 pt-3">
+              <div className="text-white/20 text-xs border-t border-white/[0.03] pt-3">
                 ✓ Mirrors trades proportionally · ✓ No extra fees · ✓ Cancel anytime
               </div>
             </div>
@@ -623,7 +623,7 @@ function SlideCopyTrading() {
               { n: '04', title: 'Track Everything', desc: 'Live P&L dashboard for every copy-trade position. See exactly what you earned and why.' },
             ].map((item, i) => (
               <motion.div key={item.n} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.12 * i }}
-                className="flex gap-4 rounded-xl border border-white/7 bg-white/[0.02] p-4">
+                className="flex gap-4 rounded-xl border border-white/[0.04] bg-white/[0.02] p-4">
                 <div className="w-7 h-7 rounded-full bg-amber-400 text-black font-black flex items-center justify-center shrink-0 text-xs">{item.n}</div>
                 <div>
                   <div className="text-white font-bold text-sm">{item.title}</div>
@@ -649,8 +649,8 @@ function SlideAI() {
         </H>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-            className="rounded-2xl border border-white/10 overflow-hidden">
-            <div className="bg-white/[0.04] border-b border-white/8 px-5 py-3 flex items-center gap-2">
+            className="rounded-2xl border border-white/[0.06] overflow-hidden">
+            <div className="bg-white/[0.04] border-b border-white/[0.04] px-5 py-3 flex items-center gap-2">
               <Brain className="w-4 h-4 text-amber-400" />
               <span className="text-white font-bold text-sm">VStock AI Coach</span>
               <span className="ml-auto text-emerald-400 text-xs flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse" /> Online</span>
@@ -682,7 +682,7 @@ function SlideAI() {
               { icon: '⚖️', t: 'Portfolio Optimisation', d: 'Rebalancing suggestions based on modern portfolio theory' },
             ].map((item, i) => (
               <motion.div key={item.t} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.08 + i * 0.07 }}
-                className="flex gap-3 rounded-xl border border-white/6 bg-white/[0.02] px-4 py-3 hover:border-amber-400/20 transition-colors">
+                className="flex gap-3 rounded-xl border border-white/[0.035] bg-white/[0.02] px-4 py-3 hover:border-amber-400/20 transition-colors">
                 <span className="text-xl">{item.icon}</span>
                 <div>
                   <div className="text-white font-bold text-xs">{item.t}</div>
@@ -725,7 +725,7 @@ function SlideDividends() {
                 </motion.div>
               ))}
             </div>
-            <div className="rounded-xl border border-white/6 bg-white/[0.02] p-4">
+            <div className="rounded-xl border border-white/[0.035] bg-white/[0.02] p-4">
               <div className="text-white/40 font-bold text-xs mb-3">🎓 Why Dividends Matter</div>
               <div className="space-y-1.5 text-white/30 text-xs leading-relaxed">
                 <p>✓ Teaches passive income and compound growth through doing</p>
@@ -777,8 +777,8 @@ function SlideSocial() {
         </H>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-            className="rounded-2xl border border-white/10 overflow-hidden">
-            <div className="bg-white/[0.04] border-b border-white/8 px-5 py-3 flex items-center gap-2">
+            className="rounded-2xl border border-white/[0.06] overflow-hidden">
+            <div className="bg-white/[0.04] border-b border-white/[0.04] px-5 py-3 flex items-center gap-2">
               <Users className="w-4 h-4 text-amber-400" />
               <span className="text-white font-bold text-sm">Community Feed</span>
               <span className="ml-auto text-xs text-white/20">127 online now</span>
@@ -789,7 +789,7 @@ function SlideSocial() {
                 { user: 'BullRunner99', badge: '💎', msg: '📈 NVDA AI chip orders coming in strong. Tech is only getting started — loaded at open.', time: '15m', likes: 23 },
                 { user: 'DipHunter', badge: '🥇', msg: '🎯 Caught TSLA -10% dip and rode it back. Strategy: wait, watch, strike. It works every time.', time: '1h', likes: 156 },
               ].map((p, i) => (
-                <div key={i} className="rounded-xl border border-white/6 bg-white/[0.02] p-3">
+                <div key={i} className="rounded-xl border border-white/[0.035] bg-white/[0.02] p-3">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 rounded-full bg-amber-400/15 flex items-center justify-center text-amber-400 font-black text-xs">{p.user[0]}</div>
@@ -817,7 +817,7 @@ function SlideSocial() {
               { icon: '🏆', t: 'Group Leaderboards', d: 'Filter by school, city, friend group — compete at every social level' },
             ].map((item, i) => (
               <motion.div key={item.t} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.07 * i }}
-                className="flex gap-3 rounded-xl border border-white/6 bg-white/[0.02] px-4 py-3 hover:border-amber-400/15 transition-colors">
+                className="flex gap-3 rounded-xl border border-white/[0.035] bg-white/[0.02] px-4 py-3 hover:border-amber-400/15 transition-colors">
                 <span className="text-xl">{item.icon}</span>
                 <div>
                   <div className="text-white font-bold text-xs">{item.t}</div>
@@ -852,7 +852,7 @@ function SlideGamification() {
               { e: '👑', t: 'Hall of Fame', d: 'Top 10 traders each season are immortalised in the permanent Hall of Fame.' },
             ].map((item, i) => (
               <motion.div key={item.t} initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.06 * i }}
-                className="flex gap-3 rounded-xl border border-white/6 bg-white/[0.02] px-4 py-3 hover:border-amber-400/15 transition-colors">
+                className="flex gap-3 rounded-xl border border-white/[0.035] bg-white/[0.02] px-4 py-3 hover:border-amber-400/15 transition-colors">
                 <span className="text-xl">{item.e}</span>
                 <div>
                   <div className="text-white font-bold text-xs">{item.t}</div>
@@ -869,7 +869,7 @@ function SlideGamification() {
               <div className="text-white font-black text-xl mt-2">More Daily Sessions</div>
               <div className="text-white/30 text-sm">vs non-gamified finance apps</div>
             </div>
-            <div className="border-t border-white/8 pt-5 space-y-3 text-sm text-white/40">
+            <div className="border-t border-white/[0.04] pt-5 space-y-3 text-sm text-white/40">
               <div className="flex items-center gap-2"><span className="text-emerald-400 font-bold">+60%</span> reduction in churn via reward loops</div>
               <div className="flex items-center gap-2"><span className="text-emerald-400 font-bold">+340%</span> session frequency vs banking apps</div>
               <div className="flex items-center gap-2"><span className="text-emerald-400 font-bold">+2.8×</span> longer session duration with missions</div>
@@ -909,13 +909,13 @@ function SlideAppScreenshots() {
             },
           ].map((screen, i) => (
             <motion.div key={screen.title} initial={{ opacity: 0, y: 25 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.12 }}
-              className="rounded-2xl border border-white/10 overflow-hidden">
-              <div className="bg-white/[0.04] border-b border-white/8 px-4 py-2.5 flex items-center gap-2">
+              className="rounded-2xl border border-white/[0.06] overflow-hidden">
+              <div className="bg-white/[0.04] border-b border-white/[0.04] px-4 py-2.5 flex items-center gap-2">
                 <span>{screen.icon}</span>
                 <span className="text-white font-bold text-sm">{screen.title}</span>
               </div>
               <div className="bg-[#0d1220] p-4">
-                <div className="rounded-xl bg-white/[0.03] border border-white/5 p-4 mb-3 space-y-2">
+                <div className="rounded-xl bg-white/[0.03] border border-white/[0.03] p-4 mb-3 space-y-2">
                   {screen.items.map(item => (
                     <div key={item} className="flex items-center gap-2 text-xs text-white/50">
                       <div className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
@@ -1012,7 +1012,7 @@ function SlideTraction() {
             { v: '£0', l: 'Paid acquisition', sub: 'pure organic growth', color: 'text-purple-400' },
           ].map((s, i) => (
             <motion.div key={s.l} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.09 }}
-              className="rounded-2xl border border-white/8 bg-white/[0.03] p-5 text-center">
+              className="rounded-2xl border border-white/[0.04] bg-white/[0.03] p-5 text-center">
               <div className={`text-4xl font-black ${s.color} leading-none mb-2`}>{s.v}</div>
               <div className="text-white font-bold text-sm">{s.l}</div>
               <div className="text-white/25 text-xs mt-1">{s.sub}</div>
@@ -1021,7 +1021,7 @@ function SlideTraction() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-white/8 bg-white/[0.02] p-5">
+          <div className="rounded-2xl border border-white/[0.04] bg-white/[0.02] p-5">
             <div className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4">📣 What Users Say</div>
             <div className="space-y-3">
               {[
@@ -1029,7 +1029,7 @@ function SlideTraction() {
                 { quote: '"The AI coach is incredible. It explained short selling better than any YouTube video."', user: 'Priya, 19, Sixth Form' },
                 { quote: '"I actually look forward to checking my portfolio every morning now."', user: 'Marcus, 24, Graduate' },
               ].map((t, i) => (
-                <div key={i} className="rounded-xl border border-white/5 bg-white/[0.02] px-4 py-3">
+                <div key={i} className="rounded-xl border border-white/[0.03] bg-white/[0.02] px-4 py-3">
                   <p className="text-white/50 text-xs leading-relaxed italic mb-1">{t.quote}</p>
                   <p className="text-white/25 text-xs">— {t.user}</p>
                 </div>
@@ -1037,7 +1037,7 @@ function SlideTraction() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/8 bg-white/[0.02] p-5">
+          <div className="rounded-2xl border border-white/[0.04] bg-white/[0.02] p-5">
             <div className="text-white/40 text-xs font-bold uppercase tracking-widest mb-4">📈 Engagement Highlights</div>
             <div className="space-y-3">
               {[
@@ -1083,7 +1083,7 @@ function SlideBusinessModel() {
             { icon: '🤝', title: 'Brokerage Referrals', sub: 'Revenue share', desc: 'Bridge confident, educated users to real regulated trading accounts — a trusted, natural next step.' },
           ].map((item, i) => (
             <motion.div key={item.title} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.09 * i }}
-              className="rounded-2xl border border-white/8 bg-white/[0.03] p-5 flex gap-4 hover:border-amber-400/20 transition-colors">
+              className="rounded-2xl border border-white/[0.04] bg-white/[0.03] p-5 flex gap-4 hover:border-amber-400/20 transition-colors">
               <span className="text-3xl">{item.icon}</span>
               <div>
                 <div className="text-white font-bold text-sm">{item.title}</div>
@@ -1143,8 +1143,8 @@ function SlideRoadmap() {
               items: ['VStock Pro subscription launch', 'Mobile app (iOS & Android)', 'First 5 school partnerships', 'Premium seasonal tournaments', 'Broker referral integrations'],
             },
             {
-              phase: 'Phase 3', period: '2027', status: 'planned', color: 'border-white/8 bg-white/[0.02]',
-              statusColor: 'text-white/40 border-white/15 bg-white/5',
+              phase: 'Phase 3', period: '2027', status: 'planned', color: 'border-white/[0.04] bg-white/[0.02]',
+              statusColor: 'text-white/40 border-white/[0.07] bg-white/5',
               items: ['UK nationwide school rollout', 'EU market expansion', 'Crypto & ETF simulation', 'Options & derivatives mode', 'Institutional B2B dashboard'],
             },
           ].map((phase, i) => (
@@ -1159,7 +1159,7 @@ function SlideRoadmap() {
               </div>
               <div className="flex flex-wrap gap-2">
                 {phase.items.map(item => (
-                  <span key={item} className="text-xs bg-white/5 border border-white/8 rounded-lg px-3 py-1 text-white/50">{item}</span>
+                  <span key={item} className="text-xs bg-white/5 border border-white/[0.04] rounded-lg px-3 py-1 text-white/50">{item}</span>
                 ))}
               </div>
             </motion.div>
@@ -1245,7 +1245,7 @@ function SlideCTA() {
           className="flex items-center justify-center gap-2 px-10 py-4 bg-amber-400 hover:bg-amber-300 rounded-2xl text-black font-black text-lg transition-all shadow-2xl shadow-amber-500/35">
           Try VStock Free <ArrowRight className="w-5 h-5" />
         </a>
-        <div className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl border border-white/10 bg-white/5 text-white font-semibold text-sm backdrop-blur">
+        <div className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl border border-white/[0.06] bg-white/5 text-white font-semibold text-sm backdrop-blur">
           <Wallet className="w-4 h-4 text-amber-400" />
           <span>£10,000 virtual · No card required</span>
         </div>
